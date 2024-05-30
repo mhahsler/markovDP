@@ -1,0 +1,80 @@
+---
+output: github_document
+---
+
+```{r echo=FALSE, results = 'asis'}
+pkg <- "mdp"
+
+source("https://raw.githubusercontent.com/mhahsler/pkg_helpers/main/pkg_helpers.R")
+pkg_title(pkg)
+```
+
+## Introduction
+A Markov decision process (MDP) is a discrete-time 
+stochastic control process. In each time step, an 
+agent can perform actions which affect the system (i.e., may cause
+the system state to change). The agent's goal 
+is to maximize its expected
+future rewards that depend on the sequence of system state and the
+agent's actions in the future. Solving the MDP means finding 
+the optimal (or at least a good) policy
+that guides the agent's actions. 
+
+The package also interfaces
+to the following algorithms:
+
+* Dynamic Programming (see Russell and Norvig, 2021)
+  - __Value Iteration__
+  - __Modified Policy Iteration__
+
+* Linear Programming
+
+* Termporal Differencing (see Sutton and Barto, 2020)
+  - __Q-Learning__ 
+  - __Sarsa__ 
+  - __Expected Sarsa__ 
+
+
+```{r echo=FALSE, results = 'asis'}
+pkg_citation(pkg, 1)
+pkg_install(pkg)
+```
+
+## Usage
+
+Solving the simple maze
+```{r}
+library("mdp")
+data("Maze")
+Maze
+gridworld_plot(Maze)
+```
+
+```{r}
+sol <- solve_MDP(model = Maze)
+sol
+```
+
+Display the value function.
+
+```{r value_function, fig.height=4, fig.width=4}
+plot_value_function(sol)
+```
+
+```{r gridworld_plot, fig.height=4, fig.width=4}
+gridworld_plot(sol)
+```
+
+
+## Acknowledgments
+
+Development of this package was supported in part by 
+National Institute of Standards and Technology (NIST) under grant number 
+[60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
+
+## References
+Russell, S., Norvig, P. (2021). Artificial Intelligence: A Modern Approach.
+ Fourth edition. Prentice Hall.
+
+Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
+ Second edition. The MIT Press.

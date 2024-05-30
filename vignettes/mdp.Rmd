@@ -1,0 +1,319 @@
+---
+title: "mdp: Discrete-Time Markov Decision Processes"
+author: "Michael Hahsler"
+bibliography: references.bib
+vignette: >
+  %\VignetteIndexEntry{mdp: Discrete-Time Markov Decision Processes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  rmarkdown::html_vignette
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library("mdp")
+```
+
+# Introduction
+
+The R package **mdp** provides the infrastructure to define and
+analyze the solutions of discrete-time Markov Decision Processes
+(MDP) models. The package enables the user to simply define all components of a MDP
+model and solve the problem using several methods. 
+
+In this document, we will give a very brief introduction to the concept
+of MDPs, describe the features of the R package, and illustrate the
+usage with a toy example.
+
+# Markov Decision Processes
+
+A Markov decision process (MDP) is a discrete-time 
+stochastic control process. In each time step, an 
+agent can perform actions which affect the system (i.e., may cause
+the system state to change). The agent's goal 
+is to maximize its expected
+future rewards that depend on the sequence of system state and the
+agent's actions in the future. The goal is to find the optimal policy
+that guides the agent's actions. 
+
+The MDP framework is general enough to model a variety of real-world
+sequential decision-making problems. Applications include robot
+navigation problems, machine maintenance, and planning under uncertainty
+in general. 
+
+A discrete-time POMDP can formally be described as a 7-tuple
+$$\mathcal{P} = (S, A, T, R, \gamma),$$ where
+
+-   $S = \{s_1, s_2, \dots, s_n\}$ is a set of partially observable
+    states,
+
+-   $A = \{a_1, a_2, \dots, a_m\}$ is a set of actions,
+
+-   $T$ a set of conditional transition probabilities $T(s' \mid s,a)$
+    for the state transition $s \rightarrow s'$ conditioned on the taken
+    action.
+
+-   $R: S \times A \rightarrow \mathbb{R}$ is the reward function,
+
+-   $\gamma \in [0, 1]$ is the discount factor.
+
+At each time period, the environment is in some known state $s \in S$.
+The agent chooses an action $a \in A$, which causes the environment to
+transition to state $s' \in S$ with probability $T(s' \mid s,a)$
+and the agent receives a reward $R(s,a)$. Then
+the process repeats. The goal is for the agent to choose actions that
+maximizes the expected sum of discounted future rewards, i.e., she
+chooses the actions at each time $t$ that
+$$\max E\left[\sum_{t=0}^{\infty} \gamma^t R(s_t, a_t)\right].$$
+
+For a finite time horizon, only the expectation over the sum up to the
+time horizon is used.
+
+# Package Functionality
+
+Solving a POMDP problem with the **mdp** package consists of two
+steps:
+
+1.  Define a POMDP problem using the function `MDP()`, and
+2.  solve the problem using `solve_MDP()`.
+
+## Defining a MDP Problem
+
+The `MDP()` function has the following arguments, each corresponds to
+one of the elements of a MDP.
+
+```{r}
+str(args(MDP))
+```
+
+where
+
+-   `states` defines the set of states $S$,
+
+-   `actions` defines the set of actions $A$,
+
+-   `observations` defines the set of observations $\Omega$,
+
+-   `transition_prob` defines the conditional transition probabilities
+    $T(s' \mid s,a)$,
+
+-   `reward` specifies the reward function $R$,
+
+-   `discount` is the discount factor $\gamma$ in range $[0,1]$,
+
+-   `horizon` is the problem horizon as the number of periods to
+    consider.
+
+-   `start` The state in which the agent starts. Can be a probability distribution over the system
+    states $S$,
+
+-   `name` used to give the MDP problem a name.
+
+While specifying the discount rate and the set of states, 
+actions is straight-forward. Some arguments can be specified in
+different ways. The initial state `start` can be specified as
+
+-   A vector of $n$ probabilities in $[0,1]$, that add up to 1, where
+    $n$ is the number of states.
+
+    ```{r, eval = FALSE}
+start <- c(0.5, 0.3, 0.2)
+    ```
+
+-   The string '"uniform"' for a uniform distribution over all states.
+
+    ```{r, eval = FALSE}
+start <- "uniform"
+    ```
+
+-   A vector of integer indices specifying a subset as start states. The
+    initial probability is uniform over these states. For example, only
+    state 3 or state 1 and 3:
+
+    ```{r, eval = FALSE}
+start <- 3
+start <- c(1, 3)
+    ```
+
+-   A vector of strings specifying a subset as equally likely start
+    states.
+
+    ```{r, eval = FALSE}
+start <- "state3"
+start <- c("state1", "state3")
+    ```
+
+-   A vector of strings starting with `"-"` specifying which states to
+    exclude from the uniform initial probability distribution.
+
+    ```{r, eval = FALSE}
+start <- c("-", "state2")
+    ```
+
+The transition probabilities (`transition_prob`) 
+and reward function (`reward`) can be
+specified in several ways:
+
+-   As a `data.frame` created using `rbind()` and the helper functions
+    `T_()` and `R_()`.
+-   A named list of matrices representing the transition probabilities
+    or rewards.
+-   A function with the same arguments `T_()` or `R_()` that
+    returns the probability or reward.
+
+More details can be found in the manual page for `MDP()`.
+
+## Solving a MDP
+
+POMDP problems are solved with the function `solve_MDP()` with the
+following arguments.
+
+```{r}
+str(args(solve_MDP))
+```
+
+The `model` argument is a MDP problem created using the `MDP()`
+function. The
+`horizon` argument specifies the finite time horizon (i.e, the number of
+time steps) considered in solving the problem. If the horizon is
+unspecified (i.e., `NULL`), then the algorithm continues running
+iterations till it converges to the infinite horizon solution. The
+`method` argument specifies what algorithm the solver should use.
+Available methods including 
+`"value_iteration"`, `"policy_iteration"`, `"q_learning"`, `"sarsa"`, 
+or `"expected_sarsa"`.
+
+# Steward Russell's 4x3 Maze Gridworld MDP
+
+We will demonstrate how to use the package 
+with the 4x3 Maze Gridworld described in Chapter 17 of the textbook "Artificial Intelligence: A Modern Approach" (AIMA) [@FIXME].
+The simple maze has the following layout:
+
+```
+    1234           Transition model:
+   ######             .8 (action direction)
+  1#   +#              ^
+  2# # -#              |
+  3#S   #         .1 <-|-> .1
+   ######
+```
+
+We represent the maze states as a gridworld matrix with 3 rows and 4 columns. The states are labeled s(row, col) representing the position in the matrix. The # (state s(2,2)) in the middle of the maze is an obstruction and not reachable. Rewards are associated with transitions. The default reward (penalty) is -0.04. The start state marked with S is s(3,1). Transitioning to + (state s(1,4)) gives a reward of +1.0, transitioning to - (state s_(2,4)) has a reward of -1.0. Both these states are absorbing (i.e., terminal) states.
+
+Actions are movements (up, right, down, left). The actions are unreliable with a .8 chance to move in the correct direction and a 0.1 chance to instead to move in a perpendicular direction leading to a stochastic transition model.
+
+## Specifying the Maze
+
+
+```{r}
+library("mdp")
+
+gw <- gridworld_init(dim = c(3, 4), unreachable_states = c("s(2,2)"))
+
+# the transition function is stochastic
+T <- function(action, start.state, end.state) {
+  action <- match.arg(action, choices = gw$actions)
+
+  # absorbing states
+  if (start.state %in% c("s(1,4)", "s(2,4)")) {
+    if (start.state == end.state) {
+      return(1)
+    } else {
+      return(0)
+    }
+  }
+
+  # actions are stochastic so we cannot use gw$trans_prob
+  if (action %in% c("up", "down")) {
+    error_direction <- c("right", "left")
+  } else {
+    error_direction <- c("up", "down")
+  }
+
+  rc <- gridworld_s2rc(start.state)
+  delta <- list(
+    up = c(-1, 0),
+    down = c(+1, 0),
+    right = c(0, +1),
+    left = c(0, -1)
+  )
+  P <- matrix(0, nrow = 3, ncol = 4)
+
+  add_prob <- function(P, rc, a, value) {
+    new_rc <- rc + delta[[a]]
+    if (!(gridworld_rc2s(new_rc) %in% gw$states)) {
+      new_rc <- rc
+    }
+    P[new_rc[1], new_rc[2]] <- P[new_rc[1], new_rc[2]] + value
+    P
+  }
+
+  P <- add_prob(P, rc, action, .8)
+  P <- add_prob(P, rc, error_direction[1], .1)
+  P <- add_prob(P, rc, error_direction[2], .1)
+  P[rbind(gridworld_s2rc(end.state))]
+}
+
+
+R <- rbind(
+  R_(end.state = NA, value = -0.04),
+  R_(end.state = "s(2,4)", value = -1),
+  R_(end.state = "s(1,4)", value = +1),
+  R_(start.state = "s(2,4)", value = 0),
+  R_(start.state = "s(1,4)", value = 0)
+)
+
+
+Maze <- MDP(
+  name = "Stuart Russell's 3x4 Maze",
+  discount = 1,
+  horizon = Inf,
+  states = gw$states,
+  actions = gw$actions,
+  start = "s(3,1)",
+  transition_prob = T,
+  reward = R,
+  info = list(
+    gridworld_dim = c(3, 4),
+    gridworld_labels = list(
+      "s(3,1)" = "Start",
+      "s(2,4)" = "-1",
+      "s(1,4)" = "Goal: +1"
+    )
+  )
+)
+
+Maze
+```
+
+## Solving the Maze
+
+Now, we can solve the problem. 
+
+```{r}
+sol <- solve_MDP(Maze)
+sol
+```
+
+The output is an object of class MDP which contains the solution as an
+additional list component. The solution can be accessed directly in the
+list.
+
+```{r}
+sol$solution
+```
+
+```{r}
+plot_value_function(sol)
+```
+
+
+# References
