@@ -57,11 +57,11 @@ sol
 
 Display the value function.
 
-```{r value_function, fig.height=4, fig.width=4}
+```{r value_function, fig.height=4}
 plot_value_function(sol)
 ```
 
-```{r gridworld_plot, fig.height=4, fig.width=4}
+```{r gridworld_plot, fig.height=4}
 gridworld_plot(sol)
 ```
 
