@@ -27,7 +27,7 @@ to the following algorithms:
   - __Value Iteration__
   - __Modified Policy Iteration__
 
-* Linear Programming
+* __Linear Programming__
 
 * Termporal Differencing (see Sutton and Barto, 2020)
   - __Q-Learning__ 
@@ -43,25 +43,25 @@ pkg_install(pkg)
 ## Usage
 
 Solving the simple maze
-```{r}
+```{r problem}
 library("mdp")
 data("Maze")
 Maze
 gridworld_plot(Maze)
 ```
 
-```{r}
+```{r solve}
 sol <- solve_MDP(model = Maze)
 sol
 ```
 
 Display the value function.
 
-```{r value_function, fig.height=4}
+```{r value_function}
 plot_value_function(sol)
 ```
 
-```{r gridworld_plot, fig.height=4}
+```{r gridworld_plot}
 gridworld_plot(sol)
 ```
 

@@ -25,7 +25,7 @@ The package also interfaces to the following algorithms:
   - **Value Iteration**
   - **Modified Policy Iteration**
 
-- Linear Programming
+- **Linear Programming**
 
 - Termporal Differencing (see Sutton and Barto, 2020)
 
@@ -85,7 +85,7 @@ Maze
 gridworld_plot(Maze)
 ```
 
-![](inst/README_files/unnamed-chunk-3-1.png)<!-- -->
+![](inst/README_files/problem-1.png)<!-- -->
 
 ``` r
 sol <- solve_MDP(model = Maze)
