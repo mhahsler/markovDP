@@ -1,4 +1,4 @@
 library("testthat")
-library("mdp")
+library("markovDP")
 
-test_check("mdp")
+test_check("markovDP")

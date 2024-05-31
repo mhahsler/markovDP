@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // round_stochastic_cpp
 NumericVector round_stochastic_cpp(const NumericVector& x, int digits);
-RcppExport SEXP _mdp_round_stochastic_cpp(SEXP xSEXP, SEXP digitsSEXP) {
+RcppExport SEXP _markovDP_round_stochastic_cpp(SEXP xSEXP, SEXP digitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -24,7 +24,7 @@ END_RCPP
 }
 // veccrossprod
 NumericVector veccrossprod(const NumericMatrix& A, const NumericVector& b);
-RcppExport SEXP _mdp_veccrossprod(SEXP ASEXP, SEXP bSEXP) {
+RcppExport SEXP _markovDP_veccrossprod(SEXP ASEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -36,7 +36,7 @@ END_RCPP
 }
 // vecprod
 NumericVector vecprod(const NumericMatrix& A, const NumericVector& b);
-RcppExport SEXP _mdp_vecprod(SEXP ASEXP, SEXP bSEXP) {
+RcppExport SEXP _markovDP_vecprod(SEXP ASEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -48,7 +48,7 @@ END_RCPP
 }
 // reward_val_from_df_cpp
 double reward_val_from_df_cpp(const List& model, int action, int start_state, int end_state, int observation);
-RcppExport SEXP _mdp_reward_val_from_df_cpp(SEXP modelSEXP, SEXP actionSEXP, SEXP start_stateSEXP, SEXP end_stateSEXP, SEXP observationSEXP) {
+RcppExport SEXP _markovDP_reward_val_from_df_cpp(SEXP modelSEXP, SEXP actionSEXP, SEXP start_stateSEXP, SEXP end_stateSEXP, SEXP observationSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -63,7 +63,7 @@ END_RCPP
 }
 // reward_alpha_cpp
 DataFrame reward_alpha_cpp(const NumericMatrix& alpha, const NumericMatrix& belief);
-RcppExport SEXP _mdp_reward_alpha_cpp(SEXP alphaSEXP, SEXP beliefSEXP) {
+RcppExport SEXP _markovDP_reward_alpha_cpp(SEXP alphaSEXP, SEXP beliefSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +75,7 @@ END_RCPP
 }
 // reward_cpp
 DataFrame reward_cpp(const List& model, const NumericMatrix& belief);
-RcppExport SEXP _mdp_reward_cpp(SEXP modelSEXP, SEXP beliefSEXP) {
+RcppExport SEXP _markovDP_reward_cpp(SEXP modelSEXP, SEXP beliefSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -87,7 +87,7 @@ END_RCPP
 }
 // update_belief_cpp
 NumericVector update_belief_cpp(const List& model, const NumericVector& belief, int action, int observation, int digits);
-RcppExport SEXP _mdp_update_belief_cpp(SEXP modelSEXP, SEXP beliefSEXP, SEXP actionSEXP, SEXP observationSEXP, SEXP digitsSEXP) {
+RcppExport SEXP _markovDP_update_belief_cpp(SEXP modelSEXP, SEXP beliefSEXP, SEXP actionSEXP, SEXP observationSEXP, SEXP digitsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -102,7 +102,7 @@ END_RCPP
 }
 // simulate_MDP_cpp
 List simulate_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool return_trajectories, const double epsilon, const bool verbose);
-RcppExport SEXP _mdp_simulate_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _markovDP_simulate_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -120,18 +120,18 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_mdp_round_stochastic_cpp", (DL_FUNC) &_mdp_round_stochastic_cpp, 2},
-    {"_mdp_veccrossprod", (DL_FUNC) &_mdp_veccrossprod, 2},
-    {"_mdp_vecprod", (DL_FUNC) &_mdp_vecprod, 2},
-    {"_mdp_reward_val_from_df_cpp", (DL_FUNC) &_mdp_reward_val_from_df_cpp, 5},
-    {"_mdp_reward_alpha_cpp", (DL_FUNC) &_mdp_reward_alpha_cpp, 2},
-    {"_mdp_reward_cpp", (DL_FUNC) &_mdp_reward_cpp, 2},
-    {"_mdp_update_belief_cpp", (DL_FUNC) &_mdp_update_belief_cpp, 5},
-    {"_mdp_simulate_MDP_cpp", (DL_FUNC) &_mdp_simulate_MDP_cpp, 8},
+    {"_markovDP_round_stochastic_cpp", (DL_FUNC) &_markovDP_round_stochastic_cpp, 2},
+    {"_markovDP_veccrossprod", (DL_FUNC) &_markovDP_veccrossprod, 2},
+    {"_markovDP_vecprod", (DL_FUNC) &_markovDP_vecprod, 2},
+    {"_markovDP_reward_val_from_df_cpp", (DL_FUNC) &_markovDP_reward_val_from_df_cpp, 5},
+    {"_markovDP_reward_alpha_cpp", (DL_FUNC) &_markovDP_reward_alpha_cpp, 2},
+    {"_markovDP_reward_cpp", (DL_FUNC) &_markovDP_reward_cpp, 2},
+    {"_markovDP_update_belief_cpp", (DL_FUNC) &_markovDP_update_belief_cpp, 5},
+    {"_markovDP_simulate_MDP_cpp", (DL_FUNC) &_markovDP_simulate_MDP_cpp, 8},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_mdp(DllInfo *dll) {
+RcppExport void R_init_markovDP(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

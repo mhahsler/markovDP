@@ -3,7 +3,6 @@
 \name{MDP}
 \alias{MDP}
 \alias{is_solved_MDP}
-\alias{is_timedependent}
 \alias{epoch_to_episode}
 \alias{T_}
 \alias{R_}
@@ -22,8 +21,6 @@ MDP(
 )
 
 is_solved_MDP(x, stop = FALSE)
-
-is_timedependent(x)
 
 epoch_to_episode(x, epoch)
 
@@ -181,41 +178,38 @@ a list with the values for each episode. The helper function \code{epoch_to_epis
 an epoch to the episode it belongs to.
 }
 \examples{
-# Michael's Sleepy Tiger Problem is like the POMDP Tiger problem, but
-# has completely observable states because the tiger is sleeping in front
-# of the door. This makes the problem an MDP.
+# simple MDP example
+#
+# states:    s1 s2 s3 s4 
+# transitions: forward moves -> and backward moves <-
+# start: s1
+# reward: s1, s2, s4 = 0 and s3 = 1
 
-STiger <- MDP(
-  name = "Michael's Sleepy Tiger Problem",
-  discount = .9,
-  states = c("tiger-left", "tiger-right"),
-  actions = c("open-left", "open-right", "do-nothing"),
-  start = "uniform",
-
-  # opening a door resets the problem
-  transition_prob = list(
-    "open-left" =  "uniform",
-    "open-right" = "uniform",
-    "do-nothing" = "identity"
-  ),
-
-  # the reward helper R_() expects: action, start.state, end.state, value
-  reward = rbind(
-    R_("open-left", "tiger-left", v = -100),
-    R_("open-left", "tiger-right", v = 10),
-    R_("open-right", "tiger-left", v = 10),
-    R_("open-right", "tiger-right", v = -100),
-    R_("do-nothing", v = 0)
-  )
+car <- MDP(
+    states = c("s1", "s2", "s3", "s4"),
+    actions = c("forward", "back", "stop"),
+    transition <- list(
+      forward = rbind(c(0,1,0,0), c(0,0,1,0), c(0,0,0,1), c(0,0,0,1)),
+      back =    rbind(c(1,0,0,0), c(1,0,0,0), c(0,1,0,0), c(0,0,1,0)),
+      stop =    "identity"
+    ),
+    reward = rbind(
+        R_(value = 0),
+        R_(end.state = "s3", value = 1)
+    ),
+    discount = 0.9,
+    start = "s1",
+    name = "Simple Car MDP"
 )
 
-STiger
+car
 
-sol <- solve_MDP(STiger)
-sol
+transition_matrix(car)
+reward_matrix(car, sparse = TRUE)
+reward_matrix(car)
 
-policy(sol)
-plot_value_function(sol)
+sol <- solve_MDP(car)
+policy(sol) 
 }
 \seealso{
 Other MDP: 

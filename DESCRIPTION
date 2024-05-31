@@ -29,7 +29,7 @@ RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)
 Collate: 
     'AAA_check_installed.R'
-    'AAA_mdp-package.R'
+    'AAA_package.R'
     'AAA_shorten.R'
     'Cliff_walking.R'
     'DynaMaze.R'

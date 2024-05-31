@@ -1,6 +1,3 @@
-library("testthat")
-library("mdp")
-
 ## context("solve_MDP")
 
 data("Maze")

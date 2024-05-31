@@ -1,46 +1,50 @@
 
-# <img src="man/figures/logo.svg" align="right" height="139" /> R package mdp - Infrastructure for Discrete-Time Markov Decision Processes (MDP)
+# <img src="man/figures/logo.svg" align="right" height="139" /> R package markovDP - Infrastructure for Discrete-Time Markov Decision Processes (MDP)
 
 [![r-universe
-status](https://mhahsler.r-universe.dev/badges/mdp)](https://mhahsler.r-universe.dev/mdp)
+status](https://mhahsler.r-universe.dev/badges/markovDP)](https://mhahsler.r-universe.dev/markovDP)
 [![Package on
-CRAN](http://www.r-pkg.org/badges/version/mdp)](https://CRAN.R-project.org/package=mdp)
+CRAN](http://www.r-pkg.org/badges/version/markovDP)](https://CRAN.R-project.org/package=markovDP)
 [![CRAN RStudio mirror
-downloads](http://cranlogs.r-pkg.org/badges/mdp)](https://CRAN.R-project.org/package=mdp)
+downloads](http://cranlogs.r-pkg.org/badges/markovDP)](https://CRAN.R-project.org/package=markovDP)
 
 ## Introduction
 
-A Markov decision process (MDP) is a discrete-time stochastic control
-process. In each time step, an agent can perform actions which affect
-the system (i.e., may cause the system state to change). The agent’s
-goal is to maximize its expected future rewards that depend on the
-sequence of system state and the agent’s actions in the future. Solving
-the MDP means finding the optimal (or at least a good) policy that
-guides the agent’s actions.
+A Markov decision process (MDP) (Bellman 1957; Howard 1960) is a
+discrete-time stochastic control process. In each time step, an agent
+can perform actions which affect the system (i.e., may cause the system
+state to change). The agent’s goal is to maximize its expected future
+rewards that depend on the sequence of system state and the agent’s
+actions in the future. Solving the MDP means finding the optimal (or at
+least a good) policy that guides the agent’s actions.
 
-The package also interfaces to the following algorithms:
+The `markovDP` package provides the infrastructure to work with MDPs in
+R. It also interfaces to the following popular algorithms:
 
-- Dynamic Programming (see Russell and Norvig, 2021)
+- Dynamic Programming
 
-  - **Value Iteration**
-  - **Modified Policy Iteration**
+  - **Value Iteration** (Bellman 1957)
+  - **Modified Policy Iteration** (Howard 1960; Puterman and Shin 1978)
 
-- **Linear Programming**
+- **Linear Programming** (Manne 1960)
 
-- Termporal Differencing (see Sutton and Barto, 2020)
+- Termporal Differencing
 
-  - **Q-Learning**
-  - **Sarsa**
-  - **Expected Sarsa**
+  - **Q-Learning** (Watkins and Dayan 1992)
+  - **Sarsa** (Sutton and Barto 2018)
+  - **Expected Sarsa** (Sutton and Barto 2018)
 
-To cite package ‘mdp’ in publications use:
+These implementations follow the description is (Russell and Norvig
+2020) and (Sutton and Barto 2018).
 
-> Hahsler M (????). *mdp: Infrastructure for Discrete-Time Markov
+To cite package ‘markovDP’ in publications use:
+
+> Hahsler M (????). *markovDP: Infrastructure for Discrete-Time Markov
 > Decision Processes (MDP)*. R package version 0.99.0,
 > <https://github.com/mhahsler/mdp>.
 
     @Manual{,
-      title = {mdp: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
+      title = {markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
       author = {Michael Hahsler},
       note = {R package version 0.99.0},
       url = {https://github.com/mhahsler/mdp},
@@ -51,23 +55,23 @@ To cite package ‘mdp’ in publications use:
 **Stable CRAN version:** Install from within R with
 
 ``` r
-install.packages("mdp")
+install.packages("markovDP")
 ```
 
 **Current development version:** Install from
-[r-universe.](https://mhahsler.r-universe.dev/mdp)
+[r-universe.](https://mhahsler.r-universe.dev/markovDP)
 
 ``` r
-install.packages("mdp",
+install.packages("markovDP",
     repos = c("https://mhahsler.r-universe.dev". "https://cloud.r-project.org/"))
 ```
 
 ## Usage
 
-Solving the simple maze
+Solving the simple maze from (Russell and Norvig 2020).
 
 ``` r
-library("mdp")
+library("markovDP")
 data("Maze")
 Maze
 ```
@@ -126,8 +130,59 @@ of Standards and Technology (NIST) under grant number
 
 ## References
 
-Russell, S., Norvig, P. (2021). Artificial Intelligence: A Modern
-Approach. Fourth edition. Prentice Hall.
+<div id="refs" class="references csl-bib-body hanging-indent">
 
-Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An
-Introduction. Second edition. The MIT Press.
+<div id="ref-Bellman1957" class="csl-entry">
+
+Bellman, Richard. 1957. “A Markovian Decision Process.” *Indiana
+University Mathematics Journal* 6: 679–84.
+<https://www.jstor.org/stable/24900506>.
+
+</div>
+
+<div id="ref-Howard1960" class="csl-entry">
+
+Howard, R. A. 1960. *Dynamic Programming and Markov Processes*.
+Cambridge, MA: MIT Press.
+
+</div>
+
+<div id="ref-Manne1960" class="csl-entry">
+
+Manne, Alan. 1960. “On the Job-Shop Scheduling Problem.” *Operations
+Research* 8 (2): 219–23. <https://doi.org/10.1287/opre.8.2.219>.
+
+</div>
+
+<div id="ref-Puterman1978" class="csl-entry">
+
+Puterman, Martin L., and Moon Chirl Shin. 1978. “Modified Policy
+Iteration Algorithms for Discounted Markov Decision Problems.”
+*Management Science* 24: 1127–37.
+<https://doi.org/10.1287/mnsc.24.11.1127>.
+
+</div>
+
+<div id="ref-Russell2020" class="csl-entry">
+
+Russell, Stuart J., and Peter Norvig. 2020. *Artificial Intelligence: A
+Modern Approach (4th Edition)*. Pearson. <http://aima.cs.berkeley.edu/>.
+
+</div>
+
+<div id="ref-Sutton1998" class="csl-entry">
+
+Sutton, Richard S., and Andrew G. Barto. 2018. *Reinforcement Learning:
+An Introduction*. Second. The MIT Press.
+<http://incompleteideas.net/book/the-book-2nd.html>.
+
+</div>
+
+<div id="ref-Watkins1992" class="csl-entry">
+
+Watkins, Christopher J. C. H., and Peter Dayan. 1992. “Q-Learning.”
+*Machine Learning* 8 (3): 279–92. <https://doi.org/10.1007/BF00992698>.
+
+</div>
+
+</div>

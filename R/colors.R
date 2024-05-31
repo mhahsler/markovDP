@@ -1,6 +1,7 @@
-#' Default Colors for Visualization in Package mdp
+#' Default Colors for Visualization
 #'
-#' Default discrete and continuous colors used in package mdp for states (nodes), beliefs and values.
+#' Default discrete and continuous colors used in 
+#' the package `markovDP`.
 #'
 #' @name colors
 #'

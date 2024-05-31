@@ -9,7 +9,7 @@
 #' @importFrom methods as
 #' @importFrom utils head tail read.table type.convert
 #' @importFrom foreach foreach times %dopar% getDoParWorkers
-#' @useDynLib mdp, .registration=TRUE
+#' @useDynLib markovDP, .registration=TRUE
 "_PACKAGE"
 
 .onAttach <- function(libname, pkgname) {

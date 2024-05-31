@@ -1,16 +1,17 @@
 ---
 output: github_document
+bibliography: vignettes/references.bib
 ---
 
 ```{r echo=FALSE, results = 'asis'}
-pkg <- "mdp"
+pkg <- "markovDP"
 
 source("https://raw.githubusercontent.com/mhahsler/pkg_helpers/main/pkg_helpers.R")
 pkg_title(pkg)
 ```
 
 ## Introduction
-A Markov decision process (MDP) is a discrete-time 
+A Markov decision process (MDP) [@Bellman1957; @Howard1960] is a discrete-time 
 stochastic control process. In each time step, an 
 agent can perform actions which affect the system (i.e., may cause
 the system state to change). The agent's goal 
@@ -20,19 +21,22 @@ agent's actions in the future. Solving the MDP means finding
 the optimal (or at least a good) policy
 that guides the agent's actions. 
 
-The package also interfaces
-to the following algorithms:
+The `markovDP` package provides the infrastructure to work with MDPs in R. 
+It also interfaces to the following popular algorithms:
 
-* Dynamic Programming (see Russell and Norvig, 2021)
-  - __Value Iteration__
-  - __Modified Policy Iteration__
+* Dynamic Programming 
+  - __Value Iteration__ [@Bellman1957]
+  - __Modified Policy Iteration__ [@Howard1960; @Puterman1978]
 
-* __Linear Programming__
+* __Linear Programming__ [@Manne1960]
 
-* Termporal Differencing (see Sutton and Barto, 2020)
-  - __Q-Learning__ 
-  - __Sarsa__ 
-  - __Expected Sarsa__ 
+* Termporal Differencing
+  - __Q-Learning__ [@Watkins1992]
+  - __Sarsa__ [@Sutton1998]
+  - __Expected Sarsa__ [@Sutton1998]
+
+These implementations follow the description is [@Russell2020] and 
+[@Sutton1998].
 
 
 ```{r echo=FALSE, results = 'asis'}
@@ -42,9 +46,9 @@ pkg_install(pkg)
 
 ## Usage
 
-Solving the simple maze
+Solving the simple maze from [@Russell2020].
 ```{r problem}
-library("mdp")
+library("markovDP")
 data("Maze")
 Maze
 gridworld_plot(Maze)
@@ -73,8 +77,3 @@ National Institute of Standards and Technology (NIST) under grant number
 [60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
 
 ## References
-Russell, S., Norvig, P. (2021). Artificial Intelligence: A Modern Approach.
- Fourth edition. Prentice Hall.
-
-Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
- Second edition. The MIT Press.

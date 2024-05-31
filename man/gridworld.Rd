@@ -313,7 +313,7 @@ gridworld_animate(DynaMaze, method = "value", n = 3)
 #   (X are walls, S is the start and G is the goal)
 
 # some examples are installed with pom
-maze_dir <- system.file("mazes", package = "mdp")
+maze_dir <- system.file("mazes", package = "markovDP")
 dir(maze_dir)
 
 file.show(file.path(maze_dir, "small_maze.txt"))

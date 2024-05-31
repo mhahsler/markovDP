@@ -1,9 +1,9 @@
 ---
-title: "mdp: Discrete-Time Markov Decision Processes"
+title: "markovDP: Discrete-Time Markov Decision Processes (MDPs)"
 author: "Michael Hahsler"
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{mdp: Discrete-Time Markov Decision Processes}
+  %\VignetteIndexEntry{markovDP: Discrete-Time Markov Decision Processes (MDPs)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -19,14 +19,14 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library("mdp")
+library("markovDP")
 ```
 
 # Introduction
 
-The R package **mdp** provides the infrastructure to define and
+The R package **markovDP** provides the infrastructure to define and
 analyze the solutions of discrete-time Markov Decision Processes
-(MDP) models. The package enables the user to simply define all components of a MDP
+(MDP) models [@Bellman1957, @Howard1960, @Russell2020, @Sutton1998]. The package enables the user to simply define all components of a MDP
 model and solve the problem using several methods. 
 
 In this document, we will give a very brief introduction to the concept
@@ -79,7 +79,7 @@ time horizon is used.
 
 # Package Functionality
 
-Solving a POMDP problem with the **mdp** package consists of two
+Solving a POMDP problem with the **markovDP** package consists of two
 steps:
 
 1.  Define a POMDP problem using the function `MDP()`, and
@@ -194,7 +194,7 @@ or `"expected_sarsa"`.
 # Steward Russell's 4x3 Maze Gridworld MDP
 
 We will demonstrate how to use the package 
-with the 4x3 Maze Gridworld described in Chapter 17 of the textbook "Artificial Intelligence: A Modern Approach" (AIMA) [@FIXME].
+with the 4x3 Maze Gridworld described in Chapter 17 of the textbook "Artificial Intelligence: A Modern Approach" (AIMA) [@Russell2020].
 The simple maze has the following layout:
 
 ```
@@ -214,7 +214,7 @@ Actions are movements (up, right, down, left). The actions are unreliable with a
 
 
 ```{r}
-library("mdp")
+library("markovDP")
 
 gw <- gridworld_init(dim = c(3, 4), unreachable_states = c("s(2,2)"))
 

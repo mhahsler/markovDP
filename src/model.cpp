@@ -9,7 +9,7 @@ using namespace Rcpp;
 // NOTE: All indices are 0-based.
 
 // Call R functions
-Environment pkg = Environment::namespace_env("mdp");
+Environment pkg = Environment::namespace_env("markovDP");
 Function R_start_vector = pkg["start_vector"];
 Function R_absorbing_states = pkg["absorbing_states"];
 

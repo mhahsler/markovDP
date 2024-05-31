@@ -97,7 +97,7 @@ simulate_MDP <-
     if (engine == "cpp" &&
       (is.function(model$transition_prob) ||
         is.function(model$reward))) {
-      warning("Some elements of the MDP are defined as R funciton. The CPP engine is very slow with R function calls.\n",
+      warning("Some elements of the MDP are defined as R function. The CPP engine is very slow with R function calls.\n",
         "Falling back to R. Normalize the model first to use CPP.",
         immediate. = TRUE
       )

@@ -32,11 +32,7 @@ value_matrix <-
       }
     }
 
-    if (.is_timedependent_field(x, field)) {
-      value <- x[[field]][[episode]]
-    } else {
-      value <- x[[field]]
-    }
+    value <- x[[field]]
 
     # convert functions
     if (is.function(value)) {

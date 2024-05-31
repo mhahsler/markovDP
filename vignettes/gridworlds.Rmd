@@ -1,9 +1,9 @@
 ---
-title: "Gridworlds in Package mdp"
+title: "Gridworlds in Package markovDP"
 author: "Michael Hahsler"
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{Gridworlds in Package mdp}
+  %\VignetteIndexEntry{Gridworlds in Package markovDP}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(mdp)
+library(markovDP)
 ```
 
 ## Introduction 
@@ -28,11 +28,11 @@ library(mdp)
 Gridworlds represent an easy to explore how Markov Decision Problems (MDPs)
 and various approaches to solve these problems
 work.
-The R package **mdp** provides a set of helper functions starting with the 
+The R package **markovDP** provides a set of helper functions starting with the 
 prefix `gridworld_`
 to make defining and experimenting with gridworlds easy. 
 
-Gridworlds can also easiliy be extended to Partially Observable Decision Problems (POMDPs)
+Gridworlds can also easily be extended to Partially Observable Decision Problems (POMDPs)
 using the R package **pomdp** [@Hahsler2024] provides a set of 
 
 ## Defining a Gridworld

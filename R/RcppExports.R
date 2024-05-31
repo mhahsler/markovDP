@@ -2,34 +2,34 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 round_stochastic_cpp <- function(x, digits) {
-    .Call(`_mdp_round_stochastic_cpp`, x, digits)
+    .Call(`_markovDP_round_stochastic_cpp`, x, digits)
 }
 
 veccrossprod <- function(A, b) {
-    .Call(`_mdp_veccrossprod`, A, b)
+    .Call(`_markovDP_veccrossprod`, A, b)
 }
 
 vecprod <- function(A, b) {
-    .Call(`_mdp_vecprod`, A, b)
+    .Call(`_markovDP_vecprod`, A, b)
 }
 
 reward_val_from_df_cpp <- function(model, action, start_state, end_state, observation) {
-    .Call(`_mdp_reward_val_from_df_cpp`, model, action, start_state, end_state, observation)
+    .Call(`_markovDP_reward_val_from_df_cpp`, model, action, start_state, end_state, observation)
 }
 
 reward_alpha_cpp <- function(alpha, belief) {
-    .Call(`_mdp_reward_alpha_cpp`, alpha, belief)
+    .Call(`_markovDP_reward_alpha_cpp`, alpha, belief)
 }
 
 reward_cpp <- function(model, belief) {
-    .Call(`_mdp_reward_cpp`, model, belief)
+    .Call(`_markovDP_reward_cpp`, model, belief)
 }
 
 update_belief_cpp <- function(model, belief, action, observation, digits = 7L) {
-    .Call(`_mdp_update_belief_cpp`, model, belief, action, observation, digits)
+    .Call(`_markovDP_update_belief_cpp`, model, belief, action, observation, digits)
 }
 
 simulate_MDP_cpp <- function(model, n, start, horizon, disc = 1.0, return_trajectories = FALSE, epsilon = 1.0, verbose = FALSE) {
-    .Call(`_mdp_simulate_MDP_cpp`, model, n, start, horizon, disc, return_trajectories, epsilon, verbose)
+    .Call(`_markovDP_simulate_MDP_cpp`, model, n, start, horizon, disc, return_trajectories, epsilon, verbose)
 }
 

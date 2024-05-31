@@ -127,41 +127,38 @@
 #' `'solution'`.
 #' @author Michael Hahsler
 #' @examples
-#' # Michael's Sleepy Tiger Problem is like the POMDP Tiger problem, but
-#' # has completely observable states because the tiger is sleeping in front
-#' # of the door. This makes the problem an MDP.
-#'
-#' STiger <- MDP(
-#'   name = "Michael's Sleepy Tiger Problem",
-#'   discount = .9,
-#'   states = c("tiger-left", "tiger-right"),
-#'   actions = c("open-left", "open-right", "do-nothing"),
-#'   start = "uniform",
-#'
-#'   # opening a door resets the problem
-#'   transition_prob = list(
-#'     "open-left" =  "uniform",
-#'     "open-right" = "uniform",
-#'     "do-nothing" = "identity"
-#'   ),
-#'
-#'   # the reward helper R_() expects: action, start.state, end.state, value
-#'   reward = rbind(
-#'     R_("open-left", "tiger-left", v = -100),
-#'     R_("open-left", "tiger-right", v = 10),
-#'     R_("open-right", "tiger-left", v = 10),
-#'     R_("open-right", "tiger-right", v = -100),
-#'     R_("do-nothing", v = 0)
-#'   )
+#' # simple MDP example
+#' #
+#' # states:    s1 s2 s3 s4 
+#' # transitions: forward moves -> and backward moves <-
+#' # start: s1
+#' # reward: s1, s2, s4 = 0 and s3 = 1
+#' 
+#' car <- MDP(
+#'     states = c("s1", "s2", "s3", "s4"),
+#'     actions = c("forward", "back", "stop"),
+#'     transition <- list(
+#'       forward = rbind(c(0,1,0,0), c(0,0,1,0), c(0,0,0,1), c(0,0,0,1)),
+#'       back =    rbind(c(1,0,0,0), c(1,0,0,0), c(0,1,0,0), c(0,0,1,0)),
+#'       stop =    "identity"
+#'     ),
+#'     reward = rbind(
+#'         R_(value = 0),
+#'         R_(end.state = "s3", value = 1)
+#'     ),
+#'     discount = 0.9,
+#'     start = "s1",
+#'     name = "Simple Car MDP"
 #' )
 #'
-#' STiger
-#'
-#' sol <- solve_MDP(STiger)
-#' sol
-#'
-#' policy(sol)
-#' plot_value_function(sol)
+#' car
+#' 
+#' transition_matrix(car)
+#' reward_matrix(car, sparse = TRUE)
+#' reward_matrix(car)
+#' 
+#' sol <- solve_MDP(car)
+#' policy(sol) 
 #' @export
 MDP <- function(states,
                 actions,
@@ -313,59 +310,25 @@ is_solved_MDP <- function(x, stop = FALSE) {
 }
 
 #' @rdname MDP
-#' @export
-is_timedependent <- function(x) {
-  !is.null(x$horizon) && length(x$horizon) > 1L
-}
-
-
-# is a field time-dependent? For time-dependence we have a list of
-# matrices/data.frames or for observation_prob we have a list of a list
-.is_timedependent_field <- function(x, field) {
-  field <-
-    match.arg(field, c("transition_prob", "observation_prob", "reward"))
-  m <- x[[field]]
-  if (is.null(m)) {
-    stop("Field ", field, " does not exist.")
-  }
-  
-  # it is a list. time dependent is a list (episodes) of lists
-  if (!is.list(m) || is.data.frame(m)) {
-    return(FALSE)
-  }
-  if (!is.list(m[[1]])) {
-    return(FALSE)
-  }
-  
-  # time dependent reward is a list of lists of lists
-  if (field == "reward" && !is.list(m[[1]][[1]])) {
-    return(FALSE)
-  }
-  
-  if (length(m) != length(x$horizon)) {
-    stop(
-      "Inconsistent POMDP specification. Field ",
-      field,
-      " does not contain data for the appropriate number of episodes."
-    )
-  }
-  
-  TRUE
-}
-
-#' @rdname MDP
 #' @param epoch integer; an epoch that should be converted to the
 #'              corresponding episode in a time-dependent MDP.
 #' @export
 epoch_to_episode <- function(x, epoch) {
-  if (is.null(epoch)) {
+  UseMethod("epoch_to_episode")
+}
+
+#' @export
+epoch_to_episode.MDP <- function(x, epoch) {
+  if (is.null(epoch))
     return(1L)
-  }
   
   episode <- which(epoch <= cumsum(x$horizon))[1]
-  if (is.na(episode)) {
+  if (is.na(episode))
     stop("Epoch does not exist")
-  }
+  
+  # MDP
+  if (episode != 1) 
+    stop("MDPs do not support time dependence!")
   
   episode
 }

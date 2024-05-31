@@ -4,7 +4,7 @@
 \alias{colors}
 \alias{colors_discrete}
 \alias{colors_continuous}
-\title{Default Colors for Visualization in Package mdp}
+\title{Default Colors for Visualization}
 \usage{
 colors_discrete(n, col = NULL)
 
@@ -24,7 +24,8 @@ colors_continuous(val, col = NULL)
 \code{colors_continuous()} returns the colors associated with the supplied values.
 }
 \description{
-Default discrete and continuous colors used in package mdp for states (nodes), beliefs and values.
+Default discrete and continuous colors used in
+the package \code{markovDP}.
 }
 \examples{
 colors_discrete(5)
