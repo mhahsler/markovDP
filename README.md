@@ -41,13 +41,13 @@ To cite package ‘markovDP’ in publications use:
 
 > Hahsler M (????). *markovDP: Infrastructure for Discrete-Time Markov
 > Decision Processes (MDP)*. R package version 0.99.0,
-> <https://github.com/mhahsler/mdp>.
+> <https://github.com/mhahsler/markovDP>.
 
     @Manual{,
       title = {markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
       author = {Michael Hahsler},
       note = {R package version 0.99.0},
-      url = {https://github.com/mhahsler/mdp},
+      url = {https://github.com/mhahsler/markovDP},
     }
 
 ## Installation
