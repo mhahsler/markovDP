@@ -22,7 +22,7 @@ solve_MDP_DP(
   verbose = FALSE
 )
 
-solve_MDP_LP(model, method = NULL, ...)
+solve_MDP_LP(model, method = NULL, verbose = FALSE, ...)
 
 solve_MDP_TD(
   model,
@@ -91,7 +91,10 @@ methods based on reinforcement learning techniques to solve finite
 state space MDPs.
 }
 \details{
-Implemented are the following \strong{dynamic programming} methods (following
+Several solvers are available.
+\subsection{Dynamic Programming}{
+
+Implemented are the following dynamic programming methods (following
 Russell and Norvig, 2010):
 \itemize{
 \item \strong{Modified Policy Iteration}
@@ -99,7 +102,7 @@ starts with a random policy and iteratively performs
 a sequence of
 \enumerate{
 \item approximate policy evaluation (estimate the value function for the
-current policy using \code{k_backups} and function \code{\link[=MDP_policy_evaluation]{MDP_policy_evaluation()}}), and
+current policy using \code{k_backups} and function \code{\link[=MDP_policy_evaluation]{MDP_policy_evaluation()}}, and
 \item policy improvement (calculate a greedy policy given the value function).
 The algorithm stops when it converges to a stable policy (i.e., no changes
 between two iterations).
@@ -123,8 +126,38 @@ policy iteration with truncated policy evaluation.
 }
 
 Note that the policy converges earlier than the value function.
+}
 
-Implemented are the following \strong{temporal difference control methods}
+\subsection{Linear Programming}{
+
+The following linear programming formulation is implemented. For the
+optimal value function, the Bellman equation holds:
+
+\deqn{
+ V^*(s) = \max_{a \in A}\sum_{s' \in S} T(s, a, s') [ R(s, a, s') + \gamma V^*(s')]\; \forall a\in A, s \in S
+}
+
+We can find the optimal value function by solving the following linear program:
+\deqn{\text{min} \sum_{s\in S} V(s)}
+subject to
+\deqn{V(s) \ge \sum_{s' \in S} T(s, a, s') [R(s, a, s') + \gamma V(s')],\; \forall a\in A, s \in S
+}
+
+Note:
+\itemize{
+\item The discounting factor has to be strictly less than 1.
+\item Additional parameters to to \code{solve_MDP} are passed on to \code{\link[lpSolve:lp]{lpSolve::lp()}}.
+\item We use the solver in
+\code{\link[lpSolve:lp]{lpSolve::lp()}} which requires all decision variables (state values) to be non-negative.
+To ensure this, for negative rewards, all rewards as shifted so the
+smallest reward is
+0. This does not change the optimal policy.
+}
+}
+
+\subsection{Temporal Difference Control}{
+
+Implemented are the following temporal difference control methods
 described in Sutton and Barto (2020).
 Note that the MDP transition and reward models are only used to simulate
 the environment for these reinforcement learning methods.
@@ -150,18 +183,6 @@ It moves deterministically in the same direction as Sarsa
 moves in expectation. Because it uses the expectation, we can
 set the step size \eqn{\alpha} to large values and even 1.
 }
-
-The following \strong{linear programming} formulation is implemented. For the
-optimal value function, the Bellman equation holds:
-
-\deqn{
- V^*(s) = \max_{a \in A}\sum_{s' \in S} T(s, a, s') [ R(s, a, s') + \gamma V^*(s')]\; \forall a\in A, s \in S
-}
-
-We can find the optimal value function by solving the following linear program:
-\deqn{\text{min} \sum_{s\in S} V(s)}
-subject to
-\deqn{V(s) \ge \sum_{s' \in S} T(s, a, s') [R(s, a, s') + \gamma V(s')],\; \forall a\in A, s \in S
 }
 }
 \examples{

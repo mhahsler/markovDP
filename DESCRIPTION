@@ -1,4 +1,4 @@
-Package: mdp
+Package: markovDP
 Title: Infrastructure for Discrete-Time Markov Decision Processes (MDP)
 Version: 0.99.0
 Date: 2024-xx-xx

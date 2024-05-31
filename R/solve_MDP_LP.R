@@ -14,15 +14,15 @@
 
 #' @rdname solve_MDP
 #' @export
-solve_MDP_LP <- function(model, method = NULL, ...) {
+solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
   # method is always "lp" and ignored
   
   if (is.finite(model$horizon))
-    stop("mtehod 'lp' and only be used for infinite horizon problems.")
+    stop("method 'lp' can only be used for infinite horizon problems.")
   
   gamma <- model$discount
   if (gamma >= 1) {
-    warning("discount factor needs to be <1 for LP. Using 0.999.")
+    warning("discount factor needs to be <1 for LP. Using 0.999 instead of 1.")
     gamma <- 0.999
   }
   
@@ -57,7 +57,8 @@ solve_MDP_LP <- function(model, method = NULL, ...) {
   R_min <- min(sapply(R, min))
   if (R_min < 0) {
     R_shift <- TRUE
-    warning("negative rewards. Shifting rewards for lpSolve.")
+    if (verbose) 
+      cat("negative rewards. Shifting rewards for lpSolve.\n")
     for (i in seq_along(R))
       R[[i]] <- R[[i]] - R_min
   }
@@ -69,12 +70,18 @@ solve_MDP_LP <- function(model, method = NULL, ...) {
   names(TR) <- paste(rep(model$actions, each = n_s), rep(model$states, n_a))
   const_rhs <- TR
 
-  solution <- lpSolve::lp(direction = "min", 
+  if (verbose)
+    cat("running LP solver ...")
+  
+  tm <- system.time(solution <- lpSolve::lp(direction = "min", 
                  objective.in = obj, 
                  const.mat = const_mat, 
                  const.dir = const_dir, 
                  const.rhs = const_rhs,
-                 ...)
+                 ...))
+  
+  if (verbose)
+    cat(" took", tm[1] + tm[2], "seconds.\n" )
   
   if (solution$status)
     stop("lp_solve did not solve the MDP successfully!")
@@ -83,9 +90,12 @@ solve_MDP_LP <- function(model, method = NULL, ...) {
   pi <- greedy_MDP_policy(q_values_MDP(model, U))
  
   # update U with unshifted values
-  if (R_shift) 
-    pi$U <- MDP_policy_evaluation(pi, model,verbose = TRUE)
-   
+  if (R_shift) {
+    if (verbose) 
+      cat("Recalculating value function with unshifted rewards:\n")
+    pi$U <- MDP_policy_evaluation(pi, model, verbose = verbose)
+  }
+    
   model$solution <- list(
     method = "lp",
     policy = list(pi),

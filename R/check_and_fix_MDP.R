@@ -118,7 +118,6 @@ check_and_fix_MDP <- function(x) {
     stop("transition_prob cannot be missing!")
   }
 
-  if (!.is_timedependent_field(x, "transition_prob")) {
     # if we have matrices then check and add names
     if (is.function(x$transition_prob)) {
       check_func(x$transition_prob, T_, "transition_prob")
@@ -162,67 +161,6 @@ check_and_fix_MDP <- function(x) {
         }
       }
     }
-  }
-
-  # time dependent checks
-  if (.is_timedependent_field(x, "transition_prob")) {
-    # if we have matrices then check and add names
-    for (e in seq_along(x$horizon)) {
-      if (is.function(x$transition_prob[[e]])) {
-        check_func(x$transition_prob[[e]], T_, "transition_prob")
-      } # x$transition_prob[[e]] <- transition_matrix(x, episode = e)
-      else if (is.data.frame(x$transition_prob[[e]])) {
-        x$transition_prob[[e]] <-
-          check_df(x, x$transition_prob[[e]], T_)
-      } else {
-        if (is.null(names(x$transition_prob[[e]]))) {
-          names(x$transition_prob[[e]]) <- x$actions
-        }
-        if (all(names(x$transition_prob[[e]]) != x$actions)) {
-          x$transition_prob[[e]] <-
-            x$transition_prob[[e]][x$actions]
-        }
-
-        for (a in x$actions) {
-          if (is.null(x$transition_prob[[e]][[a]])) {
-            stop(
-              "transition_prob for action ",
-              a,
-              " is missing in epoch ",
-              e,
-              "!"
-            )
-          }
-          if (is.matrix(x$transition_prob[[e]][[a]])) {
-            if (!identical(dim(x$transition_prob[[e]][[a]]), c(length(x$states), length(x$states)))) {
-              stop(
-                "transition_prob matrix for action ",
-                a,
-                " in epoch ",
-                e,
-                ": has not the right dimensions!"
-              )
-            }
-            if (!sum1(x$transition_prob[[e]][[a]])) {
-              stop(
-                "transition_prob matrix for action ",
-                a,
-                " in epoch ",
-                e,
-                ": rows do not add up to 1!"
-              )
-            }
-            if (is.null(dimnames(x$transition_prob[[e]][[a]]))) {
-              dimnames(x$transition_prob[[e]][[a]]) <-
-                list(x$states, x$states)
-            } else {
-              x$transition_prob[[e]][[a]][x$states, x$states]
-            }
-          }
-        }
-      }
-    }
-  }
 
   ## reward
   if (is.null(x$reward)) {
@@ -243,15 +181,11 @@ check_and_fix_MDP <- function(x) {
     )
   }
   
-  if (!.is_timedependent_field(x, "reward")) {
     if (is.function(x$reward)) {
       check_func(x$reward, R_, "reward")
-    }
-
-    if (is.data.frame(x$reward)) {
+    } else if (is.data.frame(x$reward)) {
       x$reward <- check_df(x, x$reward, R_)
-    }
-  } else {
+    } else {
     if (is.null(names(x$reward))) {
       names(x$reward) <- x$actions
     }
@@ -288,63 +222,6 @@ check_and_fix_MDP <- function(x) {
               list(x$states, NULL)
           } else {
             x$reward[[a]][[s]][x$states, NULL]
-          }
-        }
-      }
-    }
-  }
-
-  if (.is_timedependent_field(x, "reward")) {
-    for (e in seq_along(x$horizon)) {
-      if (is.function(x$reward[[e]])) {
-        check_func(x$reward[[e]], R_, "reward")
-      }
-
-      if (is.data.frame(x$reward[[e]])) {
-        x$reward[[e]] <- check_df(x, x$reward[[e]], R_)
-      } else {
-        if (is.null(names(x$reward[[e]]))) {
-          names(x$reward[[e]]) <- x$actions
-        }
-        if (all(names(x$reward[[e]]) != x$actions)) {
-          x$reward[[e]] <- x$reward[[e]][x$actions]
-        }
-
-        for (a in x$actions) {
-          if (is.null(x$reward[[e]][[a]])) {
-            stop("reward for action ", a, " in episode ", e, " is missing!")
-          }
-          for (s in x$states) {
-            if (is.null(x$reward[[e]][[a]][[s]])) {
-              stop(
-                "reward for action ",
-                a,
-                " and state ",
-                s,
-                " in episode ",
-                e,
-                " is missing!"
-              )
-            }
-            if (is.matrix(x$reward[[e]][[a]][[s]])) {
-              if (!identical(dim(x$reward[[e]][[a]][[s]]), c(length(x$states), 1L))) {
-                stop(
-                  "reward matrix for action ",
-                  a,
-                  " and start.state ",
-                  s,
-                  " in episode ",
-                  e,
-                  ": has not the right dimensions!"
-                )
-              }
-              if (is.null(dimnames(x$reward[[e]][[a]][[s]]))) {
-                dimnames(x$reward[[e]][[a]][[s]]) <-
-                  list(x$states, NULL)
-              } else {
-                x$reward[[e]][[a]][[s]][x$states, NULL]
-              }
-            }
           }
         }
       }

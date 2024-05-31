@@ -98,6 +98,7 @@ start_vector <- function(x, start = NULL) {
   .translate_belief(start, model = x)
 }
 
+# this is the start distribution in MDPs
 # translate belief specifications into numeric belief vectors
 .translate_belief <- function(belief = NULL, model) {
   ## producing the starting belief vector

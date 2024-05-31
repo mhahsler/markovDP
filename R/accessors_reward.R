@@ -43,12 +43,6 @@ reward_matrix.MDP <-
       }
     }
 
-    if (.is_timedependent_field(x, "reward")) {
-      reward <- x[["reward"]][[episode]]
-    } else {
-      reward <- x[["reward"]]
-    }
-
     if (is.null(action) && (!is.null(start.state) || !is.null(end.state) || !is.null(observation))) {
       stop("action needs to be specified!")
     }
