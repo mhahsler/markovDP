@@ -1,16 +1,16 @@
 #' Default Colors for Visualization
 #'
-#' Default discrete and continuous colors used in 
+#' Default discrete and continuous colors used in
 #' the package `markovDP`.
 #'
 #' @name colors
 #'
 #' @param n number of states.
-#' @param col custom color palette. `colors_discrete()` uses the first n colors.  
-#'  `colors_continuous()` uses the given colors to calculate a palette 
+#' @param col custom color palette. `colors_discrete()` uses the first n colors.
+#'  `colors_continuous()` uses the given colors to calculate a palette
 #'  (see [grDevices::colorRamp()]). The default is a blue-red color ramp.
 #'
-#' @returns `colors_discrete()` returns a color palette and 
+#' @returns `colors_discrete()` returns a color palette and
 #'  `colors_continuous()` returns the colors associated with the supplied values.
 #' @examples
 #' colors_discrete(5)
@@ -18,7 +18,7 @@
 #' colors_continuous(runif(10))
 #' @export
 colors_discrete <- function(n, col = NULL) {
-  if (is.null(col))
+  if (is.null(col)) {
     # colorbrewer Set 1
     col <-
       c(
@@ -32,12 +32,14 @@ colors_discrete <- function(n, col = NULL) {
         "#F781BF",
         "#999999"
       )
-  
-  if (n <= length(col))
+  }
+
+  if (n <= length(col)) {
     col <- col[1:n]
-  else
+  } else {
     col <- grDevices::rainbow(n)
-  
+  }
+
   col
 }
 
@@ -45,8 +47,9 @@ colors_discrete <- function(n, col = NULL) {
 #' @param val a vector with values to be translated to colors.
 #' @export
 colors_continuous <- function(val, col = NULL) {
-  if (is.null(col))
-    col <- c("#377EB8", "#E41A1C") # blue -> red
+  if (is.null(col)) {
+    col <- c("#377EB8", "#E41A1C")
+  } # blue -> red
   grDevices::rgb(grDevices::colorRamp(col, space = "Lab")((val - min(val, na.rm = TRUE)) / (
     max(val, na.rm = TRUE) - min(val, na.rm = TRUE)
   )) / 255)

@@ -1,0 +1,136 @@
+#' Q-Value Functions
+#'
+#' Implementation several functions useful to deal with Q-values for MDPs.
+#'
+#' Implemented functions are:
+#'
+#' * `q_values()` calculates (approximates)
+#'   Q-values for a given model using the Bellman
+#'   optimality equation:
+#'
+#'   \deqn{q(s,a) = \sum_{s'} T(s'|s,a) [R(s,a) + \gamma U(s')]}
+#'
+#'   Q-values can be used as the input for several other functions.
+#'
+#' * `greedy_action()` returns the action with the largest Q-value given a
+#'    state.
+#'
+#' * `greedy_policy()`
+#'    generates a greedy policy using Q-values.
+#'
+#' @name q_values
+#' @aliases q_values
+#'
+#' @family MDP
+#' @family policy
+#' @author Michael Hahsler
+#'
+#' @param model an MDP problem specification.
+#' @param U a vector with value function representing the state utilities
+#'    (expected sum of discounted rewards from that point on).
+#'    If `model` is a solved model, then the state
+#'    utilities are taken from the solution.
+#' @param Q an action value function with Q-values as a state by action matrix.
+#' @param s a state.
+#'
+#' @references
+#' Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
+#' Second edition. The MIT Press.
+#'
+#' @examples
+#' data(Maze)
+#' Maze
+#'
+#' # create a random policy and calculate q-values
+#' pi_random <- random_policy(Maze)
+#' u <- policy_evaluation(Maze, pi_random)
+#' q <- q_values(Maze, U = u)
+#'
+#' # get the greedy policy form the q-values
+#' pi_greedy <- greedy_policy(q)
+#' pi_greedy
+#' gridworld_plot(add_policy(Maze, pi_greedy), main = "Maze: Greedy Policy")
+#'
+#' greedy_action(q, "s(3,1)", epsilon = 0, prob = FALSE)
+#' greedy_action(q, "s(3,1)", epsilon = 0, prob = TRUE)
+#' greedy_action(q, "s(3,1)", epsilon = .1, prob = TRUE)
+NULL
+
+#' @rdname q_values
+#' @return `q_values()` returns a state by action matrix specifying the Q-function,
+#'   i.e., the action value for executing each action in each state. The Q-values
+#'   are calculated from the value function (U) and the transition model.
+#' @export
+q_values <- function(model, U = NULL) {
+  if (!inherits(model, "MDP")) {
+    stop("'model' needs to be of class 'MDP'.")
+  }
+
+  S <- model$states
+  A <- model$actions
+  P <- transition_matrix(model, sparse = TRUE)
+  # TODO: sparse = TRUE returns a dataframe. This uses a lot of memory!
+  R <- reward_matrix(model, sparse = FALSE)
+  policy <- model$solution$policy[[1]]
+  GAMMA <- model$discount
+
+  ### TODO: look if Q is already stored in the model!
+  if (is.null(U)) {
+    if (!is.null(policy)) {
+      U <- policy$U
+    } else {
+      stop("'model' does not contain state utilities (it is unsolved). You need to specify U.")
+    }
+  }
+
+  structure(outer(S, A, .QV_vec, P, R, GAMMA, U), dimnames = list(S, A))
+}
+
+#' @rdname q_values
+#' @param epsilon an `epsilon > 0` applies an epsilon-greedy policy.
+#' @param prob logical; return a probability distribution over the actions. 
+#' @return `greedy_action()` returns the action with the highest q-value
+#'    for state `s`. If `prob = TRUE`, then a vector with
+#'    the probability for each action is returned.
+#' @export
+greedy_action <-
+  function(Q,
+           s,
+           epsilon = 0,
+           prob = FALSE) {
+    # R = -Inf means unavailable action
+    available_A <- colnames(Q)[Q[s, ] != -Inf]
+
+    if (!prob) {
+      if (epsilon == 0 ||
+        length(available_A) == 1L || runif(1) > epsilon) {
+        a <- available_A[which.max.random(Q[s, available_A])]
+      } else {
+        a <- sample(available_A, size = 1L)
+      }
+
+      return(a)
+    }
+
+    # return probabilities
+    p <- structure(rep(0, ncol(Q)), names = colnames(Q))
+    a <- available_A[which.max.random(Q[s, available_A])]
+    p[a] <- 1 - epsilon
+    p[available_A] <- p[available_A] + epsilon / length(available_A)
+
+    return(p)
+  }
+
+#' @rdname q_values
+#' @return `greedy_policy()` returns the greedy policy given `Q`.
+#' @export
+greedy_policy <-
+  function(Q) {
+    A <- colnames(Q)
+    data.frame(
+      state = rownames(Q),
+      U = apply(Q, MARGIN = 1, max),
+      action = A[apply(Q, MARGIN = 1, which.max.random)],
+      row.names = NULL
+    )
+  }

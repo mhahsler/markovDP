@@ -83,11 +83,10 @@ solve_MDP_DP <- function(model,
       }
     }
   )
-  
+
   ret$solution$method <- method
-  
+
   ret
-  
 }
 
 # TODO: we could check for convergence
@@ -233,7 +232,7 @@ MDP_policy_iteration_inf_horizon <-
 
     if (is.null(U)) {
       U <- rep(0, times = length(S))
-      pi <- random_MDP_policy(model)$action
+      pi <- random_policy(model)$action
     } else {
       # get greedy policy for a given U
       Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
@@ -252,7 +251,7 @@ MDP_policy_iteration_inf_horizon <-
 
       # evaluate to get U from pi
       U <-
-        MDP_policy_evaluation(pi, model, U, k_backups = k_backups)
+        policy_evaluation(model, pi, U, k_backups = k_backups)
 
       # get greedy policy for U
       Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)

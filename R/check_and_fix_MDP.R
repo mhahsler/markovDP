@@ -7,7 +7,6 @@ check_and_fix_MDP <- function(x) {
       stop(
         name,
         " function needs formal arguments: ",
-        
         paste(sQuote(req_formals), collapse = ", ")
       )
     }
@@ -56,8 +55,8 @@ check_and_fix_MDP <- function(x) {
   }
 
   ### do the checking
-  
-  ##expand states, actions and observations if only the number is given
+
+  ## expand states, actions and observations if only the number is given
   if (is.numeric(x$states) &&
     length(x$states) == 1L) {
     x$states <- paste0("s", seq_len(x$states))
@@ -118,55 +117,55 @@ check_and_fix_MDP <- function(x) {
     stop("transition_prob cannot be missing!")
   }
 
-    # if we have matrices then check and add names
-    if (is.function(x$transition_prob)) {
-      check_func(x$transition_prob, T_, "transition_prob")
-    } # x$transition_prob <- transition_matrix(x)
-    else if (is.data.frame(x$transition_prob)) {
-      x$transition_prob <- check_df(x, x$transition_prob, T_)
-    } else {
-      # action names and order
-      if (is.null(names(x$transition_prob))) {
-        names(x$transition_prob) <- x$actions
-      }
-      if (all(names(x$transition_prob) != x$actions)) {
-        x$transition_prob <- x$transition_prob[x$actions]
-      }
+  # if we have matrices then check and add names
+  if (is.function(x$transition_prob)) {
+    check_func(x$transition_prob, T_, "transition_prob")
+  } # x$transition_prob <- transition_matrix(x)
+  else if (is.data.frame(x$transition_prob)) {
+    x$transition_prob <- check_df(x, x$transition_prob, T_)
+  } else {
+    # action names and order
+    if (is.null(names(x$transition_prob))) {
+      names(x$transition_prob) <- x$actions
+    }
+    if (all(names(x$transition_prob) != x$actions)) {
+      x$transition_prob <- x$transition_prob[x$actions]
+    }
 
-      for (a in x$actions) {
-        if (is.null(x$transition_prob[[a]])) {
-          stop("transition_prob for action ", a, " is missing!")
+    for (a in x$actions) {
+      if (is.null(x$transition_prob[[a]])) {
+        stop("transition_prob for action ", a, " is missing!")
+      }
+      if (is.matrix(x$transition_prob[[a]])) {
+        if (!identical(dim(x$transition_prob[[a]]), c(length(x$states), length(x$states)))) {
+          stop(
+            "transition_prob matrix for action ",
+            a,
+            ": has not the right dimensions!"
+          )
         }
-        if (is.matrix(x$transition_prob[[a]])) {
-          if (!identical(dim(x$transition_prob[[a]]), c(length(x$states), length(x$states)))) {
-            stop(
-              "transition_prob matrix for action ",
-              a,
-              ": has not the right dimensions!"
-            )
-          }
-          if (!sum1(x$transition_prob[[a]])) {
-            stop(
-              "transition_prob matrix for action ",
-              a,
-              ": rows do not add up to 1!"
-            )
-          }
-          if (is.null(dimnames(x$transition_prob[[a]]))) {
-            dimnames(x$transition_prob[[a]]) <-
-              list(x$states, x$states)
-          } else {
-            x$transition_prob[[a]][x$states, x$states]
-          }
+        if (!sum1(x$transition_prob[[a]])) {
+          stop(
+            "transition_prob matrix for action ",
+            a,
+            ": rows do not add up to 1!"
+          )
+        }
+        if (is.null(dimnames(x$transition_prob[[a]]))) {
+          dimnames(x$transition_prob[[a]]) <-
+            list(x$states, x$states)
+        } else {
+          x$transition_prob[[a]][x$states, x$states]
         }
       }
     }
+  }
 
   ## reward
   if (is.null(x$reward)) {
     stop("reward cannot be missing!")
   }
-  
+
   # MDP has no observations
   R_ <- function(action = NA,
                  start.state = NA,
@@ -180,12 +179,12 @@ check_and_fix_MDP <- function(x) {
       stringsAsFactors = FALSE
     )
   }
-  
-    if (is.function(x$reward)) {
-      check_func(x$reward, R_, "reward")
-    } else if (is.data.frame(x$reward)) {
-      x$reward <- check_df(x, x$reward, R_)
-    } else {
+
+  if (is.function(x$reward)) {
+    check_func(x$reward, R_, "reward")
+  } else if (is.data.frame(x$reward)) {
+    x$reward <- check_df(x, x$reward, R_)
+  } else {
     if (is.null(names(x$reward))) {
       names(x$reward) <- x$actions
     }
@@ -229,20 +228,23 @@ check_and_fix_MDP <- function(x) {
   }
 
   ## MDP has no terminal values
-  if (!is.null(x$terminal_values))
+  if (!is.null(x$terminal_values)) {
     stop("MDPs do not have terminal_values!")
+  }
 
   ### check solution
   if (!is.null(x$solution)) {
-    if (is.null(policy))
+    if (is.null(policy)) {
       stop("Policy in solved MDP missing!")
+    }
     x$solution$policy <- lapply(
       x$solution$policy,
       FUN = function(p) {
         if (is.null(p$action) ||
-            length(p$action) != length(x$states) ||
-            !all(p$action %in% x$actions))
+          length(p$action) != length(x$states) ||
+          !all(p$action %in% x$actions)) {
           stop("Malformed action in MDP policy solution.")
+        }
         if (is.null(p$state)) {
           p <- cbind(state = x$states, p)
         }
@@ -250,6 +252,6 @@ check_and_fix_MDP <- function(x) {
       }
     )
   }
-  
+
   x
 }

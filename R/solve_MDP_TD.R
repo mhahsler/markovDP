@@ -56,20 +56,20 @@ solve_MDP_TD <-
           dimnames = list(S, A)
         )
     } else {
-      Q <- q_values_MDP(model, U = U)
+      Q <- q_values(model, U = U)
     }
 
     # loop episodes
     for (e in seq(N)) {
       s <- sample(S, 1, prob = start)
-      a <- greedy_MDP_action(s, Q, epsilon)
+      a <- greedy_action(Q, s, epsilon)
 
       # loop steps in episode
       i <- 1L
       while (TRUE) {
         s_prime <- sample(S, 1L, prob = P[[a]][s, ])
         r <- reward_matrix(model, a, s, s_prime)
-        a_prime <- greedy_MDP_action(s_prime, Q, epsilon)
+        a_prime <- greedy_action(Q, s_prime, epsilon)
 
         if (verbose) {
           if (i == 1L) {
@@ -87,7 +87,7 @@ solve_MDP_TD <-
           }
         } else if (method == "q_learning") {
           # a' is greedy instead of using the behavior policy
-          a_max <- greedy_MDP_action(s_prime, Q, epsilon = 0)
+          a_max <- greedy_action(Q, s_prime, epsilon = 0)
           Q[s, a] <-
             Q[s, a] + alpha * (r + gamma * Q[s_prime, a_max] - Q[s, a])
           if (is.na(Q[s, a])) {
@@ -95,9 +95,9 @@ solve_MDP_TD <-
           }
         } else if (method == "expected_sarsa") {
           p <-
-            greedy_MDP_action(s_prime, Q, epsilon, prob = TRUE)
+            greedy_action(Q, s_prime, epsilon, prob = TRUE)
           exp_Q_prime <-
-            sum(greedy_MDP_action(s_prime, Q, epsilon, prob = TRUE) * Q[s_prime, ],
+            sum(greedy_action(Q, s_prime, epsilon, prob = TRUE) * Q[s_prime, ],
               na.rm = TRUE
             )
           Q[s, a] <-

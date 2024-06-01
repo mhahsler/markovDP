@@ -36,8 +36,9 @@ action(sol, state = "s(1,3)")
 }
 \seealso{
 Other policy: 
-\code{\link{MDP_policy_functions}},
 \code{\link{policy}()},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reward}()},
 \code{\link{value_function}()}
 }

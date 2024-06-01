@@ -53,9 +53,11 @@
 #' # gridworld gw$transition_prob() function and have to replace it
 #' T <- function(action, start.state, end.state) {
 #'   actions <- c("up", "right", "down", "left")
-#'   states <- c("s(1,1)", "s(2,1)", "s(3,1)", "s(1,2)", "s(3,2)", "s(1,3)", 
-#'          "s(2,3)", "s(3,3)", "s(1,4)", "s(2,4)", "s(3,4)")
-#' 
+#'   states <- c(
+#'     "s(1,1)", "s(2,1)", "s(3,1)", "s(1,2)", "s(3,2)", "s(1,3)",
+#'     "s(2,3)", "s(3,3)", "s(1,4)", "s(2,4)", "s(3,4)"
+#'   )
+#'
 #'   action <- match.arg(action, choices = actions)
 #'
 #'   # absorbing states

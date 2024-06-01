@@ -1,7 +1,6 @@
 #' Value Function
 #'
-#' Extracts the alpha vectors describing the value function. This is similar to [policy()] which in addition returns the
-#' action prescribed by the solution.
+#' Extracts the value function from a solved MDP.
 #'
 #' @family policy
 #' @family MDP
@@ -10,7 +9,7 @@
 #' @param drop logical; drop the list for converged, epoch-independent value functions.
 #' @param ... further arguments are passed on to [graphics::barplot()]`.
 #'
-#' @returns the function as a matrix with alpha vectors as rows.
+#' @returns the function as a numeric vector with one value for each state.
 #'
 #' @author Michael Hahsler
 #' @keywords hplot
@@ -19,7 +18,6 @@
 #' sol <- solve_MDP(Maze)
 #' sol
 #'
-#' policy(sol)
 #' value_function(sol)
 #' plot_value_function(sol)
 #'
@@ -30,7 +28,7 @@
 #' plot_value_function(sol, epoch = 1)
 #' plot_value_function(sol, epoch = 2)
 #' plot_value_function(sol, epoch = 3)
-#' 
+#'
 #' # For a gridworld we can also plot is like this
 #' gridworld_plot(sol, epoch = 1)
 #' gridworld_plot(sol, epoch = 2)
@@ -57,7 +55,7 @@ value_function.MDP <- function(model, drop = TRUE) {
 #' @export
 #' @param epoch epoch for finite time horizon solutions.
 #' @param legend logical; show legend.
-#' @param col,ylab,las are passed on to [graphics::barplot()]. 
+#' @param col,ylab,las are passed on to [graphics::barplot()].
 #' @param main a main title for the plot. Defaults to the name of the problem.
 plot_value_function <- function(model,
                                 epoch = 1,
@@ -85,7 +83,7 @@ plot_value_function.MDP <-
     if (is.null(main)) {
       main <- paste("Value Function:", model$name, paste0("(", model$solution$method, ")"))
     }
-    
+
     policy <- policy(model, drop = FALSE)[[epoch]]
 
     mid <- barplot(

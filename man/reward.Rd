@@ -44,7 +44,7 @@ gridworld_matrix(Maze)
 sol <- solve_MDP(Maze)
 policy(sol)
 
-# reward for the start state s(3,1) specified in the model 
+# reward for the start state s(3,1) specified in the model
 reward(sol)
 
 # reward for starting next to the goal at s(1,3)
@@ -55,9 +55,10 @@ reward(sol, start = "uniform")
 }
 \seealso{
 Other policy: 
-\code{\link{MDP_policy_functions}},
 \code{\link{action}()},
 \code{\link{policy}()},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{value_function}()}
 }
 \author{

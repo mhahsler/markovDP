@@ -19,7 +19,7 @@
 #' # The the following actions are always available:
 #' Maze$actions
 #'
-#' # available actions in 
+#' # available actions in
 #' actions(Maze, state = "s(3,1)")
 #' @returns a vector with the available actions.
 #' @export

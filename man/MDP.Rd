@@ -180,26 +180,26 @@ an epoch to the episode it belongs to.
 \examples{
 # simple MDP example
 #
-# states:    s1 s2 s3 s4 
+# states:    s1 s2 s3 s4
 # transitions: forward moves -> and backward moves <-
 # start: s1
 # reward: s1, s2, s4 = 0 and s3 = 1
 
 car <- MDP(
-    states = c("s1", "s2", "s3", "s4"),
-    actions = c("forward", "back", "stop"),
-    transition <- list(
-      forward = rbind(c(0,1,0,0), c(0,0,1,0), c(0,0,0,1), c(0,0,0,1)),
-      back =    rbind(c(1,0,0,0), c(1,0,0,0), c(0,1,0,0), c(0,0,1,0)),
-      stop =    "identity"
-    ),
-    reward = rbind(
-        R_(value = 0),
-        R_(end.state = "s3", value = 1)
-    ),
-    discount = 0.9,
-    start = "s1",
-    name = "Simple Car MDP"
+  states = c("s1", "s2", "s3", "s4"),
+  actions = c("forward", "back", "stop"),
+  transition <- list(
+    forward = rbind(c(0, 1, 0, 0), c(0, 0, 1, 0), c(0, 0, 0, 1), c(0, 0, 0, 1)),
+    back = rbind(c(1, 0, 0, 0), c(1, 0, 0, 0), c(0, 1, 0, 0), c(0, 0, 1, 0)),
+    stop = "identity"
+  ),
+  reward = rbind(
+    R_(value = 0),
+    R_(end.state = "s3", value = 1)
+  ),
+  discount = 0.9,
+  start = "s1",
+  name = "Simple Car MDP"
 )
 
 car
@@ -209,15 +209,16 @@ reward_matrix(car, sparse = TRUE)
 reward_matrix(car)
 
 sol <- solve_MDP(car)
-policy(sol) 
+policy(sol)
 }
 \seealso{
 Other MDP: 
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},

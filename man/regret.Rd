@@ -38,7 +38,7 @@ policy(sol_optimal)
 acts <- rep("up", times = length(Maze$states))
 names(acts) <- Maze$states
 acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
-sol_manual <- add_policy(Maze, manual_MDP_policy(Maze, acts))
+sol_manual <- add_policy(Maze, manual_policy(Maze, acts))
 policy(sol_manual)
 
 regret(sol_manual, benchmark = sol_optimal)
@@ -46,11 +46,12 @@ regret(sol_manual, benchmark = sol_optimal)
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{simulate_MDP}()},
 \code{\link{solve_MDP}()},

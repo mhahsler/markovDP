@@ -43,7 +43,7 @@ policy(sol)
 reward(sol)
 
 # Add a random policy
-random_pol <- random_MDP_policy(Maze)
+random_pol <- random_policy(Maze)
 random_pol
 sol_random <- add_policy(Maze, random_pol)
 policy(sol_random)
@@ -55,10 +55,11 @@ Other POMDP:
 
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},

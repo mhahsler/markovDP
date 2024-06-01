@@ -25,18 +25,6 @@ reward_matrix <- function(x,
 }
 
 #' @export
-reward_matrix <- function(x,
-                          action = NULL,
-                          start.state = NULL,
-                          end.state = NULL,
-                          observation = NULL,
-                          episode = NULL,
-                          epoch = NULL,
-                          sparse = FALSE) {
-  UseMethod("reward_matrix")
-}
-
-#' @export
 reward_matrix.MDP <-
   function(x,
            action = NULL,
@@ -46,11 +34,11 @@ reward_matrix.MDP <-
            episode = NULL,
            epoch = NULL,
            sparse = FALSE) {
-    
-    if (!is.null(observation))
+    if (!is.null(observation)) {
       stop("Observations can not be specified for MDPs!")
-    
-    
+    }
+
+
     ## if not observations are available then it is a s' vector
     if (is.null(episode)) {
       if (is.null(epoch)) {
@@ -60,8 +48,8 @@ reward_matrix.MDP <-
       }
     }
 
-    reward <-  x[["reward"]]
-    
+    reward <- x[["reward"]]
+
     if (is.null(action) && (!is.null(start.state) || !is.null(end.state) || !is.null(observation))) {
       stop("action needs to be specified!")
     }
@@ -105,59 +93,6 @@ reward_matrix.MDP <-
     # subset
     reward_list2value(reward, action, start.state, end.state, observation)
   }
-
-#' @rdname accessors
-#' @export
-reward_val <-
-  function(x,
-           action,
-           start.state,
-           end.state = NULL,
-           observation = NULL,
-           episode = NULL,
-           epoch = NULL) {
-    warning("reward_val is deprecated. Use reward_matrix instead!")
-    reward_matrix(x,
-      action,
-      start.state,
-      end.state,
-      observation,
-      episode,
-      epoch,
-      sparse = FALSE
-    )
-  }
-
-# used internally
-.max_abs_reward <- function(x, episode = NULL,
-                            epoch = NULL) {
-  r <-
-    reward_matrix(x,
-      episode = episode,
-      epoch = epoch,
-      sparse = NULL
-    )
-
-  # TODO: This could be done better
-  if (is.function(r)) {
-    r <-
-      reward_matrix(x,
-        episode = episode,
-        epoch = epoch,
-        sparse = FALSE
-      )
-  }
-
-  if (is.data.frame(r)) {
-    rew <- r$value
-  } else {
-    # list of list of matrices
-    rew <- unlist(r, recursive = TRUE)
-  }
-
-  rew[rew == -Inf] <- NA
-  max(abs(rew), na.rm = TRUE)
-}
 
 
 
@@ -220,8 +155,7 @@ reward_df2value <-
       df <- df[
         (is.na(df$action) | df$action == action) &
           (is.na(df$start.state) |
-            df$start.state == start.state),
-        ,
+            df$start.state == start.state), ,
         drop = FALSE
       ]
 

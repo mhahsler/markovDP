@@ -6,9 +6,7 @@
 \alias{start_vector}
 \alias{normalize_MDP}
 \alias{reward_matrix}
-\alias{reward_val}
 \alias{transition_matrix}
-\alias{transition_val}
 \title{Access to Parts of the Model Description}
 \usage{
 start_vector(x, start = NULL)
@@ -32,16 +30,6 @@ reward_matrix(
   sparse = FALSE
 )
 
-reward_val(
-  x,
-  action,
-  start.state,
-  end.state = NULL,
-  observation = NULL,
-  episode = NULL,
-  epoch = NULL
-)
-
 transition_matrix(
   x,
   action = NULL,
@@ -52,8 +40,6 @@ transition_matrix(
   sparse = FALSE,
   trans_keyword = TRUE
 )
-
-transition_val(x, action, start.state, end.state, episode = NULL, epoch = NULL)
 }
 \arguments{
 \item{x}{A \link{MDP} object.}
@@ -141,16 +127,20 @@ gridworld_matrix(Maze)
 Maze$transition_prob
 transition_matrix(Maze)
 transition_matrix(Maze, action = "up", sparse = TRUE)
-transition_matrix(Maze, action = "up", 
-                        start.state = "s(3,1)", end.state = "s(2,1)")
+transition_matrix(Maze,
+  action = "up",
+  start.state = "s(3,1)", end.state = "s(2,1)"
+)
 
 # List of list of reward matrices. 1st level is action and second level is the
 #  start state in the form of a column vector with elements for end states.
 Maze$reward
 reward_matrix(Maze)
 reward_matrix(Maze, sparse = TRUE)
-reward_matrix(Maze, action = "up", 
-              start.state = "s(3,1)", end.state = "s(2,1)")
+reward_matrix(Maze,
+  action = "up",
+  start.state = "s(3,1)", end.state = "s(2,1)"
+)
 
 # Translate the initial start probability vector
 Maze$start
@@ -163,10 +153,11 @@ Maze_norm$transition_prob
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},

@@ -67,16 +67,20 @@
 #' Maze$transition_prob
 #' transition_matrix(Maze)
 #' transition_matrix(Maze, action = "up", sparse = TRUE)
-#' transition_matrix(Maze, action = "up", 
-#'                         start.state = "s(3,1)", end.state = "s(2,1)")
+#' transition_matrix(Maze,
+#'   action = "up",
+#'   start.state = "s(3,1)", end.state = "s(2,1)"
+#' )
 #'
 #' # List of list of reward matrices. 1st level is action and second level is the
 #' #  start state in the form of a column vector with elements for end states.
 #' Maze$reward
 #' reward_matrix(Maze)
 #' reward_matrix(Maze, sparse = TRUE)
-#' reward_matrix(Maze, action = "up", 
-#'               start.state = "s(3,1)", end.state = "s(2,1)")
+#' reward_matrix(Maze,
+#'   action = "up",
+#'   start.state = "s(3,1)", end.state = "s(2,1)"
+#' )
 #'
 #' # Translate the initial start probability vector
 #' Maze$start
@@ -88,7 +92,7 @@
 NULL
 
 #' @rdname accessors
-#' @param start a start state description (see [MDP]). If `NULL` then the 
+#' @param start a start state description (see [MDP]). If `NULL` then the
 #'   start vector is created using the start stored in the model.
 #' @export
 start_vector <- function(x, start = NULL) {
@@ -291,7 +295,7 @@ value_matrix <-
            sparse = NULL,
            trans_keyword = TRUE) {
     ## action list of s x s matrices
-    
+
     if (is.null(episode)) {
       if (is.null(epoch)) {
         episode <- 1L
@@ -299,9 +303,9 @@ value_matrix <-
         episode <- epoch_to_episode(x, epoch)
       }
     }
-    
+
     value <- x[[field]]
-    
+
     # convert functions
     if (is.function(value)) {
       # shortcut for a single value
@@ -317,15 +321,15 @@ value_matrix <-
         if (is.numeric(col)) col <- cols[col]
         return(value(action, row, col))
       }
-      
+
       return(function2value(x, field, value, action, row, col, sparse))
     }
-    
+
     # data.frame
     if (is.data.frame(value)) {
       return(df2value(value, action, row, col, sparse))
     }
-    
+
     # we have a list of matrices
     # subset
     list2value(x, field, value, action, row, col, sparse, trans_keyword)
@@ -341,7 +345,7 @@ df2value <-
     actions <- levels(df$action)
     rows <- levels(df[[2L]])
     cols <- levels(df[[3L]])
-    
+
     if (is.null(action)) {
       l <- sapply(
         actions,
@@ -350,15 +354,15 @@ df2value <-
         },
         simplify = FALSE
       )
-      
+
       return(l)
     }
-    
+
     if (is.null(col) && is.null(row)) {
       # matrix
       df <-
         df[(is.na(df$action) | df$action == action), , drop = FALSE]
-      
+
       m <-
         matrix(
           0,
@@ -366,73 +370,73 @@ df2value <-
           ncol = length(cols),
           dimnames = list(rows, cols)
         )
-      
+
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-        
+
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-        
+
         m[r, c] <- df$probability[i]
       }
-      
+
       m <- .sparsify(m, sparse)
       return(m)
     }
-    
+
     if (is.null(col)) {
       # row vector
       if (is.numeric(row)) {
         row <- rows[row]
       }
       df <- df[(is.na(df$action) | df$action == action) &
-                 (is.na(df[[2L]]) |
-                    df[[2L]] == row), , drop = FALSE]
-      
+        (is.na(df[[2L]]) |
+          df[[2L]] == row), , drop = FALSE]
+
       v <-
         structure(numeric(length(cols)), names = cols)
-      
+
       for (i in seq_len(nrow(df))) {
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-        
+
         v[c] <- df$probability[i]
       }
-      
+
       return(v)
     }
-    
+
     if (is.null(row)) {
       if (is.numeric(col)) {
         col <- cols[col]
       }
       # row vector
       df <- df[(is.na(df$action) | df$action == action) &
-                 (is.na(df[[2L]]) |
-                    df[[2L]] == col), , drop = FALSE]
-      
+        (is.na(df[[2L]]) |
+          df[[2L]] == col), , drop = FALSE]
+
       v <-
         structure(numeric(length(rows)), names = rows)
-      
+
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-        
+
         v[r] <- df$probability[i]
       }
-      
+
       return(v)
     }
-    
+
     # value
     if (is.numeric(row)) {
       row <- rows[row]
@@ -440,17 +444,17 @@ df2value <-
     if (is.numeric(col)) {
       col <- cols[col]
     }
-    
+
     val <- df$probability[(is.na(df$action) | df$action == action) &
-                            (is.na(df[[2L]]) |
-                               df[[2L]] == row) &
-                            (is.na(df[[3L]]) |
-                               df$end.state == col)]
-    
+      (is.na(df[[2L]]) |
+        df[[2L]] == row) &
+      (is.na(df[[3L]]) |
+        df$end.state == col)]
+
     if (length(val) == 0L) {
       return(0)
     }
-    
+
     return(tail(val, 1L))
   }
 
@@ -462,13 +466,13 @@ function2value <- function(x,
                            col,
                            sparse = FALSE) {
   if (length(action) == 1L &&
-      length(row) == 1L &&
-      length(col) == 1L) {
+    length(row) == 1L &&
+    length(col) == 1L) {
     return(f(action, row, col))
   }
-  
+
   # TODO: we could make access faster
-  
+
   f <- Vectorize(f)
   actions <- x$actions
   rows <- x$states
@@ -478,7 +482,7 @@ function2value <- function(x,
     ### obs
     cols <- x$observations
   }
-  
+
   m <- sapply(
     actions,
     FUN = function(a) {
@@ -498,12 +502,12 @@ function2value <- function(x,
     },
     simplify = FALSE
   )
-  
+
   list2value(x, field, m,
-             action,
-             row,
-             col,
-             sparse = NULL
+    action,
+    row,
+    col,
+    sparse = NULL
   )
 }
 
@@ -525,52 +529,52 @@ list2value <-
       ### obs
       cols <- x$observations
     }
-    
+
     ## convert from character
     .fix <- function(mm, sparse, trans_keyword = TRUE) {
       if (is.character(mm)) {
         if (!trans_keyword) {
           return(mm)
         }
-        
+
         mm <- switch(mm,
-                     identity = {
-                       if (is.null(sparse) || sparse) {
-                         Matrix::Diagonal(length(rows))
-                       } else {
-                         diag(length(rows))
-                       }
-                     },
-                     uniform = matrix(
-                       1 / length(cols),
-                       nrow = length(rows),
-                       ncol = length(cols)
-                     )
+          identity = {
+            if (is.null(sparse) || sparse) {
+              Matrix::Diagonal(length(rows))
+            } else {
+              diag(length(rows))
+            }
+          },
+          uniform = matrix(
+            1 / length(cols),
+            nrow = length(rows),
+            ncol = length(cols)
+          )
         )
-        
+
         dimnames(mm) <- list(rows, cols)
       }
       .sparsify(mm, sparse)
     }
-    
+
     if (is.null(action)) {
       m <- lapply(m, .fix, sparse = sparse, trans_keyword = trans_keyword)
       return(m)
     }
-    
+
     m <- .fix(m[[action]], sparse, trans_keyword)
-    
+
     if (is.null(row) && is.null(col)) {
       return(m)
     }
-    
+
     if (is.null(row)) {
       row <- rows
     }
     if (is.null(col)) {
       col <- cols
     }
-    
+
     return(m[row, col])
   }
 
@@ -584,7 +588,7 @@ df2value <-
     actions <- levels(df$action)
     rows <- levels(df[[2L]])
     cols <- levels(df[[3L]])
-    
+
     if (is.null(action)) {
       l <- sapply(
         actions,
@@ -593,15 +597,15 @@ df2value <-
         },
         simplify = FALSE
       )
-      
+
       return(l)
     }
-    
+
     if (is.null(col) && is.null(row)) {
       # matrix
       df <-
         df[(is.na(df$action) | df$action == action), , drop = FALSE]
-      
+
       m <-
         matrix(
           0,
@@ -609,73 +613,73 @@ df2value <-
           ncol = length(cols),
           dimnames = list(rows, cols)
         )
-      
+
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-        
+
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-        
+
         m[r, c] <- df$probability[i]
       }
-      
+
       m <- .sparsify(m, sparse)
       return(m)
     }
-    
+
     if (is.null(col)) {
       # row vector
       if (is.numeric(row)) {
         row <- rows[row]
       }
       df <- df[(is.na(df$action) | df$action == action) &
-                 (is.na(df[[2L]]) |
-                    df[[2L]] == row), , drop = FALSE]
-      
+        (is.na(df[[2L]]) |
+          df[[2L]] == row), , drop = FALSE]
+
       v <-
         structure(numeric(length(cols)), names = cols)
-      
+
       for (i in seq_len(nrow(df))) {
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-        
+
         v[c] <- df$probability[i]
       }
-      
+
       return(v)
     }
-    
+
     if (is.null(row)) {
       if (is.numeric(col)) {
         col <- cols[col]
       }
       # row vector
       df <- df[(is.na(df$action) | df$action == action) &
-                 (is.na(df[[2L]]) |
-                    df[[2L]] == col), , drop = FALSE]
-      
+        (is.na(df[[2L]]) |
+          df[[2L]] == col), , drop = FALSE]
+
       v <-
         structure(numeric(length(rows)), names = rows)
-      
+
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-        
+
         v[r] <- df$probability[i]
       }
-      
+
       return(v)
     }
-    
+
     # value
     if (is.numeric(row)) {
       row <- rows[row]
@@ -683,17 +687,17 @@ df2value <-
     if (is.numeric(col)) {
       col <- cols[col]
     }
-    
+
     val <- df$probability[(is.na(df$action) | df$action == action) &
-                            (is.na(df[[2L]]) |
-                               df[[2L]] == row) &
-                            (is.na(df[[3L]]) |
-                               df$end.state == col)]
-    
+      (is.na(df[[2L]]) |
+        df[[2L]] == row) &
+      (is.na(df[[3L]]) |
+        df$end.state == col)]
+
     if (length(val) == 0L) {
       return(0)
     }
-    
+
     return(tail(val, 1L))
   }
 
@@ -705,13 +709,13 @@ function2value <- function(x,
                            col,
                            sparse = FALSE) {
   if (length(action) == 1L &&
-      length(row) == 1L &&
-      length(col) == 1L) {
+    length(row) == 1L &&
+    length(col) == 1L) {
     return(f(action, row, col))
   }
-  
+
   # TODO: we could make access faster
-  
+
   f <- Vectorize(f)
   actions <- x$actions
   rows <- x$states
@@ -721,7 +725,7 @@ function2value <- function(x,
     ### obs
     cols <- x$observations
   }
-  
+
   m <- sapply(
     actions,
     FUN = function(a) {
@@ -741,12 +745,11 @@ function2value <- function(x,
     },
     simplify = FALSE
   )
-  
+
   list2value(x, field, m,
-             action,
-             row,
-             col,
-             sparse = NULL
+    action,
+    row,
+    col,
+    sparse = NULL
   )
 }
-

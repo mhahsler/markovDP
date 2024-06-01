@@ -60,11 +60,12 @@ which(!reachable_states(Maze))
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},
 \code{\link{solve_MDP}()},

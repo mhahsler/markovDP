@@ -32,7 +32,7 @@
 #'
 #' gridworld_matrix(Windy_gridworld)
 #' gridworld_matrix(Windy_gridworld, what = "labels")
-#' 
+#'
 #' gridworld_plot(Windy_gridworld)
 #'
 #' # The Goal is an absorbing state

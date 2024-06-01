@@ -24,11 +24,11 @@ transition_matrix <- function(x,
                               epoch = NULL,
                               sparse = FALSE,
                               trans_keyword = TRUE) {
-    UseMethod("transition_matrix")
+  UseMethod("transition_matrix")
 }
 
 #' @export
-transition_matrix <-
+transition_matrix.MDP <-
   function(x,
            action = NULL,
            start.state = NULL,
@@ -49,26 +49,3 @@ transition_matrix <-
       trans_keyword
     )
   }
-
-#' @rdname accessors
-#' @export
-transition_val <-
-  function(x,
-           action,
-           start.state,
-           end.state,
-           episode = NULL,
-           epoch = NULL) {
-    # warning("transition_val is deprecated. Use transition_matrix instead!")
-    value_matrix(
-      x,
-      "transition_prob",
-      action,
-      start.state,
-      end.state,
-      episode,
-      epoch
-    )
-  }
-
-

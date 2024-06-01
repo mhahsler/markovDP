@@ -346,5 +346,3 @@ simulate_MDP <-
       trajectories = trajectories
     )
   }
-
-

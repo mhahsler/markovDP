@@ -67,8 +67,10 @@ g <- transition_graph(Maze)
 g
 
 plot_transition_graph(Maze)
-plot_transition_graph(Maze, vertex.size = 20, 
-                      edge.label.cex = .1, edge.arrow.size = .5, margin = .5)
+plot_transition_graph(Maze,
+  vertex.size = 20,
+  edge.label.cex = .1, edge.arrow.size = .5, margin = .5
+)
 
 ## Plot using the igraph library
 library(igraph)
@@ -76,31 +78,31 @@ plot(g)
 
 # plot with a different layout
 plot(g,
- layout = igraph::layout_with_sugiyama,
- vertex.size = 20,
- edge.label.cex = .6
- )
+  layout = igraph::layout_with_sugiyama,
+  vertex.size = 20,
+  edge.label.cex = .6
+)
 
 ## Use visNetwork (if installed)
-if(require(visNetwork)) {
+if (require(visNetwork)) {
+  g_vn <- toVisNetworkData(g)
+  nodes <- g_vn$nodes
+  edges <- g_vn$edges
 
-g_vn <- toVisNetworkData(g)
-nodes <- g_vn$nodes
-edges <- g_vn$edges
-
-visNetwork(nodes, edges)  \%>\%
-  visNodes(physics = FALSE) \%>\%
-  visEdges(smooth = list(type = "curvedCW", roundness = .6), arrows = "to")
+  visNetwork(nodes, edges) \%>\%
+    visNodes(physics = FALSE) \%>\%
+    visEdges(smooth = list(type = "curvedCW", roundness = .6), arrows = "to")
 }
 }
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},

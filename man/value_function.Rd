@@ -34,18 +34,16 @@ plot_value_function(
 \item{...}{further arguments are passed on to \code{\link[graphics:barplot]{graphics::barplot()}}`.}
 }
 \value{
-the function as a matrix with alpha vectors as rows.
+the function as a numeric vector with one value for each state.
 }
 \description{
-Extracts the alpha vectors describing the value function. This is similar to \code{\link[=policy]{policy()}} which in addition returns the
-action prescribed by the solution.
+Extracts the value function from a solved MDP.
 }
 \examples{
 data("Maze")
 sol <- solve_MDP(Maze)
 sol
 
-policy(sol)
 value_function(sol)
 plot_value_function(sol)
 
@@ -64,18 +62,20 @@ gridworld_plot(sol, epoch = 3)
 }
 \seealso{
 Other policy: 
-\code{\link{MDP_policy_functions}},
 \code{\link{action}()},
 \code{\link{policy}()},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reward}()}
 
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},

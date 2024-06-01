@@ -6,14 +6,14 @@
 #'
 #' The new policy needs to be a data.frame with one row for each state in the
 #' order the states are defined in the model. The only required column is
-#' 
+#'
 #' * `action`: the action prescribed in the state corresponding to the row.
-#' 
+#'
 #' Optional columns are
-#' 
-#' * `state`: the state names in the order of the states in the model. 
-#'    The needed names can be obtained by from the `$states` element of the model.  
-#' * `U`: with the utility given by the value function for the state. 
+#'
+#' * `state`: the state names in the order of the states in the model.
+#'    The needed names can be obtained by from the `$states` element of the model.
+#' * `U`: with the utility given by the value function for the state.
 #'
 #' @family POMDP
 #' @family MDP
@@ -34,7 +34,7 @@
 #' reward(sol)
 #'
 #' # Add a random policy
-#' random_pol <- random_MDP_policy(Maze)
+#' random_pol <- random_policy(Maze)
 #' random_pol
 #' sol_random <- add_policy(Maze, random_pol)
 #' policy(sol_random)
@@ -51,7 +51,7 @@ add_policy.MDP <- function(model, policy) {
   }
 
   if (is.null(policy$U)) {
-    policy$U <- MDP_policy_evaluation(policy, model)
+    policy$U <- policy_evaluation(model, policy)
   }
 
   solution <- list(

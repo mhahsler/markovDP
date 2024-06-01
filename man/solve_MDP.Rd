@@ -102,7 +102,7 @@ starts with a random policy and iteratively performs
 a sequence of
 \enumerate{
 \item approximate policy evaluation (estimate the value function for the
-current policy using \code{k_backups} and function \code{\link[=MDP_policy_evaluation]{MDP_policy_evaluation()}}, and
+current policy using \code{k_backups} and function \code{\link[=policy_evaluation]{policy_evaluation()}}, and
 \item policy improvement (calculate a greedy policy given the value function).
 The algorithm stops when it converges to a stable policy (i.e., no changes
 between two iterations).
@@ -220,7 +220,7 @@ gridworld_plot(maze_solved, epoch = 3)
 #  the value function. We change the discount factor to .9 for this.
 Maze_discounted <- Maze
 Maze_discounted$discount <- .9
-pi <- random_MDP_policy(Maze_discounted,
+pi <- random_policy(Maze_discounted,
   prob = c(n = .7, e = .1, s = .1, w = 0.1)
 )
 pi
@@ -229,8 +229,8 @@ pi
 #  policy found by the solver.
 maze_solved <- solve_MDP(Maze)
 
-MDP_policy_evaluation(pi, Maze, k_backup = 100)
-MDP_policy_evaluation(policy(maze_solved), Maze, k_backup = 100)
+policy_evaluation(Maze, pi, k_backup = 100)
+policy_evaluation(Maze, policy(maze_solved), k_backup = 100)
 
 # Note that the solver already calculates the utility function and returns it with the policy
 policy(maze_solved)
@@ -254,11 +254,12 @@ Second edition. The MIT Press.
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
-\code{\link{MDP_policy_functions}},
 \code{\link{accessors}},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
 \code{\link{simulate_MDP}()},

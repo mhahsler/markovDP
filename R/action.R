@@ -1,6 +1,6 @@
 #' Action Given a Policy
 #'
-#' Returns the action given a policy. If the 
+#' Returns the action given a policy. If the
 #' policy is optimal, then also the action will be optimal.
 #'
 #' @family policy
@@ -29,4 +29,4 @@ action <- function(model, ...) {
 action.MDP <-
   function(model, state, epoch = 1, ...) {
     policy(model, epoch)$action[.get_state_id(model, state)]
-}
+  }

@@ -19,23 +19,23 @@
 #'
 #' @returns `reward()` returns a vector of reward values, one for each belief if a matrix is specified.
 #'
-#' \item{state}{start state to calculate the reward for. if `NULL` then the start 
+#' \item{state}{start state to calculate the reward for. if `NULL` then the start
 #' state of model is used.}
 #' @author Michael Hahsler
 #' @examples
 #' data("Maze")
 #' Maze
 #' gridworld_matrix(Maze)
-#' 
+#'
 #' sol <- solve_MDP(Maze)
 #' policy(sol)
-#' 
-#' # reward for the start state s(3,1) specified in the model 
+#'
+#' # reward for the start state s(3,1) specified in the model
 #' reward(sol)
-#' 
+#'
 #' # reward for starting next to the goal at s(1,3)
 #' reward(sol, start = "s(1,3)")
-#' 
+#'
 #' # expected reward when we start from a random state
 #' reward(sol, start = "uniform")
 #' @export
@@ -49,18 +49,19 @@ reward.MDP <- function(x,
                        start = NULL,
                        epoch = 1L,
                        ...) {
-  
   is_solved_MDP(x, stop = TRUE)
-  
-  if (is.null(start))
-      start <- start_vector(x)
-  else
-      start <- .translate_belief(start, x)
+
+  if (is.null(start)) {
+    start <- start_vector(x)
+  } else {
+    start <- .translate_belief(start, x)
+  }
 
   pol <- policy(x, epoch)
-  
-  if (is.null(pol$U))
-    pol$U <- MDP_policy_evaluation(pol, x)
-  
+
+  if (is.null(pol$U)) {
+    pol$U <- policy_evaluation(pol, x)
+  }
+
   return(drop(crossprod(pol$U, start)))
 }

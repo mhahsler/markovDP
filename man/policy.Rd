@@ -2,9 +2,15 @@
 % Please edit documentation in R/policy.R
 \name{policy}
 \alias{policy}
-\title{Extract the Policy}
+\alias{random_policy}
+\alias{manual_policy}
+\title{Extract or Create a Policy}
 \usage{
 policy(x, epoch = NULL, drop = TRUE)
+
+random_policy(x, prob = NULL)
+
+manual_policy(x, actions)
 }
 \arguments{
 \item{x}{A solved \link{MDP} object.}
@@ -13,27 +19,32 @@ policy(x, epoch = NULL, drop = TRUE)
 with elements for each epoch.}
 
 \item{drop}{logical; drop the list for converged, epoch-independent policies.}
+
+\item{prob}{probability vector for random actions for \code{random_policy()}.
+a logical indicating if action probabilities should be returned for
+\code{greedy_action()}.}
+
+\item{actions}{a vector with the action (either the action label or the
+numeric id) for each state.}
 }
 \value{
-A list with the policy for each epoch. Converged policies
-have only one element. If \code{drop = TRUE} then the policy is returned
-without a list.
+A data.frame containing the policy. If \code{drop = FALSE} then the policy is returned
+as a list with the policy for each epoch.
 }
 \description{
-Extracts the policy from a solved model.
+Extracts the policy from a solved model or create a policy.
 }
 \details{
-A list (one entry per epoch) with the optimal policy.
-For converged, infinite-horizon problems solutions, a list with only the
-converged solution is produced.
-
 For an MDP, the policy is a data.frame with columns for:
 \itemize{
 \item \code{state}: The state.
 \item \code{U}: The state's value (discounted expected utility U) if the policy
-is followed
+is followed.
 \item \code{action}: The prescribed action.
 }
+
+For unconverged, finite-horizon problems, the solution is a policy for
+each epoch. This is returned as a list of data.frames.
 }
 \examples{
 data("Maze")
@@ -41,20 +52,38 @@ data("Maze")
 sol <- solve_MDP(Maze)
 sol
 
-# policy with value function and optimal action.
+## policy with value function and optimal action.
 policy(sol)
 plot_value_function(sol)
+gridworld_plot(sol)
 
-# Finite horizon (we use incremental pruning because grid does not converge)
+## create a random policy
+pi_random <- random_policy(Maze)
+pi_random
+
+gridworld_plot(add_policy(Maze, pi_random))
+
+## create a manual policy (go up and in some squares to the right)
+acts <- rep("up", times = length(Maze$states))
+names(acts) <- Maze$states
+acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
+pi_manual <- manual_policy(Maze, acts)
+pi_manual
+
+gridworld_plot(add_policy(Maze, pi_manual))
+
+## Finite horizon (we use incremental pruning because grid does not converge)
 sol <- solve_MDP(model = Maze, horizon = 3)
 sol
 
 policy(sol)
+gridworld_plot(sol)
 }
 \seealso{
 Other policy: 
-\code{\link{MDP_policy_functions}},
 \code{\link{action}()},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
 \code{\link{reward}()},
 \code{\link{value_function}()}
 }

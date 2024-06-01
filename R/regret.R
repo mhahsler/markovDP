@@ -4,7 +4,7 @@
 #'
 #' Regret is defined as \eqn{V^{\pi^*}(s_0) - V^{\pi}(s_0)} with \eqn{V^\pi} representing the expected long-term
 #' state value (represented by the value function) given the policy \eqn{\pi} and the start
-#' state \eqn{s_0}. 
+#' state \eqn{s_0}.
 #'
 #' Note that for regret usually the optimal policy \eqn{\pi^*} is used as the benchmark.
 #' Since the optimal policy may not be known, regret relative to the best known policy can be used.
@@ -30,7 +30,7 @@
 #' acts <- rep("up", times = length(Maze$states))
 #' names(acts) <- Maze$states
 #' acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
-#' sol_manual <- add_policy(Maze, manual_MDP_policy(Maze, acts))
+#' sol_manual <- add_policy(Maze, manual_policy(Maze, acts))
 #' policy(sol_manual)
 #'
 #' regret(sol_manual, benchmark = sol_optimal)

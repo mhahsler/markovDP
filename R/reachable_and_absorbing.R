@@ -62,7 +62,7 @@ absorbing_states <- function(x,
     (all(sapply(
       x$actions,
       FUN = function(a) {
-        transition_val(
+        transition_matrix(
           x,
           action = a,
           start.state = s,

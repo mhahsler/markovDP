@@ -3,10 +3,9 @@
 ## action can be "install" (from CRAN), "stop" (with message), "check" (returns TRUE/FALSE)
 ## manual can be either TRUE or a string with installation instructions.
 check_installed <-
-  function(
-      pkg,
-      action = "install",
-      message = NULL) {
+  function(pkg,
+           action = "install",
+           message = NULL) {
     action <- match.arg(action, choices = c("install", "stop", "check"))
 
     if (!is.character(pkg)) {
