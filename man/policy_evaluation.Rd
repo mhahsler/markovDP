@@ -2,6 +2,7 @@
 % Please edit documentation in R/policy_evaluation.R
 \name{policy_evaluation}
 \alias{policy_evaluation}
+\alias{bellman_operator}
 \title{Policy Evaluation}
 \usage{
 policy_evaluation(
@@ -12,6 +13,8 @@ policy_evaluation(
   theta = 0.001,
   verbose = FALSE
 )
+
+bellman_operator(model, pi, U)
 }
 \arguments{
 \item{model}{an MDP problem specification.}
@@ -37,18 +40,22 @@ a vector with (approximate)
 state values (U).
 }
 \description{
-Evaluate a policy for a model.
+Evaluate a policy for a model by repeatedly applying the Bellman
+operator.
 }
 \details{
-Evaluate a policy \eqn{\pi} for a model and returns
-(approximate) state values by applying the Bellman equation as an update
-rule for each state and iteration \eqn{k}:
+The Bellman operator updates a value function given the model defining
+\eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy
+\eqn{\pi} by applying the Bellman equation as  an update rule for each state:
 
-\deqn{U_{k+1}(s) =\sum_a \pi{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
+\deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
 
-In each iteration, all states are updated. Updating is stopped after
-\code{k_backups} iterations or after the
-largest update \eqn{||U_{k+1} - U_k||_\infty < \theta}.
+A policy can be evaluated by applying the Bellman update till convergence.
+In each iteration, all states are updated. In this implementation updating is
+stopped after\code{k_backups} iterations or after the
+largest update
+
+\deqn{||U_{k+1} - U_k||_\infty < \theta.}
 }
 \examples{
 data(Maze)

@@ -46,11 +46,13 @@ Implementation several functions useful to deal with Q-values for MDPs.
 Implemented functions are:
 \itemize{
 \item \code{q_values()} calculates (approximates)
-Q-values for a given model using the Bellman
+Q-values for a given model and value function using the Bellman
 optimality equation:
 
 \deqn{q(s,a) = \sum_{s'} T(s'|s,a) [R(s,a) + \gamma U(s')]}
 
+Q-values are calculated if \eqn{U = U^*}, the optimal value function
+otherwise we get an approximation.
 Q-values can be used as the input for several other functions.
 \item \code{greedy_action()} returns the action with the largest Q-value given a
 state.

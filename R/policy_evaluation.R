@@ -1,17 +1,20 @@
 #' Policy Evaluation
 #'
-#' Evaluate a policy for a model.
+#' Evaluate a policy for a model by repeatedly applying the Bellman 
+#' operator.
 #'
-#' Evaluate a policy \eqn{\pi} for a model and returns
-#'   (approximate) state values by applying the Bellman equation as an update
-#'   rule for each state and iteration \eqn{k}:
+#' The Bellman operator updates a value function given the model defining
+#' \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy 
+#' \eqn{\pi} by applying the Bellman equation as  an update rule for each state:
 #'
-#'   \deqn{U_{k+1}(s) =\sum_a \pi{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
+#' \deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
 #'
-#'   In each iteration, all states are updated. Updating is stopped after
-#'   `k_backups` iterations or after the
-#'   largest update \eqn{||U_{k+1} - U_k||_\infty < \theta}.
-#'
+#' A policy can be evaluated by applying the Bellman update till convergence.
+#' In each iteration, all states are updated. In this implementation updating is 
+#' stopped after`k_backups` iterations or after the
+#' largest update 
+#' 
+#' \deqn{||U_{k+1} - U_k||_\infty < \theta.}
 #'
 #' @family MDP
 #' @family policy
@@ -122,3 +125,15 @@ policy_evaluation <-
 
     U
   }
+
+#' @rdname policy_evaluation
+#' @export
+bellman_operator <- function(model, pi, U) {
+  policy_evaluation(
+    model,
+    pi,
+    U = U,
+    k_backups = 1L,
+    theta = Inf
+  )
+}
