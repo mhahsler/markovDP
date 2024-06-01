@@ -19,23 +19,24 @@ actions in the future. Solving the MDP means finding the optimal (or at
 least a good) policy that guides the agent’s actions.
 
 The `markovDP` package provides the infrastructure to work with MDPs in
-R. It also interfaces to the following popular algorithms:
+R. The focus is on convenience in formulating MDPs in multiple ways, the
+support of sparse representations (using sparse matrices, lists and
+data.frames) and visualization of results. Some key components are
+implemented in C++ to speed up computation. It also provides to the
+following popular solving procedures:
 
-- Dynamic Programming
-
-  - **Value Iteration** (Bellman 1957)
-  - **Modified Policy Iteration** (Howard 1960; Puterman and Shin 1978)
-
-- **Linear Programming** (Manne 1960)
-
-- Termporal Differencing
-
-  - **Q-Learning** (Watkins and Dayan 1992)
-  - **Sarsa** (Sutton and Barto 2018)
-  - **Expected Sarsa** (Sutton and Barto 2018)
+- **Dynamic Programming**
+  - Value Iteration (Bellman 1957)
+  - Modified Policy Iteration (Howard 1960; Puterman and Shin 1978)
+- **Linear Programming**
+  - Primal Formulation (Manne 1960)
+- **Termporal Differencing** (R. Sutton 1988)
+  - Q-Learning (Watkins and Dayan 1992)
+  - Sarsa (Singh et al. 2000)
+  - Expected Sarsa (R. S. Sutton and Barto 2018)
 
 These implementations follow the description is (Russell and Norvig
-2020) and (Sutton and Barto 2018).
+2020) and (R. S. Sutton and Barto 2018).
 
 To cite package ‘markovDP’ in publications use:
 
@@ -51,12 +52,6 @@ To cite package ‘markovDP’ in publications use:
     }
 
 ## Installation
-
-**Stable CRAN version:** Install from within R with
-
-``` r
-install.packages("markovDP")
-```
 
 **Current development version:** Install from
 [r-universe.](https://mhahsler.r-universe.dev/markovDP)
@@ -167,6 +162,23 @@ Iteration Algorithms for Discounted Markov Decision Problems.”
 
 Russell, Stuart J., and Peter Norvig. 2020. *Artificial Intelligence: A
 Modern Approach (4th Edition)*. Pearson. <http://aima.cs.berkeley.edu/>.
+
+</div>
+
+<div id="ref-Singh2000" class="csl-entry">
+
+Singh, Satinder, Tommi S. Jaakkola, Michael L. Littman, and Csaba
+Szepesvári. 2000. “Convergence Results for Single-Step on-Policy
+Reinforcement-Learning Algorithms.” *Machine Learning* 38 (3): 287–308.
+<https://doi.org/10.1023/A:1007678930559>.
+
+</div>
+
+<div id="ref-Sutton1988" class="csl-entry">
+
+Sutton, R. 1988. “Learning to Predict by the Method of Temporal
+Differences.” *Machine Learning* 3: 9–44.
+<https://link.springer.com/article/10.1007/BF00115009>.
 
 </div>
 

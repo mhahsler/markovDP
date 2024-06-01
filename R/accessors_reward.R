@@ -25,6 +25,18 @@ reward_matrix <- function(x,
 }
 
 #' @export
+reward_matrix <- function(x,
+                          action = NULL,
+                          start.state = NULL,
+                          end.state = NULL,
+                          observation = NULL,
+                          episode = NULL,
+                          epoch = NULL,
+                          sparse = FALSE) {
+  UseMethod("reward_matrix")
+}
+
+#' @export
 reward_matrix.MDP <-
   function(x,
            action = NULL,

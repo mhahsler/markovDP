@@ -19,8 +19,8 @@ Provides the infrastructure to define and analyze the solutions of discete-time 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/mhahsler/mdp}
-  \item Report bugs at \url{https://github.com/mhahsler/mdp/issues}
+  \item \url{https://github.com/mhahsler/markovDP}
+  \item Report bugs at \url{https://github.com/mhahsler/markovDP/issues}
 }
 
 }

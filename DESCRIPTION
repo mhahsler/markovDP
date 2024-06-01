@@ -18,7 +18,8 @@ Suggests: knitr,
   rmarkdown,
   testthat,
   visNetwork,
-  doParallel
+  doParallel,
+  gifski
 SystemRequirements: C++17
 LinkingTo: Rcpp
 VignetteBuilder: knitr

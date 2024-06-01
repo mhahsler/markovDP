@@ -21,19 +21,25 @@ agent's actions in the future. Solving the MDP means finding
 the optimal (or at least a good) policy
 that guides the agent's actions. 
 
-The `markovDP` package provides the infrastructure to work with MDPs in R. 
-It also interfaces to the following popular algorithms:
+The `markovDP` package provides the infrastructure to work with MDPs in R.
+The focus is on convenience in formulating MDPs in multiple ways, the support of
+sparse representations 
+(using sparse matrices, lists and data.frames) and visualization of results. 
+Some key components are implemented in
+C++ to speed up computation.
+It also provides to the following popular solving procedures:
 
-* Dynamic Programming 
-  - __Value Iteration__ [@Bellman1957]
-  - __Modified Policy Iteration__ [@Howard1960; @Puterman1978]
+* __Dynamic Programming__
+  - Value Iteration [@Bellman1957]
+  - Modified Policy Iteration [@Howard1960; @Puterman1978]
 
-* __Linear Programming__ [@Manne1960]
+* __Linear Programming__
+  - Primal Formulation [@Manne1960]
 
-* Termporal Differencing
-  - __Q-Learning__ [@Watkins1992]
-  - __Sarsa__ [@Sutton1998]
-  - __Expected Sarsa__ [@Sutton1998]
+* __Termporal Differencing__ [@Sutton1988]
+  - Q-Learning [@Watkins1992]
+  - Sarsa [@Singh2000]
+  - Expected Sarsa [@Sutton1998]
 
 These implementations follow the description is [@Russell2020] and 
 [@Sutton1998].
@@ -41,7 +47,7 @@ These implementations follow the description is [@Russell2020] and
 
 ```{r echo=FALSE, results = 'asis'}
 pkg_citation(pkg, 1)
-pkg_install(pkg)
+pkg_install(pkg, CRAN = FALSE)
 ```
 
 ## Usage

@@ -1,6 +1,6 @@
 # Solve MDPs using Dynamic Programming (Value and policy iteration)
 
-# Q-Function:
+# Calculate Q-Function from U
 # the (optimal) state-action value function Q_s(a,k) is the expected total reward
 # from stage k onward, if we choose a_k = a and then proceed optimally (given by U).
 .QV <-
