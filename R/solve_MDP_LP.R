@@ -39,14 +39,17 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
   # we can use the constraints V (I - GAMMA * T) >= TR for all a, s
 
   # T(s,a, s'): maps actions + start states -> end states
-  T <- NULL
-  for (a in model$actions) {
-    for (s in model$states) {
-      T <- rbind(T, transition_matrix(model, action = a, start.state = s))
+  T <- matrix(NA_real_, nrow = n_a * n_s, ncol = n_s)
+  i <- 1L
+  for (a in seq(n_a)) {
+    for (s in seq(n_s)) {
+      T[i, ] <- transition_matrix(model, action = a, start.state = s)
+      i <- i + 1L
     }
   }
   rownames(T) <- paste(rep(model$actions, each = n_s), rep(model$states, n_a))
-
+  colnames(T) <- model$states
+  
   const_mat <- do.call(rbind, replicate(n_a, diag(n_s), simplify = FALSE)) - gamma * T
   const_dir <- rep(">=", n_a * n_s)
 
@@ -55,18 +58,13 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
     t(do.call(cbind, reward_matrix(model, action = a)))
   }, simplify = FALSE)
 
-  # lpSolve requires all x > 0!
-  # we make the reward non-negative
-  R_shift <- FALSE
-  R_min <- min(sapply(R, min))
-  if (R_min < 0) {
-    R_shift <- TRUE
-    if (verbose) {
-      cat("negative rewards. Shifting rewards for lpSolve.\n")
-    }
-    for (i in seq_along(R)) {
-      R[[i]] <- R[[i]] - R_min
-    }
+  # lpSolve's simplex implementation requires all x > 0, but 
+  # state values can be negative! We add a second set of decision variables to 
+  # represent the negative values.
+  neg_r <- min(sapply(R, min)) < 0
+  if (neg_r) {
+    const_mat <- cbind(const_mat , -const_mat)
+    obj <- c(rep(c(1, -1), each = n_s))
   }
 
   # sum_sp (T * R): maps actions + start states -> expected reward
@@ -99,15 +97,17 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
   }
 
   U <- solution$solution
-  pi <- greedy_policy(q_values(model, U))
-
-  # update U with unshifted values
-  if (R_shift) {
-    if (verbose) {
-      cat("Recalculating value function with unshifted rewards:\n")
-    }
-    pi$U <- policy_evaluation(model, pi, verbose = verbose)
+  
+  # use the positive or the negative decision variable.
+  if(neg_r) {
+    U_neg <- U[-(1:n_s)]
+    U <- U[1:n_s]
+    neg <- U_neg > U
+    U[neg] <- -U_neg[neg]
   }
+  
+  
+  pi <- greedy_policy(q_values(model, U))
 
   model$solution <- list(
     method = "lp",
