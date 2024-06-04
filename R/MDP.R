@@ -94,17 +94,6 @@
 #' The default state state is a uniform
 #' distribution over all states.
 #'
-#' **Time-dependent MDPs**
-#'
-#' Time dependence of transition probabilities and
-#' reward structure can be modeled by considering a set of **episodes**
-#' representing **epoch** with the same settings. The length of each episode is
-#' specified as a vector for `horizon`, where the length is the number of
-#' episodes and each value is the length of the episode in epochs. Transition
-#' probabilities, observation probabilities and/or reward structure can contain
-#' a list with the values for each episode. The helper function `epoch_to_episode()` converts
-#' an epoch to the episode it belongs to.
-#'
 #' @family MDP
 #' @family MDP_examples
 #'

@@ -11,7 +11,6 @@
 #'
 #' @param x object of class [MDP].
 #' @param action the name or id of an action or a set of actions. By default the transition model for all actions is returned.
-#' @param episode,epoch  Episode or epoch used for time-dependent POMDPs. Epochs are internally converted to the episode using the model horizon.
 #' @param state_col colors used to represent the states.
 #' @param simplify_transitions logical; combine parallel transition arcs into a single arc.
 #' @param remove_unavailable_actions logical; don't show arrows for unavailable actions.
@@ -54,8 +53,6 @@
 transition_graph <-
   function(x,
            action = NULL,
-           episode = NULL,
-           epoch = NULL,
            state_col = NULL,
            simplify_transitions = TRUE,
            remove_unavailable_actions = TRUE) {
@@ -66,8 +63,6 @@ transition_graph <-
       transition_matrix(
         x,
         action = NULL,
-        episode = episode,
-        epoch = epoch,
         sparse = FALSE
       )
 
@@ -127,8 +122,6 @@ transition_graph <-
 #' @export
 plot_transition_graph <- function(x,
                                   action = NULL,
-                                  episode = NULL,
-                                  epoch = NULL,
                                   state_col = NULL,
                                   simplify_transitions = TRUE,
                                   main = NULL,
@@ -136,8 +129,6 @@ plot_transition_graph <- function(x,
   g <- transition_graph(
     x,
     action = action,
-    episode = episode,
-    epoch = epoch,
     state_col = state_col,
     simplify_transitions = simplify_transitions
   )

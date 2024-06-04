@@ -46,9 +46,6 @@
 #' @param x A [MDP] object.
 #' @param action name or index of an action.
 #' @param start.state,end.state name or index of the state.
-#' @param observation unused for MDPs needs to be `NULL`.
-#' @param episode,epoch Episode or epoch used for time-dependent MDPs. Epochs are internally converted
-#'  to the episode using the model horizon.
 #' @param sparse logical; use sparse matrices when the density is below 50% and keeps data.frame representation
 #'  for the reward field. `NULL` returns the
 #'   representation stored in the problem description which saves the time for conversion.
@@ -56,7 +53,8 @@
 #' @param trans_function logical; convert functions into matrices?
 #' @param trans_keyword logical; convert distribution keywords (uniform and identity)
 #'  in `transition_prob` matrices?
-#'
+#' @param ... further arguments are passed on.
+#' 
 #' @return A list or a list of lists of matrices.
 #' @author Michael Hahsler
 #' @examples
@@ -290,19 +288,9 @@ value_matrix <-
            action = NULL,
            row = NULL,
            col = NULL,
-           episode = NULL,
-           epoch = NULL,
            sparse = NULL,
            trans_keyword = TRUE) {
     ## action list of s x s matrices
-
-    if (is.null(episode)) {
-      if (is.null(epoch)) {
-        episode <- 1L
-      } else {
-        episode <- epoch_to_episode(x, epoch)
-      }
-    }
 
     value <- x[[field]]
 

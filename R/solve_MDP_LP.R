@@ -22,6 +22,13 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
   }
 
   gamma <- model$discount
+  
+  # TODO: For a better formulation of the undiscounted problem, see: 
+  # Lexing Ying and Yuhua Zhu, A note on optimization formulations of 
+  # Markov decision processes, Communications in Mathematical Sciences
+  # 20(3), 727-745, 2022.
+  # DOI: https://dx.doi.org/10.4310/CMS.2022.v20.n3.a5
+  # https://arxiv.org/abs/2012.09417
   if (gamma >= 1) {
     warning("discount factor needs to be <1 for LP. Using 0.999 instead of 1.")
     gamma <- 0.999

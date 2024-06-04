@@ -9,8 +9,6 @@
 transition_graph(
   x,
   action = NULL,
-  episode = NULL,
-  epoch = NULL,
   state_col = NULL,
   simplify_transitions = TRUE,
   remove_unavailable_actions = TRUE
@@ -19,8 +17,6 @@ transition_graph(
 plot_transition_graph(
   x,
   action = NULL,
-  episode = NULL,
-  epoch = NULL,
   state_col = NULL,
   simplify_transitions = TRUE,
   main = NULL,
@@ -33,8 +29,6 @@ curve_multiple_directed(graph, start = 0.3)
 \item{x}{object of class \link{MDP}.}
 
 \item{action}{the name or id of an action or a set of actions. By default the transition model for all actions is returned.}
-
-\item{episode, epoch}{Episode or epoch used for time-dependent POMDPs. Epochs are internally converted to the episode using the model horizon.}
 
 \item{state_col}{colors used to represent the states.}
 

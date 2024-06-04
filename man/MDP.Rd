@@ -165,17 +165,6 @@ of \eqn{|S|} probabilities, that add up to \eqn{1}.
 
 The default state state is a uniform
 distribution over all states.
-
-\strong{Time-dependent MDPs}
-
-Time dependence of transition probabilities and
-reward structure can be modeled by considering a set of \strong{episodes}
-representing \strong{epoch} with the same settings. The length of each episode is
-specified as a vector for \code{horizon}, where the length is the number of
-episodes and each value is the length of the episode in epochs. Transition
-probabilities, observation probabilities and/or reward structure can contain
-a list with the values for each episode. The helper function \code{epoch_to_episode()} converts
-an epoch to the episode it belongs to.
 }
 \examples{
 # simple MDP example

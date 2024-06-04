@@ -24,9 +24,7 @@ reward_matrix(
   action = NULL,
   start.state = NULL,
   end.state = NULL,
-  observation = NULL,
-  episode = NULL,
-  epoch = NULL,
+  ...,
   sparse = FALSE
 )
 
@@ -35,8 +33,7 @@ transition_matrix(
   action = NULL,
   start.state = NULL,
   end.state = NULL,
-  episode = NULL,
-  epoch = NULL,
+  ...,
   sparse = FALSE,
   trans_keyword = TRUE
 )
@@ -62,10 +59,7 @@ in \code{transition_prob} matrices?}
 
 \item{start.state, end.state}{name or index of the state.}
 
-\item{observation}{unused for MDPs needs to be \code{NULL}.}
-
-\item{episode, epoch}{Episode or epoch used for time-dependent MDPs. Epochs are internally converted
-to the episode using the model horizon.}
+\item{...}{further arguments are passed on.}
 }
 \value{
 A list or a list of lists of matrices.

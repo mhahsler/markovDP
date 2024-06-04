@@ -20,8 +20,7 @@ transition_matrix <- function(x,
                               action = NULL,
                               start.state = NULL,
                               end.state = NULL,
-                              episode = NULL,
-                              epoch = NULL,
+                              ...,
                               sparse = FALSE,
                               trans_keyword = TRUE) {
   UseMethod("transition_matrix")
@@ -33,8 +32,7 @@ transition_matrix.MDP <-
            action = NULL,
            start.state = NULL,
            end.state = NULL,
-           episode = NULL,
-           epoch = NULL,
+           ...,
            sparse = FALSE,
            trans_keyword = TRUE) {
     value_matrix(
@@ -43,8 +41,6 @@ transition_matrix.MDP <-
       action,
       start.state,
       end.state,
-      episode,
-      epoch,
       sparse,
       trans_keyword
     )

@@ -7,9 +7,9 @@
 \alias{remove_unreachable_states}
 \title{Reachable and Absorbing States}
 \usage{
-reachable_states(x, states = NULL)
+reachable_states(x, states = NULL, ...)
 
-absorbing_states(x, states = NULL)
+absorbing_states(x, states = NULL, ...)
 
 remove_unreachable_states(x)
 }
@@ -18,6 +18,8 @@ remove_unreachable_states(x)
 
 \item{states}{a character vector specifying the names of the states to be
 checked. \code{NULL} checks all states.}
+
+\item{further}{arguments are passed on.}
 }
 \value{
 \code{reachable_states()} returns a logical vector indicating

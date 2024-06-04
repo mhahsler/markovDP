@@ -17,9 +17,7 @@ reward_matrix <- function(x,
                           action = NULL,
                           start.state = NULL,
                           end.state = NULL,
-                          observation = NULL,
-                          episode = NULL,
-                          epoch = NULL,
+                          ...,
                           sparse = FALSE) {
   UseMethod("reward_matrix")
 }
@@ -31,21 +29,10 @@ reward_matrix.MDP <-
            start.state = NULL,
            end.state = NULL,
            observation = NULL,
-           episode = NULL,
-           epoch = NULL,
+           ...,
            sparse = FALSE) {
     if (!is.null(observation)) {
       stop("Observations can not be specified for MDPs!")
-    }
-
-
-    ## if not observations are available then it is a s' vector
-    if (is.null(episode)) {
-      if (is.null(epoch)) {
-        episode <- 1L
-      } else {
-        episode <- epoch_to_episode(x, epoch)
-      }
     }
 
     reward <- x[["reward"]]
