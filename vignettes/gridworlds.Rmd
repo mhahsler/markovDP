@@ -2,6 +2,7 @@
 title: "Gridworlds in Package markovDP"
 author: "Michael Hahsler"
 bibliography: references.bib
+link-citations: yes
 vignette: >
   %\VignetteIndexEntry{Gridworlds in Package markovDP}
   %\VignetteEngine{knitr::rmarkdown}
