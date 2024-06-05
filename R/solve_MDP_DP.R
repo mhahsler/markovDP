@@ -1,16 +1,5 @@
 # Solve MDPs using Dynamic Programming (Value and policy iteration)
 
-# Calculate Q-Function from U
-# the (optimal) state-action value function Q_s(a,k) is the expected total reward
-# from stage k onward, if we choose a_k = a and then proceed optimally (given by U).
-.QV <-
-  function(s, a, P, R, GAMMA, U) {
-    sum(P[[a]][s, , drop = FALSE] * (R[[a]][s, , drop = FALSE] + GAMMA * U), 
-        na.rm = TRUE)
-  }
-.QV_vec <- Vectorize(.QV, vectorize.args = c("s", "a"))
-
-
 #' @rdname solve_MDP
 #' @param U a vector with initial utilities used for each state. If
 #'   `NULL`, then the default of a vector of all 0s is used.

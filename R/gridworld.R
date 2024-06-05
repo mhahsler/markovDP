@@ -153,7 +153,6 @@
 #'   and left.
 #' @param unreachable_states a vector with state labels for unreachable states.
 #'     These states will be excluded.
-#' @param 
 #' @param absorbing_states a vector with state labels for absorbing states.
 #' @param labels a list with labels for states.
 #' @param restrict_actions logical; mark actions that move outside the gridworld 
@@ -236,22 +235,22 @@ gridworld_init <-
         R,
         R_(
           action = action_labels[1],
-          start.state = gridworld_matrix(gw)[1,],
+          start.state = gridworld_rc2s(cbind(1, seq(dim[2]))),
           value = -Inf
         ),
         R_(
           action = action_labels[2],
-          start.state = gridworld_matrix(gw)[, dim[2]],
+          start.state = gridworld_rc2s(cbind(seq(dim[1]), dim[2])),
           value = -Inf
         ),
         R_(
           action = action_labels[3],
-          start.state = gridworld_matrix(gw)[dim[1],],
+          start.state = gridworld_rc2s(cbind(dim[1], seq(dim[2]))),
           value = -Inf
         ),
         R_(
           action = action_labels[4],
-          start.state = gridworld_matrix(gw)[, 1],
+          start.state = gridworld_rc2s(cbind(seq(dim[1]), 1)),
           value = -Inf
         )
       )
@@ -382,11 +381,15 @@ gridworld_maze_MDP <- function(dim,
 
 #' @rdname gridworld
 #' @param model,x a solved gridworld MDP.
-#' @param s a state label.
+#' @param s a state label or a vector of labels.
 #' @param rc a vector of length two with the row and column coordinate of a
-#'   state in the gridworld matrix.
+#'   state in the gridworld matrix. A matrix with one state per row can be also 
+#'   supplied.
 #' @export
 gridworld_s2rc <- function(s) {
+  if (length(s) > 1)
+    return(sapply(s, gridworld_s2rc))
+  
   rc <- as.integer(strsplit(s, "s\\(|,|\\)")[[1]][-1])
   if (length(rc) != 2 || any(is.na(rc))) {
     stop("Malformed gridworld state label ",
@@ -399,7 +402,10 @@ gridworld_s2rc <- function(s) {
 #' @rdname gridworld
 #' @export
 gridworld_rc2s <- function(rc) {
-  paste0("s(", rc[1], ",", rc[2], ")")
+  if (is.matrix(rc))
+    paste0("s(", rc[, 1], ",", rc[, 2], ")")
+  else
+    paste0("s(", rc[1], ",", rc[2], ")")
 }
 
 #' @rdname gridworld

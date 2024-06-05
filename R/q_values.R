@@ -58,6 +58,17 @@
 #' greedy_action(q, "s(3,1)", epsilon = .1, prob = TRUE)
 NULL
 
+# Calculate Q-Function from U
+# the (optimal) state-action value function Q_s(a,k) is the expected total reward
+# from stage k onward, if we choose a_k = a and then proceed optimally (given by U).
+.QV <-
+  function(s, a, P, R, GAMMA, U) {
+    sum(P[[a]][s, ] * (R[[a]][s, ] + GAMMA * U), 
+        na.rm = TRUE)
+  }
+.QV_vec <- Vectorize(.QV, vectorize.args = c("s", "a"))
+
+
 #' @rdname q_values
 #' @return `q_values()` returns a state by action matrix specifying the Q-function,
 #'   i.e., the action value for executing each action in each state. The Q-values

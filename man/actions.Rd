@@ -20,7 +20,7 @@ a vector with the available actions.
 Determine the set of actions available in a state.
 }
 \details{
-Unavailable actions are modeled here a actions that have an immediate
+Unavailable actions are modeled as actions that have an immediate
 reward of \code{-Inf} in the reward function.
 }
 \examples{

@@ -17,6 +17,7 @@ gridworld_init(
   dim,
   action_labels = c("up", "right", "down", "left"),
   unreachable_states = NULL,
+  restrict_actions = FALSE,
   absorbing_states = NULL,
   labels = NULL
 )
@@ -84,6 +85,10 @@ and left.}
 
 \item{unreachable_states}{a vector with state labels for unreachable states.
 These states will be excluded.}
+
+\item{restrict_actions}{logical; mark actions that move outside the gridworld
+or to an unreachable state as unreachable by adding a reward of \code{-Inf}.
+If false, then the action results in the agent staying in place.}
 
 \item{absorbing_states}{a vector with state labels for absorbing states.}
 
