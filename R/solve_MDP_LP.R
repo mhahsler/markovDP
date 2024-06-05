@@ -14,28 +14,51 @@
 
 #' @rdname solve_MDP
 #' @export
-solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
+solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
+                         discount = NULL, verbose = FALSE, ...) {
   # method is always "lp" and ignored
+
+  ### horizon and discount rate
+  if (!is.null(horizon)) {
+    model$horizon <- horizon
+  }
+  if (is.null(model$horizon)) {
+    model$horizon <- Inf
+  }
+
+  if (!is.null(discount)) {
+    model$discount <- discount
+  }
+  if (is.null(model$discount)) {
+    message("No discount rate specified. Using .9!")
+    model$discount <- .9
+  }
 
   if (is.finite(model$horizon)) {
     stop("method 'lp' can only be used for infinite horizon problems.")
   }
 
   gamma <- model$discount
-  
-  # TODO: For a better formulation of the undiscounted problem, see: 
-  # Lexing Ying and Yuhua Zhu, A note on optimization formulations of 
+
+  # TODO: For a better formulation of the undiscounted problem, see:
+  # Lexing Ying and Yuhua Zhu, A note on optimization formulations of
   # Markov decision processes, Communications in Mathematical Sciences
   # 20(3), 727-745, 2022.
   # DOI: https://dx.doi.org/10.4310/CMS.2022.v20.n3.a5
   # https://arxiv.org/abs/2012.09417
   if (gamma >= 1) {
-    warning("discount factor needs to be <1 for LP. Using 0.999 instead of 1.")
+    warning("discount factor needs to be <1 for the used LP formulation. Using 0.999 instead of 1.")
     gamma <- 0.999
   }
 
   n_s <- length(model$states)
   n_a <- length(model$actions)
+
+  if (verbose) {
+    cat("creating constraints ...\n")
+  }
+
+  model <- normalize_MDP(model)
 
   # objective is sum_s V(s)
   obj <- rep(1, n_s)
@@ -56,7 +79,7 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
   }
   rownames(T) <- paste(rep(model$actions, each = n_s), rep(model$states, n_a))
   colnames(T) <- model$states
-  
+
   const_mat <- do.call(rbind, replicate(n_a, diag(n_s), simplify = FALSE)) - gamma * T
   const_dir <- rep(">=", n_a * n_s)
 
@@ -65,12 +88,12 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
     t(do.call(cbind, reward_matrix(model, action = a)))
   }, simplify = FALSE)
 
-  # lpSolve's simplex implementation requires all x > 0, but 
-  # state values can be negative! We add a second set of decision variables to 
+  # lpSolve's simplex implementation requires all x > 0, but
+  # state values can be negative! We add a second set of decision variables to
   # represent the negative values.
   neg_r <- min(sapply(R, min)) < 0
   if (neg_r) {
-    const_mat <- cbind(const_mat , -const_mat)
+    const_mat <- cbind(const_mat, -const_mat)
     obj <- c(rep(c(1, -1), each = n_s))
   }
 
@@ -104,16 +127,16 @@ solve_MDP_LP <- function(model, method = NULL, verbose = FALSE, ...) {
   }
 
   U <- solution$solution
-  
+
   # use the positive or the negative decision variable.
-  if(neg_r) {
+  if (neg_r) {
     U_neg <- U[-(1:n_s)]
     U <- U[1:n_s]
     neg <- U_neg > U
     U[neg] <- -U_neg[neg]
   }
-  
-  
+
+
   pi <- greedy_policy(q_values(model, U))
 
   model$solution <- list(

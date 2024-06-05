@@ -31,6 +31,7 @@ It also provides to the following popular solving procedures:
 
 * __Dynamic Programming__
   - Value Iteration [@Bellman1957]
+  - Prioritized Sweeping [@Moore1993]
   - Modified Policy Iteration [@Howard1960; @Puterman1978]
 
 * __Linear Programming__

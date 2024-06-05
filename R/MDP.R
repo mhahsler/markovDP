@@ -110,6 +110,7 @@
 #' @param info A list with additional information.
 #' @param name a string to identify the MDP problem.
 #' @param x a `MDP` object.
+#' @param normalize logical; normalize representation (see [normalize_MDP()]).
 #'
 #' @return The function returns an object of class MDP which is list with
 #'   the model specification. [solve_MDP()] reads the object and adds a list element called
@@ -157,7 +158,8 @@ MDP <- function(states,
                 horizon = Inf,
                 start = "uniform",
                 info = NULL,
-                name = NA) {
+                name = NA,
+                normalize = TRUE) {
   # MDP does not have observations
   if (is.data.frame(reward)) {
     if (!is.null(reward$observation) && !all(is.na(reward$observation))) {
@@ -180,6 +182,9 @@ MDP <- function(states,
 
   class(x) <- list("MDP", "list")
   x <- check_and_fix_MDP(x)
+  
+  if (normalize)
+    x <- normalize_MDP(x)
 
   x
 }

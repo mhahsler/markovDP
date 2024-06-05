@@ -20,8 +20,8 @@
 #' @param x a [MDP] object.
 #' @param states a character vector specifying the names of the states to be
 #'  checked. `NULL` checks all states.
-#' @param further arguments are passed on.
-#' 
+#' @param ... further arguments are passed on.
+#'
 #' @returns  `reachable_states()` returns a logical vector indicating
 #'    if the states are reachable.
 #'
@@ -42,14 +42,14 @@
 #' @importFrom Matrix colSums
 #' @export
 reachable_states <- function(x,
-                          states = NULL, 
-                          ...) {
+                             states = NULL,
+                             ...) {
   UseMethod("reachable_states")
 }
 
 #' @export
 reachable_states.MDP <- function(x,
-                             states = NULL, ...) {
+                                 states = NULL, ...) {
   r <- Reduce("+", transition_matrix(x))
   diag(r) <- 0
   r <- colSums(r) > 0 | start_vector(x) > 0
@@ -66,15 +66,15 @@ reachable_states.MDP <- function(x,
 #'    if the states are absorbing (terminal).
 #' @export
 absorbing_states <- function(x,
-                          states = NULL, 
-                          ...) {
+                             states = NULL,
+                             ...) {
   UseMethod("absorbing_states")
 }
 
 #' @export
 absorbing_states.MDP <- function(x,
-                             states = NULL, 
-                             ...) {
+                                 states = NULL,
+                                 ...) {
   is_absorbing <- function(s, x) {
     (all(sapply(
       x$actions,

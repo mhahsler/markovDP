@@ -19,7 +19,7 @@ remove_unreachable_states(x)
 \item{states}{a character vector specifying the names of the states to be
 checked. \code{NULL} checks all states.}
 
-\item{further}{arguments are passed on.}
+\item{...}{further arguments are passed on.}
 }
 \value{
 \code{reachable_states()} returns a logical vector indicating

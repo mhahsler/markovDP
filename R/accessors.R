@@ -54,7 +54,7 @@
 #' @param trans_keyword logical; convert distribution keywords (uniform and identity)
 #'  in `transition_prob` matrices?
 #' @param ... further arguments are passed on.
-#' 
+#'
 #' @return A list or a list of lists of matrices.
 #' @author Michael Hahsler
 #' @examples

@@ -8,7 +8,6 @@
 \alias{gridworld_rc2s}
 \alias{gridworld_matrix}
 \alias{gridworld_plot}
-\alias{gridworld_plot_policy}
 \alias{gridworld_plot_transition_graph}
 \alias{gridworld_animate}
 \alias{gridworld_read_maze}
@@ -44,22 +43,6 @@ gridworld_rc2s(rc)
 gridworld_matrix(model, epoch = 1L, what = "states")
 
 gridworld_plot(
-  model,
-  epoch = 1L,
-  actions = "character",
-  states = FALSE,
-  labels = TRUE,
-  impossible_actions = FALSE,
-  main = NULL,
-  cex = 1,
-  offset = 0.5,
-  lines = TRUE,
-  col = hcl.colors(12, "YlOrRd", rev = TRUE),
-  unreachable_col = "black",
-  ...
-)
-
-gridworld_plot_policy(
   model,
   epoch = 1L,
   actions = "character",
@@ -321,7 +304,10 @@ file.show(file.path(maze_dir, "small_maze.txt"))
 maze <- gridworld_read_maze(file.path(maze_dir, "small_maze.txt"))
 maze
 gridworld_plot(maze)
-solve_MDP(maze)
+sol <- solve_MDP(maze, method = "lp", discount = 0.999)
+sol
+
+gridworld_plot(sol)
 }
 \seealso{
 Other gridworld: 

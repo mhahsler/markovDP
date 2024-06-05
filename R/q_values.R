@@ -10,7 +10,7 @@
 #'
 #'   \deqn{q(s,a) = \sum_{s'} T(s'|s,a) [R(s,a) + \gamma U(s')]}
 #'
-#'   Q-values are calculated if \eqn{U = U^*}, the optimal value function 
+#'   Q-values are calculated if \eqn{U = U^*}, the optimal value function
 #'   otherwise we get an approximation.
 #'   Q-values can be used as the input for several other functions.
 #'
@@ -90,7 +90,7 @@ q_values <- function(model, U = NULL) {
 
 #' @rdname q_values
 #' @param epsilon an `epsilon > 0` applies an epsilon-greedy policy.
-#' @param prob logical; return a probability distribution over the actions. 
+#' @param prob logical; return a probability distribution over the actions.
 #' @return `greedy_action()` returns the action with the highest q-value
 #'    for state `s`. If `prob = TRUE`, then a vector with
 #'    the probability for each action is returned.

@@ -17,7 +17,8 @@ MDP(
   horizon = Inf,
   start = "uniform",
   info = NULL,
-  name = NA
+  name = NA,
+  normalize = TRUE
 )
 
 is_solved_MDP(x, stop = FALSE)
@@ -49,6 +50,8 @@ horizon.}
 \item{info}{A list with additional information.}
 
 \item{name}{a string to identify the MDP problem.}
+
+\item{normalize}{logical; normalize to a sparse representation and translate functions.}
 
 \item{x}{a \code{MDP} object.}
 

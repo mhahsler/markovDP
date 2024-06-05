@@ -8,7 +8,7 @@
 \alias{solve_MDP_TD}
 \title{Solve an MDP Problem}
 \usage{
-solve_MDP(model, method = "value", ...)
+solve_MDP(model, method = "value_iteration", ...)
 
 solve_MDP_DP(
   model,
@@ -22,7 +22,14 @@ solve_MDP_DP(
   verbose = FALSE
 )
 
-solve_MDP_LP(model, method = NULL, verbose = FALSE, ...)
+solve_MDP_LP(
+  model,
+  method = "lp",
+  horizon = NULL,
+  discount = NULL,
+  verbose = FALSE,
+  ...
+)
 
 solve_MDP_TD(
   model,
@@ -97,7 +104,7 @@ Several solvers are available.
 Implemented are the following dynamic programming methods (following
 Russell and Norvig, 2010):
 \itemize{
-\item \strong{Modified Policy Iteration}
+\item \strong{Modified Policy Iteration} (Howard 1960; Puterman and Shin 1978)
 starts with a random policy and iteratively performs
 a sequence of
 \enumerate{
@@ -107,7 +114,7 @@ current policy using \code{k_backups} and function \code{\link[=policy_evaluatio
 The algorithm stops when it converges to a stable policy (i.e., no changes
 between two iterations).
 }
-\item \strong{Value Iteration} starts with
+\item \strong{Value Iteration} (Bellman 1957) starts with
 an arbitrary value function (by default all 0s) and iteratively
 updates the value function for each state using the Bellman equation.
 The iterations
@@ -123,6 +130,12 @@ problems, we use \eqn{\delta \le error}.
 The greedy policy
 is calculated from the final value function. Value iteration can be seen as
 policy iteration with truncated policy evaluation.
+\item \strong{Prioritized Sweeping} (Moore and Atkeson, 1993) approximate the optimal value
+function by iteratively adjusting always only the state value of the state
+with the largest Bellman error. This leads to faster convergence compared
+to value iteration which always updates the value function for all states.
+This implementation stops iteration when the sum of the priority values
+for all states is less than the specified \code{error}.
 }
 
 Note that the policy converges earlier than the value function.
@@ -130,7 +143,7 @@ Note that the policy converges earlier than the value function.
 
 \subsection{Linear Programming}{
 
-The following linear programming formulation is implemented. For the
+The following linear programming formulation (Manne 1960) is implemented. For the
 optimal value function, the Bellman equation holds:
 
 \deqn{
@@ -171,13 +184,13 @@ be specified. To make sure that the algorithm does finish in a reasonable amount
 episodes are stopped after 10,000 actions with a warning. For models without absorbing states,
 a episode length has to be specified via \code{horizon}.
 \itemize{
-\item \strong{Q-Learning} is an off-policy temporal difference method that uses
+\item \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
 policy.
-\item \strong{Sarsa} is an on-policy method that follows and learns
+\item \strong{Sarsa} (Singh et al. 2000) is an on-policy method that follows and learns
 an \eqn{\epsilon}-greedy policy. The final \eqn{\epsilon}-greedy policy
 is converted into a greedy policy.
-\item \strong{Expected Sarsa}: We implement an on-policy version that uses
+\item \strong{Expected Sarsa} (R. S. Sutton and Barto 2018). We implement an on-policy version that uses
 the expected value under the current policy for the update.
 It moves deterministically in the same direction as Sarsa
 moves in expectation. Because it uses the expectation, we can
@@ -245,11 +258,25 @@ plot_value_function(maze_learned)
 gridworld_plot(maze_learned)
 }
 \references{
-Russell, S., Norvig, P. (2021). Artificial Intelligence: A Modern Approach.
-Fourth edition. Prentice Hall.
+Bellman, Richard. 1957. "A Markovian Decision Process." Indiana University Mathematics Journal 6: 679-84. \url{https://www.jstor.org/stable/24900506}.
 
-Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
-Second edition. The MIT Press.
+Howard, R. A. 1960. Dynamic Programming and Markov Processes. Cambridge, MA: MIT Press.
+
+Manne, Alan. 1960. "On the Job-Shop Scheduling Problem." Operations Research 8 (2): 219-23. \doi{10.1287/opre.8.2.219}.
+
+Moore, Andrew, and C. G. Atkeson. 1993. "Prioritized Sweeping: Reinforcement Learning with Less Data and Less Real Time." Machine Learning 13 (1): 103–30. \doi{10.1007/BF00993104}.
+
+Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algorithms for Discounted Markov Decision Problems." Management Science 24: 1127-37. \doi{10.1287/mnsc.24.11.1127}.
+
+Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. \url{http://aima.cs.berkeley.edu/}.
+
+Singh, Satinder, Tommi S. Jaakkola, Michael L. Littman, and Csaba Szepesvári. 2000. "Convergence Results for Single-Step on-Policy Reinforcement-Learning Algorithms." Machine Learning 38 (3): 287-308. \doi{10.1023/A:1007678930559}.
+
+Sutton, R. 1988. "Learning to Predict by the Method of Temporal Differences." Machine Learning 3: 9-44. \url{https://link.springer.com/article/10.1007/BF00115009}.
+
+Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
+
+Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Learning 8 (3): 279-92. \doi{10.1007/BF00992698}.
 }
 \seealso{
 Other MDP: 

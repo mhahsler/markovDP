@@ -144,7 +144,10 @@
 #' maze <- gridworld_read_maze(file.path(maze_dir, "small_maze.txt"))
 #' maze
 #' gridworld_plot(maze)
-#' solve_MDP(maze)
+#' sol <- solve_MDP(maze, method = "lp", discount = 0.999)
+#' sol
+#'
+#' gridworld_plot(sol)
 #' @param dim vector of length two with the x and y extent of the gridworld.
 #' @param action_labels vector with four action labels that move the agent up, right, down,
 #'   and left.
@@ -366,13 +369,15 @@ gridworld_matrix <- function(model,
       "reachable"
     )
   )
- 
-  if(is.null(model$info$gridworld_dim))
+
+  if (is.null(model$info$gridworld_dim)) {
     stop("'model' does not seem to be a gridworld!")
-   
-  if(!inherits(model, "MDP"))
+  }
+
+  if (!inherits(model, "MDP")) {
     class(model) <- "MDP"
-  
+  }
+
   nrows <- model$info$gridworld_dim[1]
   ncols <- model$info$gridworld_dim[2]
 
@@ -592,10 +597,6 @@ gridworld_plot <-
       )
     }
   }
-
-#' @rdname gridworld
-#' @export
-gridworld_plot_policy <- gridworld_plot
 
 #' @rdname gridworld
 #' @param hide_unreachable_states logical; do not show unreachable states.

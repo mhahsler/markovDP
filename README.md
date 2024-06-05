@@ -27,6 +27,7 @@ following popular solving procedures:
 
 - **Dynamic Programming**
   - Value Iteration (Bellman 1957)
+  - Prioritized Sweeping (Moore and Atkeson 1993)
   - Modified Policy Iteration (Howard 1960; Puterman and Shin 1978)
 - **Linear Programming**
   - Primal Formulation (Manne 1960)
@@ -146,6 +147,14 @@ Cambridge, MA: MIT Press.
 
 Manne, Alan. 1960. “On the Job-Shop Scheduling Problem.” *Operations
 Research* 8 (2): 219–23. <https://doi.org/10.1287/opre.8.2.219>.
+
+</div>
+
+<div id="ref-Moore1993" class="csl-entry">
+
+Moore, Andrew, and C. G. Atkeson. 1993. “Prioritized Sweeping:
+Reinforcement Learning with Less Data and Less Real Time.” *Machine
+Learning* 13 (1): 103–30. <https://doi.org/10.1007/BF00993104>.
 
 </div>
 

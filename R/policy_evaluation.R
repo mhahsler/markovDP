@@ -1,19 +1,19 @@
 #' Policy Evaluation
 #'
-#' Evaluate a policy for a model by repeatedly applying the Bellman 
+#' Evaluate a policy for a model by repeatedly applying the Bellman
 #' operator.
 #'
 #' The Bellman operator updates a value function given the model defining
-#' \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy 
+#' \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy
 #' \eqn{\pi} by applying the Bellman equation as  an update rule for each state:
 #'
 #' \deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
 #'
 #' A policy can be evaluated by applying the Bellman update till convergence.
-#' In each iteration, all states are updated. In this implementation updating is 
+#' In each iteration, all states are updated. In this implementation updating is
 #' stopped after`k_backups` iterations or after the
-#' largest update 
-#' 
+#' largest update
+#'
 #' \deqn{||U_{k+1} - U_k||_\infty < \theta.}
 #'
 #' @family MDP

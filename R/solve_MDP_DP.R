@@ -34,7 +34,7 @@ solve_MDP_DP <- function(model,
     stop("'model' needs to be of class 'MDP'.")
   }
 
-  methods <- c("value_iteration", "policy_iteration")
+  methods <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
   method <- match.arg(method, methods)
 
   ### default is infinite horizon
@@ -76,6 +76,16 @@ solve_MDP_DP <- function(model,
           N_max,
           k_backups,
           U = U,
+          verbose = verbose
+        )
+      } else {
+        stop("Method not implemented yet for finite horizon problems.")
+      }
+    },
+    prioritized_sweeping = {
+      if (is.infinite(model$horizon)) {
+        MDP_PS_inf_horizon(model,
+          error = error, N_max = N_max,
           verbose = verbose
         )
       } else {
@@ -218,6 +228,118 @@ MDP_value_iteration_inf_horizon <-
     model
   }
 
+## Prioritized sweeping
+## Details are in: L. Li and M.L. Littman: Prioritized sweeping
+##    converges to the optimal value function. Technical report DCSTR-631,
+##    Department of Computer Science, Rutgers University, May 2008
+## https://www.academia.edu/15223291/Prioritized_Sweeping_Converges_to_the_Optimal_Value_Function
+MDP_PS_inf_horizon <-
+  function(model,
+           error,
+           N_max = 1000,
+           U = NULL,
+           verbose = FALSE) {
+    S <- model$states
+    A <- model$actions
+    P <- transition_matrix(model)
+    R <- reward_matrix(model)
+    GAMMA <- model$discount
+    if (GAMMA < 1) {
+      convergence_factor <- (1 - GAMMA) / GAMMA
+    } else {
+      convergence_factor <- 1
+    }
+
+    if (is.null(U)) {
+      U <- rep(0, times = length(S))
+    }
+    names(U) <- S
+
+    pi <- rep(NA_integer_, times = length(S))
+
+    ## State priorities. Set all priotities to error so we randomly pick one first.
+    # chosen at least once.
+
+    H <- rep(error, times = length(S))
+    converged <- FALSE
+    for (i in seq_len(N_max)) {
+      if (verbose) {
+        cat("Iteration", i)
+      }
+
+      # only update state with highest priority
+      s <- which.max.random(H)
+
+      Qs <- .QV_vec(s, A, P, R, GAMMA, U)
+      m <- which.max.random(Qs)
+      pi[s] <- m
+
+      delta <- abs(Qs[m] - U[s])
+      U[s] <- Qs[m]
+
+      # update priority for all states
+      for (ss in seq_along(S)) {
+        if (ss == s) {
+          H[ss] <- delta * max(sapply(A, FUN = function(a) P[[a]][s, ss]))
+        } else {
+          H[ss] <- max(H[ss], delta * max(sapply(A, FUN = function(a) P[[a]][s, ss])))
+        }
+      }
+
+
+      # pi <- factor(m, levels = seq_along(A), labels = A)
+      # U_t_minus_1 <- Qs[cbind(seq_along(S), m)]
+      #
+      # delta <- max(abs(U_t_minus_1 - U))
+      # U <- U_t_minus_1
+
+      if (verbose) {
+        cat(": state", s, " -> delta:", delta, "sum(H):", sum(H), "\n")
+      }
+
+      ### FIXME
+      if (sum(H) < error) {
+        converged <- TRUE
+        break
+      }
+    }
+
+    if (verbose) {
+      cat("Iterations needed:", i, "\n")
+    }
+
+    if (!converged) {
+      warning(
+        "MDP solver did not converge after ",
+        i,
+        " iterations (delta = ",
+        delta,
+        ").",
+        " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
+      )
+    }
+
+    pi <- factor(pi, levels = seq_along(A), labels = A)
+
+    model$solution <- list(
+      method = "value iteration",
+      policy = list(data.frame(
+        state = S,
+        U = U,
+        action = pi,
+        row.names = NULL
+      )),
+      converged = converged,
+      delta = delta,
+      H = H,
+      iterations = i
+    )
+    model
+  }
+
+
+## Policy iteration
+
 MDP_policy_iteration_inf_horizon <-
   function(model,
            N_max = 1000,
@@ -246,7 +368,7 @@ MDP_policy_iteration_inf_horizon <-
     converged <- FALSE
     for (i in seq_len(N_max)) {
       if (verbose) {
-        cat("Iteration ", i, "\n")
+        cat("Iteration:", i, "\n")
       }
 
       # evaluate to get U from pi
