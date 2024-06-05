@@ -134,9 +134,9 @@ You can use \code{rbind()}
 with helper function \code{R_()} to create this data frame. Rewards can be specified
 multiple times and the definition that
 appears last in the data.frame will take affect.
-\item A list of lists. The list levels are \code{'action'} and \code{'start.state'}. The list elements
-are matrices with
-rows representing end states \eqn{s'} and columns representing an observation \eqn{o}.
+\item A list of state x state matrices.
+The list elements are for \code{'action'}. The matrix rows are \code{start.state} and the
+columns are \code{end.state}.
 \item A function with the same arguments are \code{R_()}, but no default values
 that returns the reward.
 }

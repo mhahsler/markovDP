@@ -7,7 +7,7 @@
 \usage{
 action(model, ...)
 
-\method{action}{MDP}(model, state, epoch = 1, ...)
+\method{action}{MDP}(model, state, epsilon = 0, epoch = 1, ...)
 }
 \arguments{
 \item{model}{a solved \link{MDP}.}
@@ -16,13 +16,15 @@ action(model, ...)
 
 \item{state}{the state.}
 
+\item{epsilon}{make the policy epsilon soft.}
+
 \item{epoch}{what epoch of the policy should be used. Use 1 for converged policies.}
 }
 \value{
-The name of the optimal action.
+The name of the optimal action as a factor.
 }
 \description{
-Returns the action given a policy. If the
+Returns an action given a policy. If the
 policy is optimal, then also the action will be optimal.
 }
 \examples{
@@ -33,6 +35,9 @@ sol <- solve_MDP(Maze)
 policy(sol)
 
 action(sol, state = "s(1,3)")
+
+## choose from an epsilon-soft policy
+table(replicate(100, action(sol, state = "s(1,3)", epsilon = 0.1)))
 }
 \seealso{
 Other policy: 

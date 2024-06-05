@@ -32,10 +32,11 @@ A data.frame containing the policy. If \code{drop = FALSE} then the policy is re
 as a list with the policy for each epoch.
 }
 \description{
-Extracts the policy from a solved model or create a policy.
+Extracts the policy from a solved model or create a policy. All
+policies are deterministic.
 }
 \details{
-For an MDP, the policy is a data.frame with columns for:
+For an MDP, the deterministic policy is a data.frame with columns for:
 \itemize{
 \item \code{state}: The state.
 \item \code{U}: The state's value (discounted expected utility U) if the policy

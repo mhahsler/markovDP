@@ -24,9 +24,10 @@
 #' @returns a vector with the available actions.
 #' @export
 actions <- function(x, state) {
-  x$actions[!sapply(x$actions, FUN = function(a) {
+  a <- x$actions[!sapply(x$actions, FUN = function(a) {
     all(reward_matrix(x, action = a, start.state = state) == -Inf)
   })]
+  
+  a <- factor(a, levels = x$actions)
+  a
 }
-
-### FIXME: make action reward -Inf for Maze example

@@ -1,8 +1,9 @@
 #' Extract or Create a Policy
 #'
-#' Extracts the policy from a solved model or create a policy.
+#' Extracts the policy from a solved model or create a policy. All
+#' policies are deterministic.
 #'
-#' For an MDP, the policy is a data.frame with columns for:
+#' For an MDP, the deterministic policy is a data.frame with columns for:
 #'
 #' * `state`: The state.
 #' * `U`: The state's value (discounted expected utility U) if the policy
