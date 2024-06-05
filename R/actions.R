@@ -2,7 +2,7 @@
 #'
 #' Determine the set of actions available in a state.
 #'
-#' Unavailable actions are modeled here a actions that have an immediate
+#' Unavailable actions are modeled as actions that have an immediate
 #'  reward of `-Inf` in the reward function.
 #' @name actions
 #' @family MDP

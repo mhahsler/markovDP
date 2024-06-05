@@ -84,7 +84,7 @@ q_values <- function(model, U = NULL) {
       stop("'model' does not contain state utilities (it is unsolved). You need to specify U.")
     }
   }
-
+  
   structure(outer(S, A, .QV_vec, P, R, GAMMA, U), dimnames = list(S, A))
 }
 
@@ -102,24 +102,24 @@ greedy_action <-
            prob = FALSE) {
     # R = -Inf means unavailable action
     available_A <- colnames(Q)[Q[s, ] != -Inf]
-
+    
     if (!prob) {
       if (epsilon == 0 ||
-        length(available_A) == 1L || runif(1) > epsilon) {
+          length(available_A) == 1L || runif(1) > epsilon) {
         a <- available_A[which.max.random(Q[s, available_A])]
       } else {
         a <- sample(available_A, size = 1L)
       }
-
+      
       return(a)
     }
-
+    
     # return probabilities
     p <- structure(rep(0, ncol(Q)), names = colnames(Q))
     a <- available_A[which.max.random(Q[s, available_A])]
     p[a] <- 1 - epsilon
     p[available_A] <- p[available_A] + epsilon / length(available_A)
-
+    
     return(p)
   }
 

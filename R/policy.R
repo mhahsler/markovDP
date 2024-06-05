@@ -88,10 +88,10 @@ random_policy <-
     if (!inherits(x, "MDP")) {
       stop("'x' needs to be of class 'MDP'.")
     }
-
+    
     A <- x$actions
     S <- x$states
-
+    
     data.frame(
       state = S,
       action = factor(
@@ -117,16 +117,16 @@ manual_policy <-
     if (!inherits(x, "MDP")) {
       stop("'x' needs to be of class 'MDP'.")
     }
-
+    
     A <- x$actions
     S <- x$states
-
+    
     if (is.numeric(actions)) {
       actions <- A[actions]
     }
-
+    
     actions <- factor(actions, levels = A)
-
+    
     data.frame(
       state = S,
       action = actions
