@@ -83,10 +83,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   const_mat <- do.call(rbind, replicate(n_a, diag(n_s), simplify = FALSE)) - gamma * T
   const_dir <- rep(">=", n_a * n_s)
 
-  # make reward compatible into a S x S matrix
-  R <- sapply(model$actions, FUN = function(a) {
-    t(do.call(cbind, reward_matrix(model, action = a)))
-  }, simplify = FALSE)
+  R <- reward_matrix(model, sparse = FALSE)
 
   # lpSolve's simplex implementation requires all x > 0, but
   # state values can be negative! We add a second set of decision variables to

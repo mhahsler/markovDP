@@ -204,11 +204,8 @@ NumericVector transition_row(const List& model, int action, int start_state,
 
 // Reward
 // List has no observation!
-NumericMatrix reward_matrix_MDP(const List& model, int action, int start_state, 
-                                int episode) {
+NumericMatrix reward_matrix_MDP(const List& model, int action) {
   RObject reward = model["reward"];
-  if (episode >= 0)
-    reward = as<List>(reward)[episode];
   
   /* too slow! 
   if (is<Function>(reward)) {
@@ -221,19 +218,19 @@ NumericMatrix reward_matrix_MDP(const List& model, int action, int start_state,
     IntegerVector actions = df[0], start_states = df[1], end_states = df[2];
     NumericVector values = df[3]; 
     
-    NumericMatrix rew(get_states(model).size(), 1);
+    NumericMatrix rew(get_states(model).size(), get_states(model).size());
     
     for (auto i = 0; i < df.nrows(); ++i) {
-      if(
-        (IntegerVector::is_na(actions[i]) || actions[i] == action) && 
-        (IntegerVector::is_na(start_states[i]) || start_states[i] == start_state)) {
-      
-          if (IntegerVector::is_na(end_states[i])) 
-                  std::fill(rew.begin(), rew.end(), values[i]);
-          else if (IntegerVector::is_na(end_states[i]))
-                  rew(_ , 0) = NumericVector(rew.rows(), values[i]);
-          else
-                  rew(end_states[i], 0) = values[i];
+      if(!(IntegerVector::is_na(actions[i]) || actions[i] == action))
+        continue;
+        
+      if(!IntegerVector::is_na(start_states[i]) && 
+         !IntegerVector::is_na(end_states[i])) {
+        rew(start_states[i], end_states[i]) = values[i];
+      } else if (!IntegerVector::is_na(start_states[i])) {
+        rew(_ , end_states[i]) = NumericVector(rew.rows(), values[i]);
+      } else {
+        rew(start_states[i], _) = NumericVector(rew.cols(), values[i]);
       }
     }
         
@@ -241,11 +238,7 @@ NumericMatrix reward_matrix_MDP(const List& model, int action, int start_state,
   }
   
   // it is a matrix
-  reward =  as<List>(as<List>(reward)[action])[start_state];
-  if (is<NumericMatrix>(reward))
-    return as<NumericMatrix>(reward);
-  
-  stop("reward_matrix_MDP: model needs to be normalized with normalize_MDP().");
+  return as<NumericMatrix>(as<List>(reward)[action]);
 }
 
 
@@ -288,12 +281,8 @@ double reward_val_MDP(const List& model, int action,
     return 0.0;
   }
  
-  // it is not a data.frame so it must be a list of a list of matrices
-  reward =  as<List>(as<List>(reward)[action])[start_state];
-  if (is<NumericMatrix>(reward))
-    return as<NumericMatrix>(reward)(end_state, 0);
-  
-  stop("reward_val_MDP: model needs to be normalized with normalize_MDP().");
+  // it is not a data.frame so it must be a list of matrices
+  return as<NumericMatrix>(as<List>(reward)[action])(start_state, end_state);
 }  
 
 // terminal value

@@ -51,7 +51,7 @@ horizon.}
 
 \item{name}{a string to identify the MDP problem.}
 
-\item{normalize}{logical; normalize to a sparse representation and translate functions.}
+\item{normalize}{logical; normalize representation (see \code{\link[=normalize_MDP]{normalize_MDP()}}).}
 
 \item{x}{a \code{MDP} object.}
 

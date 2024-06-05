@@ -4,7 +4,7 @@ data("Maze")
 
 methods <- c(
   "value_iteration", "policy_iteration", "q_learning", "sarsa",
-  "expected_sarsa"
+  "expected_sarsa", "prioritized_sweeping"
 )
 
 for (m in methods) {

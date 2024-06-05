@@ -86,7 +86,8 @@ output of the solver in the R console.}
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements:
 \itemize{
-\item \code{policy} a list representing the policy graph. The list only has one element for converged solutions.
+\item \code{policy} a list representing the policy graph. The list only has one
+element for converged solutions.
 \item \code{converged} did the algorithm converge (\code{NA}) for finite-horizon problems.
 \item \code{delta} final \eqn{\delta} (value iteration and infinite-horizon only)
 \item \code{iterations} number of iterations to convergence (infinite-horizon only)
@@ -187,7 +188,7 @@ a episode length has to be specified via \code{horizon}.
 \item \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
 policy.
-\item \strong{Sarsa} (Singh et al. 2000) is an on-policy method that follows and learns
+\item \strong{Sarsa} (Rummery and Niranjan 1994) is an on-policy method that follows and learns
 an \eqn{\epsilon}-greedy policy. The final \eqn{\epsilon}-greedy policy
 is converted into a greedy policy.
 \item \strong{Expected Sarsa} (R. S. Sutton and Barto 2018). We implement an on-policy version that uses
@@ -268,9 +269,9 @@ Moore, Andrew, and C. G. Atkeson. 1993. "Prioritized Sweeping: Reinforcement Lea
 
 Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algorithms for Discounted Markov Decision Problems." Management Science 24: 1127-37. \doi{10.1287/mnsc.24.11.1127}.
 
-Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. \url{http://aima.cs.berkeley.edu/}.
+Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
 
-Singh, Satinder, Tommi S. Jaakkola, Michael L. Littman, and Csaba Szepesvári. 2000. "Convergence Results for Single-Step on-Policy Reinforcement-Learning Algorithms." Machine Learning 38 (3): 287-308. \doi{10.1023/A:1007678930559}.
+Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. \url{http://aima.cs.berkeley.edu/}.
 
 Sutton, R. 1988. "Learning to Predict by the Method of Temporal Differences." Machine Learning 3: 9-44. \url{https://link.springer.com/article/10.1007/BF00115009}.
 

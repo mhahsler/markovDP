@@ -91,7 +91,7 @@
 #'    an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
 #'    policy.
 #'
-#' * **Sarsa** (Singh et al. 2000) is an on-policy method that follows and learns
+#' * **Sarsa** (Rummery and Niranjan 1994) is an on-policy method that follows and learns
 #'    an \eqn{\epsilon}-greedy policy. The final \eqn{\epsilon}-greedy policy
 #'    is converted into a greedy policy.
 #'
@@ -120,7 +120,8 @@
 #' @return `solve_MDP()` returns an object of class POMDP which is a list with the
 #'   model specifications (`model`), the solution (`solution`).
 #'   The solution is a list with the elements:
-#'   - `policy` a list representing the policy graph. The list only has one element for converged solutions.
+#'   - `policy` a list representing the policy graph. The list only has one 
+#'      element for converged solutions.
 #'   - `converged` did the algorithm converge (`NA`) for finite-horizon problems.
 #'   - `delta` final \eqn{\delta} (value iteration and infinite-horizon only)
 #'   - `iterations` number of iterations to convergence (infinite-horizon only)
@@ -137,9 +138,9 @@
 #'
 #' Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algorithms for Discounted Markov Decision Problems." Management Science 24: 1127-37. \doi{10.1287/mnsc.24.11.1127}.
 #'
+#' Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
+#' 
 #' Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. [http://aima.cs.berkeley.edu/](http://aima.cs.berkeley.edu/).
-#'
-#' Singh, Satinder, Tommi S. Jaakkola, Michael L. Littman, and Csaba Szepesvári. 2000. "Convergence Results for Single-Step on-Policy Reinforcement-Learning Algorithms." Machine Learning 38 (3): 287-308. \doi{10.1023/A:1007678930559}.
 #'
 #' Sutton, R. 1988. "Learning to Predict by the Method of Temporal Differences." Machine Learning 3: 9-44. [https://link.springer.com/article/10.1007/BF00115009](https://link.springer.com/article/10.1007/BF00115009).
 #'

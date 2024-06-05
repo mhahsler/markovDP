@@ -24,7 +24,10 @@
 #' The dense representation is a list of lists of matrices.
 #' The list levels are \eqn{a} (`action`)  and \eqn{s} (`start.state`).
 #' The matrices are column vectors with rows representing \eqn{s'} (`end.state`).
-#' The reward structure cannot be efficiently stored using a standard sparse matrix
+#' The accessor converts the column vectors automatically into matrices with
+#' start states as rows and end states as columns. This conversion can be suppressed
+#' by calling `reward_matrix(..., state_matrix = FALSE)`
+#' Note that the reward structure cannot be efficiently stored using a standard sparse matrix
 #' since there might be a fixed cost for each action
 #' resulting in no entries with 0.
 #'

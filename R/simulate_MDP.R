@@ -120,8 +120,7 @@ simulate_MDP <-
 
       # find a horizon that approximates the reward using
       # discount^horizon * max_abs_R <= 0.001
-      max_abs_R <-
-        max(abs(reward_matrix(model, sparse = TRUE)$value))
+      max_abs_R <- max(abs(.reward_range(model)))
       horizon <-
         ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
     }
@@ -215,7 +214,6 @@ simulate_MDP <-
     actions <- as.character(model$actions)
 
     trans_m <- transition_matrix(model, sparse = NULL)
-    # rew_m <- reward_matrix(model, sparse = NULL)
 
     # for easier access
     pol <-

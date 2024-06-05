@@ -41,7 +41,6 @@ solve_MDP_TD <-
     S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
     P <- transition_matrix(model, sparse = TRUE)
-    # R <- reward_matrix(model, sparse = FALSE)
     start <- .translate_belief(NULL, model = model)
 
     method <-

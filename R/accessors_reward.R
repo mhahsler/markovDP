@@ -28,20 +28,16 @@ reward_matrix.MDP <-
            action = NULL,
            start.state = NULL,
            end.state = NULL,
-           observation = NULL,
            ...,
+           state_matrix = TRUE,
            sparse = FALSE) {
-    if (!is.null(observation)) {
-      stop("Observations can not be specified for MDPs!")
-    }
-
     reward <- x[["reward"]]
 
-    if (is.null(action) && (!is.null(start.state) || !is.null(end.state) || !is.null(observation))) {
-      stop("action needs to be specified!")
+    if (is.null(action) && (!is.null(start.state) || !is.null(end.state))) {
+      stop("action needs to be specified if states are specified!")
     }
-    if (!is.null(action) && is.null(start.state) && (!is.null(end.state) || !is.null(observation))) {
-      stop("start.state needs to be specified!")
+    if (!is.null(action) && is.null(start.state) && (!is.null(end.state))) {
+      stop("start.state needs to be specified if end.state is specified!")
     }
 
     # convert functions first
@@ -68,7 +64,8 @@ reward_matrix.MDP <-
       if (sparse) {
         return(reward)
       } else {
-        return(reward_df2value(reward, action, start.state, end.state, observation))
+        return(reward_df2value(reward, action, start.state, end.state, 
+                               state_matrix = state_matrix))
       }
     }
 
@@ -78,7 +75,7 @@ reward_matrix.MDP <-
     }
 
     # subset
-    reward_list2value(reward, action, start.state, end.state, observation)
+    reward_list2value(reward, action, start.state, end.state)
   }
 
 
@@ -90,6 +87,7 @@ reward_df2value <-
            start.state = NULL,
            end.state = NULL,
            observation = NULL,
+           state_matrix = FALSE, # MDP has no observations
            sparse = FALSE) {
     actions <- levels(df$action)
     states <- levels(df$end.state)
@@ -113,6 +111,16 @@ reward_df2value <-
         },
         simplify = FALSE
       )
+      
+      if (state_matrix) {
+        l <- sapply(actions, FUN = function(a) {
+          r <- t(do.call(cbind, l[[a]]))
+          rownames(r) <- states
+          r
+        }, simplify = FALSE)
+        
+      }
+      
       return(l)
     }
 
@@ -126,6 +134,11 @@ reward_df2value <-
           simplify = FALSE
         )
 
+      if (state_matrix) {
+        l <- t(do.call(cbind, l))
+        rownames(l) <- states
+      }
+      
       return(l)
     }
 
@@ -276,34 +289,33 @@ reward_list2value <-
   function(m,
            action = NULL,
            start.state = NULL,
-           end.state = NULL,
-           observation = NULL) {
-    states <- names(m[[1L]])
-    observations <- colnames(m[[1L]][[1L]])
+           end.state = NULL) {
 
     if (is.null(action)) {
       return(m)
     }
+    
     if (is.null(start.state)) {
       return(m[[action]])
     }
 
-    m <- m[[action]][[start.state]]
-
-    if (is.null(end.state) && is.null(observation)) {
-      # matrix
-      return(m)
+    if (is.null(end.state)) {
+      return(m[[action]][start.state, ])
     }
 
-    if (!is.null(end.state) && is.null(observation)) {
-      # observation vector (drop is for MDP)
-      return(m[end.state, , drop = TRUE])
-    }
-
-    if (is.null(end.state) && !is.null(observation)) {
-      return(m[, observation])
-    }
-
-    # value
-    return(m[end.state, observation])
+    return(m[[action]][start.state, end.state])
   }
+
+.reward_range <- function(model) {
+  reward <- model[["reward"]]
+  
+  if (is.data.frame(reward)) 
+    return (range(reward$value))
+  
+  # function is slow!
+  if (is.function(reward)) 
+    reward <- reward_function2list(reward, model)
+ 
+  # it is a list of matrices 
+  range(unlist(reward, recursive = TRUE)) 
+}

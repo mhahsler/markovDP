@@ -4,9 +4,6 @@ data("Maze")
 m2 <- normalize_MDP(Maze, sparse = FALSE)
 m3 <- normalize_MDP(Maze, sparse = TRUE)
 
-### FIXME: This is in POMDP
-# m4 <- make_partially_observable(Maze)
-
 s_abs <- c("s(1,4)", "s(2,4)")
 expect_equal(names(which(absorbing_states(Maze))), s_abs)
 expect_equal(names(which(absorbing_states(m2))), s_abs)

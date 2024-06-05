@@ -5,7 +5,8 @@
 # from stage k onward, if we choose a_k = a and then proceed optimally (given by U).
 .QV <-
   function(s, a, P, R, GAMMA, U) {
-    sum(P[[a]][s, ] * (R[[a]][[s]] + GAMMA * U), na.rm = TRUE)
+    sum(P[[a]][s, , drop = FALSE] * (R[[a]][s, , drop = FALSE] + GAMMA * U), 
+        na.rm = TRUE)
   }
 .QV_vec <- Vectorize(.QV, vectorize.args = c("s", "a"))
 

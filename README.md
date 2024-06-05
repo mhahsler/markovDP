@@ -10,13 +10,14 @@ downloads](http://cranlogs.r-pkg.org/badges/markovDP)](https://CRAN.R-project.or
 
 ## Introduction
 
-A Markov decision process (MDP) (Bellman 1957; Howard 1960) is a
-discrete-time stochastic control process. In each time step, an agent
-can perform actions which affect the system (i.e., may cause the system
-state to change). The agent’s goal is to maximize its expected future
-rewards that depend on the sequence of system state and the agent’s
-actions in the future. Solving the MDP means finding the optimal (or at
-least a good) policy that guides the agent’s actions.
+A Markov decision process (MDP) ([Bellman 1957](#ref-Bellman1957);
+[Howard 1960](#ref-Howard1960)) is a discrete-time stochastic control
+process. In each time step, an agent can perform actions which affect
+the system (i.e., may cause the system state to change). The agent’s
+goal is to maximize its expected future rewards that depend on the
+sequence of system state and the agent’s actions in the future. Solving
+the MDP means finding the optimal (or at least a good) policy that
+guides the agent’s actions.
 
 The `markovDP` package provides the infrastructure to work with MDPs in
 R. The focus is on convenience in formulating MDPs in multiple ways, the
@@ -26,18 +27,19 @@ implemented in C++ to speed up computation. It also provides to the
 following popular solving procedures:
 
 - **Dynamic Programming**
-  - Value Iteration (Bellman 1957)
-  - Prioritized Sweeping (Moore and Atkeson 1993)
-  - Modified Policy Iteration (Howard 1960; Puterman and Shin 1978)
+  - Value Iteration ([Bellman 1957](#ref-Bellman1957))
+  - Modified Policy Iteration ([Howard 1960](#ref-Howard1960); [Puterman
+    and Shin 1978](#ref-Puterman1978))
+  - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993))
 - **Linear Programming**
-  - Primal Formulation (Manne 1960)
-- **Termporal Differencing** (R. Sutton 1988)
-  - Q-Learning (Watkins and Dayan 1992)
-  - Sarsa (Singh et al. 2000)
-  - Expected Sarsa (R. S. Sutton and Barto 2018)
+  - Primal Formulation ([Manne 1960](#ref-Manne1960))
+- **Termporal Differencing**
+  - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
+  - Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
+  - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
 
-These implementations follow the description is (Russell and Norvig
-2020) and (R. S. Sutton and Barto 2018).
+These implementations follow the description is ([Russell and Norvig
+2020](#ref-Russell2020)) and ([Sutton and Barto 2018](#ref-Sutton1998)).
 
 To cite package ‘markovDP’ in publications use:
 
@@ -64,7 +66,8 @@ install.packages("markovDP",
 
 ## Usage
 
-Solving the simple maze from (Russell and Norvig 2020).
+Solving the simple maze from ([Russell and Norvig
+2020](#ref-Russell2020)).
 
 ``` r
 library("markovDP")
@@ -167,27 +170,18 @@ Iteration Algorithms for Discounted Markov Decision Problems.”
 
 </div>
 
+<div id="ref-Rummery1994" class="csl-entry">
+
+Rummery, G., and Mahesan Niranjan. 1994. “On-Line Q-Learning Using
+Connectionist Systems.” Techreport CUED/F-INFENG/TR 166. Cambridge
+University Engineering Department.
+
+</div>
+
 <div id="ref-Russell2020" class="csl-entry">
 
 Russell, Stuart J., and Peter Norvig. 2020. *Artificial Intelligence: A
 Modern Approach (4th Edition)*. Pearson. <http://aima.cs.berkeley.edu/>.
-
-</div>
-
-<div id="ref-Singh2000" class="csl-entry">
-
-Singh, Satinder, Tommi S. Jaakkola, Michael L. Littman, and Csaba
-Szepesvári. 2000. “Convergence Results for Single-Step on-Policy
-Reinforcement-Learning Algorithms.” *Machine Learning* 38 (3): 287–308.
-<https://doi.org/10.1023/A:1007678930559>.
-
-</div>
-
-<div id="ref-Sutton1988" class="csl-entry">
-
-Sutton, R. 1988. “Learning to Predict by the Method of Temporal
-Differences.” *Machine Learning* 3: 9–44.
-<https://link.springer.com/article/10.1007/BF00115009>.
 
 </div>
 

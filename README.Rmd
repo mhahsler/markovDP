@@ -1,6 +1,7 @@
 ---
 output: github_document
 bibliography: vignettes/references.bib
+link-citations: yes
 ---
 
 ```{r echo=FALSE, results = 'asis'}
@@ -31,15 +32,15 @@ It also provides to the following popular solving procedures:
 
 * __Dynamic Programming__
   - Value Iteration [@Bellman1957]
-  - Prioritized Sweeping [@Moore1993]
   - Modified Policy Iteration [@Howard1960; @Puterman1978]
+  - Prioritized Sweeping [@Moore1993]
 
 * __Linear Programming__
   - Primal Formulation [@Manne1960]
 
-* __Termporal Differencing__ [@Sutton1988]
+* __Termporal Differencing__
   - Q-Learning [@Watkins1992]
-  - Sarsa [@Singh2000]
+  - Sarsa [@Rummery1994]
   - Expected Sarsa [@Sutton1998]
 
 These implementations follow the description is [@Russell2020] and 

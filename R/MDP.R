@@ -60,9 +60,9 @@
 #'   multiple times and the definition that
 #'   appears last in the data.frame will take affect.
 #'
-#' * A list of lists. The list levels are `'action'` and `'start.state'`. The list elements
-#'   are matrices with
-#'   rows representing end states \eqn{s'} and columns representing an observation \eqn{o}.
+#' * A list of state x state matrices. 
+#'   The list elements are for `'action'`. The matrix rows are `start.state` and the 
+#'   columns are `end.state`. 
 #'
 #' * A function with the same arguments are `R_()`, but no default values
 #'   that returns the reward.
