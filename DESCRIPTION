@@ -2,32 +2,45 @@ Package: markovDP
 Title: Infrastructure for Discrete-Time Markov Decision Processes (MDP)
 Version: 0.99.0
 Date: 2024-xx-xx
-Authors@R: c(
-    person(given = "Michael",
-       family = "Hahsler",
-       role = c("aut", "cph", "cre"),
-       email = "mhahsler@lyle.smu.edu",
-       comment = c(ORCID = "0000-0003-2716-1405")))
-Description: The package provides the infrastructure to work with MDPs in R. The focus is on convenience in formulating MDPs, the support of sparse representations (using sparse matrices, lists and data.frames) and visualization of results. Some key components are implemented in C++ to speed up computation. It also implements several popular solvers.
-Classification/ACM: G.4, G.1.6, I.2.6
+Authors@R: 
+    person("Michael", "Hahsler", , "mhahsler@lyle.smu.edu", role = c("aut", "cph", "cre"),
+           comment = c(ORCID = "0000-0003-2716-1405"))
+Description: The package provides the infrastructure to work with MDPs in
+    R. The focus is on convenience in formulating MDPs, the support of
+    sparse representations (using sparse matrices, lists and data.frames)
+    and visualization of results. Some key components are implemented in
+    C++ to speed up computation. It also implements several popular
+    solvers.
+License: GPL (>=3)
 URL: https://github.com/mhahsler/markovDP
 BugReports: https://github.com/mhahsler/markovDP/issues
-Depends: R (>= 3.5.0)
-Imports: stats, methods, Rcpp, Matrix, foreach, igraph, lpSolve
-Suggests: knitr,
-  rmarkdown,
-  testthat,
-  visNetwork,
-  doParallel,
-  gifski
-SystemRequirements: C++17
-LinkingTo: Rcpp
-VignetteBuilder: knitr
-Encoding: UTF-8
-License: GPL (>=3)
+Depends: 
+    R (>= 3.5.0)
+Imports: 
+    foreach,
+    igraph,
+    lpSolve,
+    Matrix,
+    methods,
+    Rcpp,
+    stats
+Suggests: 
+    doParallel,
+    gifski,
+    knitr,
+    rmarkdown,
+    testthat,
+    visNetwork
+LinkingTo: 
+    Rcpp
+VignetteBuilder: 
+    knitr
+Classification/ACM: G.4, G.1.6, I.2.6
 Copyright: Copyright (C) Michael Hahsler.
-RoxygenNote: 7.3.1
+Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+SystemRequirements: C++17
 Collate: 
     'AAA_check_installed.R'
     'AAA_package.R'
