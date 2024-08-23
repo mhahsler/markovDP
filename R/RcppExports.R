@@ -29,7 +29,7 @@ update_belief_cpp <- function(model, belief, action, observation, digits = 7L) {
     .Call(`_markovDP_update_belief_cpp`, model, belief, action, observation, digits)
 }
 
-simulate_MDP_cpp <- function(model, n, start, horizon, disc = 1.0, return_trajectories = FALSE, epsilon = 1.0, verbose = FALSE) {
-    .Call(`_markovDP_simulate_MDP_cpp`, model, n, start, horizon, disc, return_trajectories, epsilon, verbose)
+simulate_MDP_cpp <- function(model, n, start, horizon, disc = 1.0, return_trajectories = FALSE, epsilon = 1.0, exploring_starts = FALSE, verbose = FALSE) {
+    .Call(`_markovDP_simulate_MDP_cpp`, model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose)
 }
 

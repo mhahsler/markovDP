@@ -73,12 +73,8 @@ Other MDP:
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
 \code{\link{value_function}()}
-
-Other POMDP: 
-\code{\link{add_policy}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
-\concept{POMDP}

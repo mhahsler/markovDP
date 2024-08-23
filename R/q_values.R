@@ -87,9 +87,13 @@ q_values <- function(model, U = NULL) {
   policy <- model$solution$policy[[1]]
   GAMMA <- model$discount
 
-  ### TODO: look if Q is already stored in the model!
   if (is.null(U)) {
-    if (!is.null(policy)) {
+    ## Q is stored in model
+    if (!is.null(model$solution$Q))
+      return(model$solution$Q)
+    
+    ## U is stored in model
+    if (!is.null(policy) || any(is.na(policy$U))) {
       U <- policy$U
     } else {
       stop("'model' does not contain state utilities (it is unsolved). You need to specify U.")
@@ -121,7 +125,8 @@ greedy_action <-
       } else {
         a <- sample(available_A, size = 1L)
       }
-      
+     
+      a <- factor(a, levels = colnames(Q)) 
       return(a)
     }
     

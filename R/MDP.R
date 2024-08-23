@@ -75,7 +75,7 @@
 #'
 #' Note: The code also includes in `R_()` an argument called `observation`.
 #' Observations are only used POMDPs implemented in package
-#' `pomdp` abs must always be `NA` for MDPs.
+#' `pomdp` obs must always be `NA` for MDPs.
 #'
 #' **Start State**
 #'
@@ -183,9 +183,11 @@ MDP <- function(states,
   class(x) <- list("MDP", "list")
   x <- check_and_fix_MDP(x)
   
-  if (normalize)
+  if (normalize) {
     x <- normalize_MDP(x)
-
+  }
+    
+    
   x
 }
 
@@ -270,7 +272,7 @@ is_solved_MDP <- function(x, stop = FALSE) {
     stop("Epoch has to be >= 1")
   }
 
-  ### (converged) infinite horizon POMDPs. We ignore epoch.
+  ### (converged) infinite horizon MDP. We ignore epoch.
   if (length(model$solution$policy) == 1L) {
     return(1L)
   }

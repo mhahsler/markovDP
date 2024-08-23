@@ -15,7 +15,6 @@
 #'    The needed names can be obtained by from the `$states` element of the model.
 #' * `U`: with the utility given by the value function for the state.
 #'
-#' @family POMDP
 #' @family MDP
 #'
 #' @param model a [MDP] model description.
@@ -51,7 +50,8 @@ add_policy.MDP <- function(model, policy) {
   }
 
   if (is.null(policy$U)) {
-    policy$U <- policy_evaluation(model, policy)
+    #policy$U <- policy_evaluation(model, policy)
+    policy$U <- NA
   }
 
   solution <- list(

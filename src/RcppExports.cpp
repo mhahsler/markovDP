@@ -101,8 +101,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // simulate_MDP_cpp
-List simulate_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool return_trajectories, const double epsilon, const bool verbose);
-RcppExport SEXP _markovDP_simulate_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP verboseSEXP) {
+List simulate_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool return_trajectories, const double epsilon, const bool exploring_starts, const bool verbose);
+RcppExport SEXP _markovDP_simulate_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP exploring_startsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -113,8 +113,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type disc(discSEXP);
     Rcpp::traits::input_parameter< const bool >::type return_trajectories(return_trajectoriesSEXP);
     Rcpp::traits::input_parameter< const double >::type epsilon(epsilonSEXP);
+    Rcpp::traits::input_parameter< const bool >::type exploring_starts(exploring_startsSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_MDP_cpp(model, n, start, horizon, disc, return_trajectories, epsilon, verbose));
+    rcpp_result_gen = Rcpp::wrap(simulate_MDP_cpp(model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -127,7 +128,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_markovDP_reward_alpha_cpp", (DL_FUNC) &_markovDP_reward_alpha_cpp, 2},
     {"_markovDP_reward_cpp", (DL_FUNC) &_markovDP_reward_cpp, 2},
     {"_markovDP_update_belief_cpp", (DL_FUNC) &_markovDP_update_belief_cpp, 5},
-    {"_markovDP_simulate_MDP_cpp", (DL_FUNC) &_markovDP_simulate_MDP_cpp, 8},
+    {"_markovDP_simulate_MDP_cpp", (DL_FUNC) &_markovDP_simulate_MDP_cpp, 9},
     {NULL, NULL, 0}
 };
 

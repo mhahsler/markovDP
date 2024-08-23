@@ -253,6 +253,8 @@ normalize_MDP <- function(x,
     x$reward <- reward_matrix(x, sparse = sparse)
   }
 
+  x$absorbing_states <- absorbing_states(x)
+  
   x
 }
 

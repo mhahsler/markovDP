@@ -65,13 +65,6 @@ check_and_fix_MDP <- function(x) {
     x$actions <- paste0("a", seq_len(x$actions))
   }
   
-  # if (inherits(x, "POMDP")) {
-  #   if (is.numeric(x$observations) &&
-  #     length(x$observations) == 1L) {
-  #     x$observations <- paste0("o", seq_len(x$observations))
-  #   }
-  # }
-  
   ## discount and horizon
   x$discount <- as.numeric(x$discount)
   if (length(x$discount) != 1L ||

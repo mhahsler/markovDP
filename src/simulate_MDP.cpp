@@ -43,6 +43,7 @@ List simulate_MDP_cpp(const List& model,
   const double disc = 1.0,
   const bool return_trajectories = false,
   const double epsilon = 1.0,
+  const bool exploring_starts = false,
   const bool verbose = false
 ) {
   
@@ -84,6 +85,7 @@ List simulate_MDP_cpp(const List& model,
           << "- horizon: " << horizon << "\n"
           << "- epsilon: " << epsilon << "\n"
           << "- discount factor: " << disc << "\n"
+          << "- exploring starts: " << exploring_starts << "\n"
           << "- start state distribution: " << start << "\n\n";
   }
   
@@ -114,14 +116,17 @@ List simulate_MDP_cpp(const List& model,
       Rcout << "Epoch: " << j << "\n";
 #endif
       // find action (if we have no solution then take a random action) and update state and sample obs
-      
-      if (epsilon != 0 && (epsilon == 1 || R::runif(0, 1) < epsilon)) {
+     
+      if (exploring_starts && j == 0) {
         a = sample(nactions, 1, false, R_NilValue, false)[0];
       } else {
-        // actions in model start index with 1! 
-        a = pol[s];
+        if (epsilon != 0 && (epsilon == 1 || R::runif(0, 1) < epsilon)) {
+          a = sample(nactions, 1, false, R_NilValue, false)[0];
+        } else {
+          // actions in model start index with 1! 
+          a = pol[s];
+        }
       }
-      
       // update state
       s_prev = s;
       NumericVector trans_v = transition_matrix(model, a)(s, _ );

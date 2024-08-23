@@ -15,7 +15,6 @@
 #' @name reachable_and_absorbing
 #' @aliases reachable_and_absorbing
 #' @family MDP
-#' @family POMDP
 #'
 #' @param x a [MDP] object.
 #' @param states a character vector specifying the names of the states to be
@@ -75,6 +74,18 @@ absorbing_states <- function(x,
 absorbing_states.MDP <- function(x,
                                  states = NULL,
                                  ...) {
+  if (is.null(states)) {
+    states <- x$states
+  }
+
+  if (is.numeric(states)) {
+    states <- x$states[states]
+  }
+  
+  if (!is.null(x$absorbing_states)) {
+    return(x$absorbing_states[states])
+  }
+  
   is_absorbing <- function(s, x) {
     (all(sapply(
       x$actions,
@@ -101,14 +112,6 @@ absorbing_states.MDP <- function(x,
     )
   }
 
-
-  if (is.null(states)) {
-    states <- x$states
-  }
-
-  if (is.numeric(states)) {
-    states <- x$states[states]
-  }
 
   structure(sapply(
     states,

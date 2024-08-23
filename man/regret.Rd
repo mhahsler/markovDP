@@ -7,9 +7,9 @@
 regret(policy, benchmark, start = NULL)
 }
 \arguments{
-\item{policy}{a solved POMDP containing the policy to calculate the regret for.}
+\item{policy}{a solved MDP containing the policy to calculate the regret for.}
 
-\item{benchmark}{a solved POMDP with the (optimal) policy. Regret is calculated relative to this
+\item{benchmark}{a solved MDP with the (optimal) policy. Regret is calculated relative to this
 policy.}
 
 \item{start}{start state distribution. If NULL then the start state of the \code{benchmark} is used.}

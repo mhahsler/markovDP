@@ -50,9 +50,6 @@ policy(sol_random)
 reward(sol_random)
 }
 \seealso{
-Other POMDP: 
-\code{\link{reachable_and_absorbing}}
-
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
@@ -71,4 +68,3 @@ Other MDP:
 Michael Hahsler
 }
 \concept{MDP}
-\concept{POMDP}

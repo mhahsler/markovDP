@@ -51,7 +51,7 @@ returns the transition model as an igraph object.
 Returns the transition model as an \pkg{igraph} object.
 }
 \details{
-The transition model of a POMDP is a Markov Chain. This function extracts the transition model as
+The transition model of a MDP is a Markov Chain. This function extracts the transition model as
 an igraph object.
 }
 \examples{

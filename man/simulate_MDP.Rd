@@ -79,7 +79,7 @@ with n * horizon less than 100,000 are always executed using a single worker.
 
 data(Maze)
 
-# solve the POMDP for 5 epochs and no discounting
+# solve the MDP for 5 epochs and no discounting
 sol <- solve_MDP(Maze, discount = 1)
 sol
 

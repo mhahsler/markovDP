@@ -11,8 +11,8 @@
 #'
 #' @family MDP
 #'
-#' @param policy a solved POMDP containing the policy to calculate the regret for.
-#' @param benchmark a solved POMDP with the (optimal) policy. Regret is calculated relative to this
+#' @param policy a solved MDP containing the policy to calculate the regret for.
+#' @param benchmark a solved MDP with the (optimal) policy. Regret is calculated relative to this
 #'    policy.
 #' @param start start state distribution. If NULL then the start state of the `benchmark` is used.
 #'

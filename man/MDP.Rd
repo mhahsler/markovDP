@@ -149,7 +149,7 @@ finite reward values.
 
 Note: The code also includes in \code{R_()} an argument called \code{observation}.
 Observations are only used POMDPs implemented in package
-\code{pomdp} abs must always be \code{NA} for MDPs.
+\code{pomdp} obs must always be \code{NA} for MDPs.
 
 \strong{Start State}
 

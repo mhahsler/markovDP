@@ -4,8 +4,9 @@
 #' trajectory is randomly chosen using the specified belief. The belief is used to choose actions
 #' from an epsilon-greedy policy and then update the state.
 #'
-#' A native R implementation is available (`engine = 'r'`) and the default is a
+#' The default is a
 #' faster C++ implementation (`engine = 'cpp'`).
+#' A native R implementation is available (`engine = 'r'`). 
 #'
 #' Both implementations support parallel execution using the package
 #' \pkg{foreach}. To enable parallel execution, a parallel backend like
@@ -48,7 +49,7 @@
 #'
 #' data(Maze)
 #'
-#' # solve the POMDP for 5 epochs and no discounting
+#' # solve the MDP for 5 epochs and no discounting
 #' sol <- solve_MDP(Maze, discount = 1)
 #' sol
 #'
@@ -88,6 +89,7 @@ simulate_MDP <-
            start = NULL,
            horizon = NULL,
            epsilon = NULL,
+           exploring_starts = FALSE,
            delta_horizon = 1e-3,
            return_trajectories = FALSE,
            engine = "cpp",
@@ -104,11 +106,17 @@ simulate_MDP <-
       engine <- "r"
     }
 
-
-    start <- .translate_belief(start, model = model)
     solved <- is_solved_MDP(model)
-
     n <- as.integer(n)
+    
+    # exploring starts: uniform start + first action is random
+    if (exploring_starts) {
+      if(!is.null(start))
+        warning("start cannot be specified for exploring starts. Using 'uniform'!")
+      start <- .translate_belief("uniform", model = model)
+    }
+    else
+      start <- .translate_belief(start, model = model)
 
     if (is.null(horizon)) {
       horizon <- model$horizon
@@ -144,7 +152,7 @@ simulate_MDP <-
     }
 
     if (engine == "cpp") {
-      # Cpp can now deal with unnormalized POMDPs
+      # Cpp can now deal with unnormalized MDPs
       # model <- normalize_MDP(model, sparse = TRUE)
 
       if (foreach::getDoParWorkers() == 1 || n * horizon < 100000) {
@@ -156,6 +164,7 @@ simulate_MDP <-
           disc,
           return_trajectories,
           epsilon,
+          exploring_starts,
           verbose = verbose
         ))
       }
@@ -183,6 +192,7 @@ simulate_MDP <-
           disc,
           return_trajectories,
           epsilon,
+          exploring_starts,
           verbose = FALSE
         )
 
@@ -213,6 +223,7 @@ simulate_MDP <-
     states_absorbing <- which(absorbing_states(model))
     actions <- as.character(model$actions)
 
+    # FIXME: Memory!
     trans_m <- transition_matrix(model, sparse = NULL)
 
     # for easier access
@@ -228,6 +239,7 @@ simulate_MDP <-
       cat("Simulating MDP trajectories.\n")
       cat("- engine:", engine, "\n")
       cat("- horizon:", horizon, "\n")
+      cat("- exploring starts:", exploring_starts, "\n")
       cat(
         "- n:",
         n,
@@ -266,12 +278,18 @@ simulate_MDP <-
       }
 
       for (j in seq_len(horizon)) {
-        if (runif(1) < epsilon) {
+        if (exploring_starts && j == 1L) {
+          # choose first action randomly
           a <- sample.int(length(actions), 1L, replace = TRUE)
         } else {
-          a <- pol[[.get_pol_index(model, j)]][s]
+          # epsilon soft policy
+          if (runif(1) < epsilon) {
+            a <- sample.int(length(actions), 1L, replace = TRUE)
+          } else {
+            a <- pol[[.get_pol_index(model, j)]][s]
+          }
         }
-
+        
         action_cnt[a] <- action_cnt[a] + 1L
         state_cnt[s] <- state_cnt[s] + 1L
 
@@ -300,7 +318,6 @@ simulate_MDP <-
           if (return_trajectories) {
             trajectory <- trajectory[1:j, , drop = FALSE]
           }
-          # TODO: maybe add the finals state
           break
         }
       }

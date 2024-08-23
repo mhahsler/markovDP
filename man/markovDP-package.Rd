@@ -6,7 +6,7 @@
 \alias{markovDP-package}
 \title{markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)}
 \description{
-The package provides the infrastructure to work with MDPs in R. The focus is on convenience in formulating MDPs, the support of sparse representations (using sparse matrices, lists and data.frames) and visualization of results. Some key components are implemented in C++ to speed up computation. It also implements several popular solvers.
+Provides the infrastructure to work with Markov Decision Processes (MDPs) in R. The focus is on convenience in formulating MDPs, the support of sparse representations (using sparse matrices, lists and data.frames) and visualization of results. Some key components are implemented in C++ to speed up computation. Several popular solvers are implemented.
 }
 \section{Key functions}{
 

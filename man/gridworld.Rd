@@ -113,10 +113,11 @@ dimensions as element \code{gridworld_dim}.}
 
 \item{name}{a string to identify the MDP problem.}
 
-\item{s}{a state label.}
+\item{s}{a state label or a vector of labels.}
 
 \item{rc}{a vector of length two with the row and column coordinate of a
-state in the gridworld matrix.}
+state in the gridworld matrix. A matrix with one state per row can be also
+supplied.}
 
 \item{model, x}{a solved gridworld MDP.}
 
