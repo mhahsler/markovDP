@@ -1,7 +1,6 @@
-#' Action Given a Policy
+#' Choose an Action Given a Policy
 #'
-#' Returns an action given a policy. If the
-#' policy is optimal, then also the action will be optimal.
+#' Returns an action given a policy. The policy can be made epsilon-soft.
 #'
 #' @family policy
 

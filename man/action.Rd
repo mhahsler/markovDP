@@ -3,7 +3,7 @@
 \name{action}
 \alias{action}
 \alias{action.MDP}
-\title{Action Given a Policy}
+\title{Choose an Action Given a Policy}
 \usage{
 action(model, ...)
 
@@ -24,8 +24,7 @@ action(model, ...)
 The name of the optimal action as a factor.
 }
 \description{
-Returns an action given a policy. If the
-policy is optimal, then also the action will be optimal.
+Returns an action given a policy. The policy can be made epsilon-soft.
 }
 \examples{
 data("Maze")

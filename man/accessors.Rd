@@ -150,6 +150,7 @@ Maze_norm$transition_prob
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{act}()},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},

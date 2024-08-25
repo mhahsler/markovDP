@@ -94,6 +94,7 @@ random_policy <-
     
     data.frame(
       state = S,
+      U = NA_real_,
       action = factor(
         sample(
           seq_along(A),

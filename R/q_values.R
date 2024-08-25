@@ -148,7 +148,7 @@ greedy_policy <-
     data.frame(
       state = rownames(Q),
       U = apply(Q, MARGIN = 1, max),
-      action = A[apply(Q, MARGIN = 1, which.max.random)],
+      action = factor(A[apply(Q, MARGIN = 1, which.max.random)], levels = A),
       row.names = NULL
     )
   }

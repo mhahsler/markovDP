@@ -296,7 +296,7 @@ double terminal_val(const List& model, int state) {
   return terminal_values[state];
 }
 
-// returns the List policy as a vector. Index is the state index and the value is the action index.
+// returns a vector of actions. Index is the state index and the value is the action index.
 IntegerVector get_policy_MDP(const List& model) {
   if (!is_solved(model))
     stop("Unsolved List model. No policy available");

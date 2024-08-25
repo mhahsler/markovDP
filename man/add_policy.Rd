@@ -53,6 +53,7 @@ reward(sol_random)
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
+\code{\link{act}()},
 \code{\link{actions}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

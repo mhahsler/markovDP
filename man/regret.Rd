@@ -47,6 +47,7 @@ regret(sol_manual, benchmark = sol_optimal)
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
+\code{\link{act}()},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},

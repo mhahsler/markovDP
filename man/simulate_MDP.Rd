@@ -10,6 +10,7 @@ simulate_MDP(
   start = NULL,
   horizon = NULL,
   epsilon = NULL,
+  exploring_starts = FALSE,
   delta_horizon = 0.001,
   return_trajectories = FALSE,
   engine = "cpp",
@@ -63,8 +64,9 @@ trajectory is randomly chosen using the specified belief. The belief is used to 
 from an epsilon-greedy policy and then update the state.
 }
 \details{
-A native R implementation is available (\code{engine = 'r'}) and the default is a
+The default is a
 faster C++ implementation (\code{engine = 'cpp'}).
+A native R implementation is available (\code{engine = 'r'}).
 
 Both implementations support parallel execution using the package
 \pkg{foreach}. To enable parallel execution, a parallel backend like
@@ -117,6 +119,7 @@ table(sim$trajectories$s)
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
+\code{\link{act}()},
 \code{\link{actions}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},

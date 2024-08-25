@@ -37,6 +37,7 @@ actions(Maze, state = "s(3,1)")
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
+\code{\link{act}()},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

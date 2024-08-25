@@ -35,22 +35,19 @@ solve_MDP_MC <-
            method = "MC_exploring_starts",
            horizon = NULL,
            discount = NULL,
-           N = 100,
+           N = 1000,
            ...,
            U = NULL,
+           epsilon = 0.1,
            first_visit = TRUE,
            verbose = FALSE) {
-    ### default is infinite horizon, but we use 10000 to guarantee termination
-    warn_horizon <- FALSE
+    ### default is infinite horizon, but we use 1000 to guarantee termination
     if (is.null(horizon)) {
       horizon <- model$horizon
     }
-    if (is.null(horizon)) {
-      if (!any(absorbing_states(model))) {
-        stop("The model has no absorbing states. Specify the horizon.")
-      }
-      warn_horizon <- TRUE
-      horizon <- 10000
+    if (is.null(horizon) || is.infinite(horizon)) {
+      warning("No finite horizon defined. Using a maximum horizon of 10000 to guarantee termination. Specify horizon to remove this warning.")
+      model$horizon <- horizon <- 1000
     }
     
     if (is.null(discount)) {
@@ -69,9 +66,9 @@ solve_MDP_MC <-
     
     switch(
       method,
-      MC_exploring_starts = MC_exploring_starts(model, method, horizon, discount, N, U, first_visit, verbose),
-      MC_on_policy = MC_exploring_starts(model, method, horizon, discount, N, U, first_visit, verbose, ...),
-      MC_off_policy = stop("Not implemented")
+      MC_exploring_starts = MC_exploring_starts(model, method, horizon, discount, N, U, first_visit, verbose, ...),
+      MC_on_policy = MC_on_policy(model, method, horizon, discount, N, U, first_visit, verbose, epsilon = epsilon, ...),
+      MC_off_policy = MC_off_policy(model, method, horizon, discount, N, U, first_visit, verbose, epsilon = epsilon, ...)
     )
   }
 
@@ -322,3 +319,98 @@ MC_on_policy <- function(model,
   
   model
 }
+
+
+MC_off_policy <- function(model,
+                          method,
+                          horizon,
+                          discount,
+                          N,
+                          U = NULL,
+                          first_visit = TRUE,
+                          verbose = FALSE,
+                          epsilon) {
+  ## Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
+  ## (RL book, Chapter 5)
+  
+  S <- model$states
+  A <- model$actions
+  gamma <- discount
+  
+  # Initialize
+  Q <- matrix(runif(length(S) * length(A)), nrow = length(S), ncol = length(A), dimnames = list(S, A))
+  pi <- greedy_policy(Q)
+  
+  # cumulative sum of the weights W used in incremental updates
+  C <- matrix(0L, nrow = length(S), ncol = length(A), dimnames = list(S, A))
+  
+  # Loop through N episodes
+  for (e in seq(N)) {
+    # we use as the soft behavioral policy an epsilon-soft version of pi.
+    # use epsilon-soft policy!
+    b <- pi
+    
+    # add faster without checks
+    #model <- add_policy(model, policy = b)
+    model$solution <- list(
+      method = "manual",
+      policy = list(b),
+      converged = NA
+    )
+    
+    ep <- simulate_MDP(
+      model,
+      n = 1,
+      horizon = horizon,
+      epsilon = epsilon,
+      return_trajectories = TRUE
+    )$trajectories
+     
+    if (verbose) {
+      cat(paste("*** Episode", e, "***\n"))
+      print(ep)
+    }
+    
+    G <- 0
+    W <- 1
+    for (i in rev(seq_len(nrow(ep)))) {
+      r_t_plus_1 <- ep$r[i]
+      s_t <- ep$s[i]
+      a_t <- ep$a[i]
+      
+      G <- gamma * G + r_t_plus_1
+      
+      # increase cumulative sum of W and update Q with weighted G
+      C[s_t, a_t] <- C[s_t, a_t] + W
+      Q[s_t, a_t] <- Q[s_t, a_t] + (W/C[s_t, a_t]) * (G - Q[s_t, a_t])
+      
+      pi$action[s_t] <- greedy_action(Q, s_t)
+      
+      # the algorithm can only learn from the tail of the episode where b
+      # also used the greedy actions in pi. The method is inefficient and
+      # cannot use all the data!
+      if (a_t != pi$action[s_t])
+        break
+      
+      # update the weight using b(A_t|S_t)
+      # Note, we could used actions(model, s_t), but that is expensive 
+      if (a_t == b$action[s_t]) 
+        b_at_st <- 1 - epsilon + epsilon / length(A)
+      else
+        b_at_st <- epsilon / length(A)
+       
+      
+      W <- W * 1/b_at_st
+    }
+  }
+  
+  model$solution <- list(
+    method = method,
+    N = N,
+    Q = Q,
+    converged = NA,
+    policy = list(greedy_policy(Q))
+  )
+  
+  model
+  }

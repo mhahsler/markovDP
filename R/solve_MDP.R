@@ -7,9 +7,11 @@
 #' state space MDPs.
 #'
 #'
-#' Several solvers are available.
+#' Several solvers are available. Note that some solvers are only implemented
+#' for finite-horizon problems.
 #'
 #' ## Dynamic Programming
+#' 
 #' Implemented are the following dynamic programming methods (following
 #' Russell and Norvig, 2010):
 #'
@@ -49,6 +51,7 @@
 #' Note that the policy converges earlier than the value function.
 #'
 #' ## Linear Programming
+#' 
 #' The following linear programming formulation (Manne 1960) is implemented. For the
 #' optimal value function, the Bellman equation holds:
 #'
@@ -70,6 +73,26 @@
 #'   To ensure this, for negative rewards, all rewards as shifted so the
 #'   smallest reward is
 #'   0. This does not change the optimal policy.
+#'
+#'
+#' ## Monte Carlo Control
+#' 
+#' Monte Carlo control simulates a whole episode using the current behavior 
+#' policy and then updates the target policy before simulating the next episode.
+#' Implemented are the following temporal difference control methods
+#' described in Sutton and Barto (2020).
+#' 
+#' * **Monte Carlo Control with exploring Starts** uses the same greedy policy for
+#' behavior and target. To make sure all states/action pairs are explored, it
+#' used exploring starts meaning that new episodes are started at a randomly
+#' chosen state using a randomly chooses action.
+#' 
+#' * **On-policy Monte Carlo Control** uses for behavior and as the target policy
+#' an epsilon-greedy policy. 
+#' 
+#' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary policy 
+#' (we use an epsilon-greedy policy) and learns a greedy policy using 
+#' importance sampling.
 #'
 #' ## Temporal Difference Control
 #'
@@ -100,13 +123,31 @@
 #'   It moves deterministically in the same direction as Sarsa
 #'   moves in expectation. Because it uses the expectation, we can
 #'   set the step size \eqn{\alpha} to large values and even 1.
+#' 
+#' ## Planning by Sampling
+#' 
+#' A simple planning method proposed by Sutton and Barto (2020) in Chapter 8.
+#' 
+#' * **Random-sample one-step tabular Q-planning** randomly selects a 
+#' state/action pair and samples the resulting reward and next state from 
+#' the model. This 
+#' information is used to update the Q table (link in Q-learning).
 #'
 #' @family solver
 #' @family MDP
 #'
 #' @param model an MDP problem specification.
-#' @param method string; one of the following solution methods: `'value_iteration'`,
-#'   `'policy_iteration'`, `'lp'`, `'q_learning'`, `'sarsa'`, or `'expected_sarsa'`.
+#' @param method string; one of the following solution methods: 
+#'    `'value_iteration'`,
+#'    `'policy_iteration'`, 
+#'    `'lp'`, 
+#'    `'q_learning'`, 
+#'    `'sarsa'`, 
+#'    `'expected_sarsa'`,
+#'    `'MC_exploring_starts'`,
+#'    `'MC_on_policy'`,
+#'    `'MC_off_policy',
+#'    `'q_planning'`.
 #' @param horizon an integer with the number of epochs for problems with a
 #'   finite planning horizon. If set to `Inf`, the algorithm continues
 #'   running iterations till it converges to the infinite horizon solution. If
@@ -215,16 +256,33 @@ solve_MDP <- function(model, method = "value_iteration", ...) {
   methods_DP <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
   methods_LP <- c("lp")
   methods_TD <- c("sarsa", "q_learning", "expected_sarsa")
-  method <- match.arg(method, c(methods_DP, methods_LP, methods_TD))
+  methods_MC <- c("MC_exploring_starts", "MC_on_policy", "MC_off_policy")
+  methods_sampling <- c("q_planning")
+  method <- match.arg(method, c(methods_DP, 
+                                methods_LP, 
+                                methods_TD, 
+                                methods_MC,
+                                methods_sampling
+                                ))
 
   if (method %in% methods_DP) {
     return(solve_MDP_DP(model, method, ...))
   }
+  
   if (method %in% methods_LP) {
     return(solve_MDP_LP(model, method, ...))
   }
+  
   if (method %in% methods_TD) {
     return(solve_MDP_TD(model, method, ...))
+  }
+  
+  if (method %in% methods_MC) {
+    return(solve_MDP_MC(model, method, ...))
+  }
+  
+  if (method %in% methods_sampling) {
+    return(solve_MDP_sampling(model, method, ...))
   }
 
   # we should not get here!
