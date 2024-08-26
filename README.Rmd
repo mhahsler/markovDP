@@ -38,10 +38,18 @@ It also provides to the following popular solving procedures:
 * __Linear Programming__
   - Primal Formulation [@Manne1960]
 
+* __Monte Carlo Control__
+  - Monte Carlo Control with Exploring Starts [@Sutton1998]
+  - On-policy Monte Carlo Control [@Sutton1998]
+  - Off-policy Monte Carlo Control [@Sutton1998]
+
 * __Termporal Differencing__
   - Q-Learning [@Watkins1992]
   - Sarsa [@Rummery1994]
   - Expected Sarsa [@Sutton1998]
+  
+* __Sampling__
+  - Random-sample one-step tabular Q-planning [@Sutton1998]
 
 These implementations follow the description is [@Russell2020] and 
 [@Sutton1998].

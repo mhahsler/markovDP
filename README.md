@@ -33,10 +33,18 @@ following popular solving procedures:
   - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993))
 - **Linear Programming**
   - Primal Formulation ([Manne 1960](#ref-Manne1960))
+- **Monte Carlo Control**
+  - Monte Carlo Control with Exploring Starts
+    ([**Sutton2020?**](#ref-Sutton2020))
+  - On-policy Monte Carlo Control ([**Sutton2020?**](#ref-Sutton2020))
+  - Off-policy Monte Carlo Control ([**Sutton2020?**](#ref-Sutton2020))
 - **Termporal Differencing**
   - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
   - Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
   - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
+- **Sampling**
+  - Random-sample one-step tabular Q-planning
+    ([**Sutton2020?**](#ref-Sutton2020))
 
 These implementations follow the description is ([Russell and Norvig
 2020](#ref-Russell2020)) and ([Sutton and Barto 2018](#ref-Sutton1998)).
@@ -61,7 +69,8 @@ To cite package ‘markovDP’ in publications use:
 
 ``` r
 install.packages("markovDP",
-    repos = c("https://mhahsler.r-universe.dev". "https://cloud.r-project.org/"))
+    repos = c("https://mhahsler.r-universe.dev",
+              "https://cloud.r-project.org/"))
 ```
 
 ## Usage
@@ -129,7 +138,8 @@ of Standards and Technology (NIST) under grant number
 
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-Bellman1957" class="csl-entry">
 
