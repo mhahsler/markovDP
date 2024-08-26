@@ -34,17 +34,19 @@ following popular solving procedures:
 - **Linear Programming**
   - Primal Formulation ([Manne 1960](#ref-Manne1960))
 - **Monte Carlo Control**
-  - Monte Carlo Control with Exploring Starts
-    ([**Sutton2020?**](#ref-Sutton2020))
-  - On-policy Monte Carlo Control ([**Sutton2020?**](#ref-Sutton2020))
-  - Off-policy Monte Carlo Control ([**Sutton2020?**](#ref-Sutton2020))
+  - Monte Carlo Control with Exploring Starts ([Sutton and Barto
+    2018](#ref-Sutton1998))
+  - On-policy Monte Carlo Control ([Sutton and Barto
+    2018](#ref-Sutton1998))
+  - Off-policy Monte Carlo Control ([Sutton and Barto
+    2018](#ref-Sutton1998))
 - **Termporal Differencing**
   - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
   - Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
   - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
 - **Sampling**
-  - Random-sample one-step tabular Q-planning
-    ([**Sutton2020?**](#ref-Sutton2020))
+  - Random-sample one-step tabular Q-planning ([Sutton and Barto
+    2018](#ref-Sutton1998))
 
 These implementations follow the description is ([Russell and Norvig
 2020](#ref-Russell2020)) and ([Sutton and Barto 2018](#ref-Sutton1998)).
