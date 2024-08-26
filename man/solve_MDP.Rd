@@ -114,6 +114,13 @@ output of the solver in the R console.}
 \item{epsilon}{used for \eqn{\epsilon}-greedy policies.}
 
 \item{alpha}{step size in \verb{(0, 1]}.}
+
+\item{exploring_starts}{if \code{TRUE} then the first state and action for
+each episode is uniformly sampled, otherwise the specifications in the model
+are used.}
+
+\item{fist_visit}{if \code{TRUE} then only the first visit of a state/action pair
+in an episode is used to update Q, otherwise, every-visit update is used.}
 }
 \value{
 \code{solve_MDP()} returns an object of class MDP which is a list with the

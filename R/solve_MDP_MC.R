@@ -1,34 +1,11 @@
 # Solve MDPs using Monte Carlo Methods
 
-if (FALSE) {
-  data(Maze)
-  sol_def <- solve_MDP(Maze)
-  policy(sol_def)
-  gridworld_plot(sol_def)
-  
-  sol <- solve_MDP_MC(Maze,
-                      horizon = 100,
-                      N = 1000,
-                      first_visit = TRUE,
-                      verbose = FALSE)
-  policy(sol)
-  gridworld_plot(sol)
-  
-  sum(abs(policy(sol_def)$U - policy(sol)$U))
-  
-  sol <- solve_MDP_MC(Maze,
-                      method = "MC_on_policy",
-                      horizon = 100,
-                      N = 1000,
-                      first_visit = TRUE,
-                      verbose = FALSE)
-  policy(sol)
-  gridworld_plot(sol)
-  sum(abs(policy(sol_def)$U - policy(sol)$U))
-  
-}
-
 #' @rdname solve_MDP
+#' @param exploring_starts if `TRUE` then the first state and action for 
+#' each episode is uniformly sampled, otherwise the specifications in the model
+#' are used.
+#' @param fist_visit if `TRUE` then only the first visit of a state/action pair
+#'   in an episode is used to update Q, otherwise, every-visit update is used. 
 #' @export
 solve_MDP_MC <-
   function(model,
