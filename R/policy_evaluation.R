@@ -1,7 +1,7 @@
 #' Policy Evaluation
 #'
-#' Evaluate a policy for a model by repeatedly applying the Bellman
-#' operator.
+#' Estimate the value function for a policy applied to a 
+#' model by repeatedly applying the Bellman operator.
 #'
 #' The Bellman operator updates a value function given the model defining
 #' \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy

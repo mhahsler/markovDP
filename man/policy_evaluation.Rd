@@ -40,8 +40,8 @@ a vector with (approximate)
 state values (U).
 }
 \description{
-Evaluate a policy for a model by repeatedly applying the Bellman
-operator.
+Estimate the value function for a policy applied to a
+model by repeatedly applying the Bellman operator.
 }
 \details{
 The Bellman operator updates a value function given the model defining
