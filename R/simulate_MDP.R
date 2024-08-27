@@ -216,7 +216,7 @@ simulate_MDP <-
       )
     }
 
-    ######### R implementation starts here ##############
+    # R implementation starts here ##############
 
     states <- as.character(model$states)
     n_states <- length(states)

@@ -4,7 +4,7 @@
 \alias{q_values}
 \alias{greedy_action}
 \alias{greedy_policy}
-\title{Q-Value Functions}
+\title{Q-Values and Greedy Policies}
 \usage{
 q_values(model, U = NULL)
 
@@ -40,7 +40,8 @@ the probability for each action is returned.
 \code{greedy_policy()} returns the greedy policy given \code{Q}.
 }
 \description{
-Implementation several functions useful to deal with Q-values for MDPs.
+Implementation several functions useful to deal with Q-values for MDPs
+which maps a state/action pair to a utility value.
 }
 \details{
 Implemented functions are:
@@ -100,6 +101,7 @@ Other MDP:
 
 Other policy: 
 \code{\link{action}()},
+\code{\link{add_policy}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{reward}()},

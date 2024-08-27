@@ -64,8 +64,17 @@ Other MDP:
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
 \code{\link{value_function}()}
+
+Other policy: 
+\code{\link{action}()},
+\code{\link{policy}()},
+\code{\link{policy_evaluation}()},
+\code{\link{q_values}()},
+\code{\link{reward}()},
+\code{\link{value_function}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
+\concept{policy}

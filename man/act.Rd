@@ -4,17 +4,23 @@
 \alias{act}
 \title{Perform an Action}
 \usage{
-act(model, state, action)
+act(model, state, action = NULL, ...)
 }
 \arguments{
 \item{model}{a MDP model.}
 
 \item{state}{the current state.}
 
-\item{action}{the chosen action.}
+\item{action}{the chosen action. If the action is not specified (\code{NULL}) and
+the MDP model contains a policy, then the action is chosen according to the
+policy.}
+
+\item{...}{if action is unspecified, then the additional parameters are
+passed on to \code{action()} to determine the action.}
 }
 \value{
-a names list with the next \code{state} and the \code{reward}.
+a names list with the \code{old_state}, the \code{action},
+the next \code{reward} and \code{state}.
 }
 \description{
 Performs an action in a state and returns the new state and reward.
@@ -23,6 +29,13 @@ Performs an action in a state and returns the new state and reward.
 data(Maze)
 
 act(Maze, "s(1,3)", "right")
+
+# solve the maze and then ask for actions using the policy
+sol <- solve_MDP(Maze)
+act(sol, "s(1,3)")
+
+# make the policy in sol epsilon-soft and ask 10 times for the action 
+replicate(10, act(sol, "s(1,3)", epsilon = .2))
 }
 \seealso{
 Other MDP: 

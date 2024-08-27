@@ -117,6 +117,7 @@ Other MDP:
 
 Other policy: 
 \code{\link{action}()},
+\code{\link{add_policy}()},
 \code{\link{policy}()},
 \code{\link{q_values}()},
 \code{\link{reward}()},

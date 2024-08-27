@@ -259,7 +259,7 @@ is_solved_MDP <- function(x, stop = FALSE) {
   }
   solved <- !is.null(x$solution)
   if (stop && !solved) {
-    stop("x needs to be a solved MDP. Use solve_MDP() first.")
+    stop("x needs to contain a policy. Use solve_MDP() or add_policy() first.")
   }
 
   solved
@@ -362,13 +362,13 @@ R_ <-
   function(action = NA,
            start.state = NA,
            end.state = NA,
-           observation = NA,
+           #observation = NA,
            value) {
     data.frame(
       action = action,
       start.state = start.state,
       end.state = end.state,
-      observation = observation,
+      #observation = observation,
       value = as.numeric(value),
       stringsAsFactors = FALSE
     )

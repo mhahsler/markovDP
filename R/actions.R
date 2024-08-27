@@ -19,8 +19,25 @@
 #' # The the following actions are always available:
 #' Maze$actions
 #'
-#' # available actions in
-#' actions(Maze, state = "s(3,1)")
+#' # An action that leaves the grid currently is allowed but does not do 
+#' # anything.
+#' act(Maze, "s(1,1)", "up")
+#'
+#' # Make the action unavailable by setting the reward to -Inf
+#' Maze$reward
+#' Maze$reward <- rbind(
+#'     Maze$reward, 
+#'     R_(action = "up", start.state = "s(1,1)", value = - Inf))
+#'
+#' # up in s(1,1) now produces a reward of - Inf
+#' act(Maze, "s(1,1)", "up")
+#'
+#' # up is unavailable for s(1,1)
+#' actions(Maze, state = "s(1,1)")
+#' 
+#' # the rest of the border can be added with more entries in the reward 
+#' # function. But since the algorithm learns not to waste moves, the policy
+#' # eventually will not go out of boundary anyway.
 #' @returns a vector with the available actions.
 #' @export
 actions <- function(x, state) {

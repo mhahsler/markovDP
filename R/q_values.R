@@ -1,6 +1,7 @@
-#' Q-Value Functions
+#' Q-Values and Greedy Policies
 #'
-#' Implementation several functions useful to deal with Q-values for MDPs.
+#' Implementation several functions useful to deal with Q-values for MDPs
+#' which maps a state/action pair to a utility value.
 #'
 #' Implemented functions are:
 #'

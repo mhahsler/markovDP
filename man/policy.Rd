@@ -83,6 +83,7 @@ gridworld_plot(sol)
 \seealso{
 Other policy: 
 \code{\link{action}()},
+\code{\link{add_policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
 \code{\link{reward}()},

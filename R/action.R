@@ -1,6 +1,6 @@
 #' Choose an Action Given a Policy
 #'
-#' Returns an action given a policy. The policy can be made epsilon-soft.
+#' Returns an action given a deterministic policy. The policy can be made epsilon-soft.
 #'
 #' @family policy
 

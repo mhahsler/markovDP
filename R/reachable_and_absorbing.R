@@ -40,18 +40,28 @@
 #' which(!reachable_states(Maze))
 #' @importFrom Matrix colSums
 #' @export
+#' @param include_start logical; should states that are reachable only as a 
+#'   start state be included? 
 reachable_states <- function(x,
-                             states = NULL,
+                             states = NULL, 
+                             include_start = TRUE,
                              ...) {
   UseMethod("reachable_states")
 }
 
+
+### FIXME: This makes all transition matrices dense!!!
 #' @export
 reachable_states.MDP <- function(x,
-                                 states = NULL, ...) {
-  r <- Reduce("+", transition_matrix(x))
+                                 states = NULL, 
+                                 include_start = TRUE,
+                                 ...) {
+  r <- Reduce("+", transition_matrix(x, sparse = NULL))
   diag(r) <- 0
-  r <- colSums(r) > 0 | start_vector(x) > 0
+  r <- colSums(r) > 0 
+  
+  if (include_start)
+    r <- r | start_vector(x) > 0
 
   if (!is.null(states)) {
     r <- r[states]

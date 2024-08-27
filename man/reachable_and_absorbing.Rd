@@ -7,7 +7,7 @@
 \alias{remove_unreachable_states}
 \title{Reachable and Absorbing States}
 \usage{
-reachable_states(x, states = NULL, ...)
+reachable_states(x, states = NULL, include_start = TRUE, ...)
 
 absorbing_states(x, states = NULL, ...)
 
@@ -18,6 +18,9 @@ remove_unreachable_states(x)
 
 \item{states}{a character vector specifying the names of the states to be
 checked. \code{NULL} checks all states.}
+
+\item{include_start}{logical; should states that are reachable only as a
+start state be included?}
 
 \item{...}{further arguments are passed on.}
 }

@@ -16,6 +16,7 @@
 #' * `U`: with the utility given by the value function for the state.
 #'
 #' @family MDP
+#' @family policy
 #'
 #' @param model a [MDP] model description.
 #' @param policy a policy data.frame.

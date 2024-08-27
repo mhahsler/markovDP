@@ -27,7 +27,7 @@ epoch_to_episode(x, epoch)
 
 T_(action = NA, start.state = NA, end.state = NA, probability)
 
-R_(action = NA, start.state = NA, end.state = NA, observation = NA, value)
+R_(action = NA, start.state = NA, end.state = NA, value)
 }
 \arguments{
 \item{states}{a character vector specifying the names of the states.}
