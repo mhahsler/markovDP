@@ -4,9 +4,9 @@
 [![r-universe
 status](https://mhahsler.r-universe.dev/badges/markovDP)](https://mhahsler.r-universe.dev/markovDP)
 [![Package on
-CRAN](http://www.r-pkg.org/badges/version/markovDP)](https://CRAN.R-project.org/package=markovDP)
+CRAN](https://www.r-pkg.org/badges/version/markovDP)](https://CRAN.R-project.org/package=markovDP)
 [![CRAN RStudio mirror
-downloads](http://cranlogs.r-pkg.org/badges/markovDP)](https://CRAN.R-project.org/package=markovDP)
+downloads](https://cranlogs.r-pkg.org/badges/markovDP)](https://CRAN.R-project.org/package=markovDP)
 
 ## Introduction
 
