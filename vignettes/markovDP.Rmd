@@ -27,18 +27,60 @@ library("markovDP")
 
 # Introduction
 
-The package **markovDP** provides the infrastructure to define, solve,
-and analyze the solutions of discrete-time Markov Decision Processes
-(MDP) models [@Bellman1957,@Howard1960,@Russell2020,@Sutton1998] using
-R.
+The package **markovDP** provides the infrastructure to work with discrete-time Markov
+Decision Processes (MDPs) [@Bellman1957; @Howard1960] in R. The focus is on convenience in formulating MDPs,
+the support of sparse representations (using sparse matrices, lists and
+data.frames) and visualization of results. Some key components are implemented
+in C++ to speed up computation. 
+It also provides to the following popular solving procedures:
+
+* __Dynamic Programming__
+  - Value Iteration [@Bellman1957]
+  - Modified Policy Iteration [@Howard1960; @Puterman1978]
+  - Prioritized Sweeping [@Moore1993]
+
+* __Linear Programming__
+  - Primal Formulation [@Manne1960]
+
+* __Monte Carlo Control__
+  - Monte Carlo Control with Exploring Starts [@Sutton1998]
+  - On-policy Monte Carlo Control [@Sutton1998]
+  - Off-policy Monte Carlo Control [@Sutton1998]
+
+* __Termporal Differencing__
+  - Q-Learning [@Watkins1992]
+  - Sarsa [@Rummery1994]
+  - Expected Sarsa [@Sutton1998]
+  
+* __Sampling__
+  - Random-sample one-step tabular Q-planning [@Sutton1998]
+
+The implementations follow the description is [@Russell2020] and 
+[@Sutton1998] closely.
+The package is intended to solve small to medium sized 
+problems, to teach how the different methods work and to develop and test 
+new algorithms.
+
+**markovDP** provides an alternative implementation to the existing R package
+**MDPToolbox** [@CRAN_MDPtoolbox]. The main difference is that **markovDP**
+has a stronger focus on visualizing models and results and is designed with 
+compatibility with the package **pomdp** for Partially Observable Markov 
+Processes [@CRAN_pomdp] in mind. We also implement some reinforcement learning 
+algorithms (e.g., Q-learning) to solve MDP models. Here the MDP is defines the
+simulated environment the agent interacts with.
+Reinforcement learning algorithm implementations
+can also be found in the R package **ReinforcementLearning** [@Proellochs2020] 
+which focuses on model-free learning from pre-defined observations
+or interaction with an environment.
 
 In this document, we will give a very brief introduction to the concept
-of MDPs, describe the features of the R package, and illustrate the
+of MDPs, describe the features of the R package **markovDP**, and illustrate the
 usage with a toy example.
 
 # Markov Decision Processes
 
-A Markov decision process (MDP) is a discrete-time stochastic control
+A Markov decision process (MDP) [@Bellman1957; @Howard1960]
+is a discrete-time stochastic control
 process. In each time step, an agent can perform an action which affect
 the system (i.e., may cause the system state to change). The agent's
 goal is to maximize its expected future rewards that depend on the
@@ -180,7 +222,7 @@ The `model` argument is a MDP problem created using the `MDP()`
 function. The
 `method` argument specifies what algorithm the solver should use.
 Available methods including `"value_iteration"`, `"policy_iteration"`,
-`"q_learning"`, `"sarsa"`, or `"expected_sarsa"`.
+`"q_learning"`, `"sarsa"`, `"expected_sarsa"` and several more.
 
 # Toy Example: Steward Russell's 4x3 Maze Gridworld MDP
 
@@ -347,8 +389,85 @@ plot_value_function(sol)
 
 # Additional Functions
 
-The package provides functions to create policies, adding them to a model,
-evaluating policies, calculating regret and simulating MDPs.
+The package provides several functions to work with models and policies. In the 
+following, we will organize them into categories. More details about each
+function, its parameters, and examples can be found in the manual pages.
 
+## Access to Model Components
+
+Components of the model are stored in a list and can be accessed directly.
+
+```{r }
+str(sol, max.level = 2)
+```
+
+A special list element in `"solution"` which is only available when the model
+already contains a policy.
+
+To access components more easily, several accessor functions are available:
+
+* `actions()` find available actions for a state.
+* `reward_matrix()` access the reward structure,
+* `start_vector()` access the initial state probabilities.
+* `transition_matrix()` access transition probabilities.
+* `transition_graph()` converts the transition matrix into a 
+   graph for visualization.
+* `policy()` extracts the policy for a solved model.
+
+These functions can efficiently retrieve individual values and convert 
+the components into sparse and dense representations.
+
+## Value Function
+
+* `value_function()` extracts the value function from a solved MDP.
+* `q_values()` calculates (approximates) Q-values for a given model and value function.
+
+## Policy
+
+Policies in this package are deterministic policies with one prescribed 
+action per state. They are represented as a data.frame with columns for:
+
+* `state`: The state.
+* `U`: The state's value (discounted expected utility U) if the policy is followed.
+* `action`: The prescribed action.
+
+Policies are typically creates using `solve_MDP()` and then stored in the
+`"solution"` component of the returned model. Policies can also be created
+by the following functions:
+
+* `random_policy()` create a random policy.
+* `manual_policy()` specify a policy data.frame manually.
+* `greedy_policy()` generates a greedy policy using Q-values.
+
+A policy can be added to a model for the use in other functions using 
+`add_policy()`.
+
+The action prescribed by a model with a policy can be calculated
+using `action()`. From a matrix with Q-values, `greedy_action()`
+can be used to find the best action.
+
+The value function for a policy applied to a model can be estimated 
+using `policy_evaluation()`.
+
+## Evaluation
+
+MDP policies can be evaluated using:
+
+* `reward()` calculates the expected reward of a policy
+* `regret()` calculates the regret of a policy relative to a benchmark policy.
+
+## Simulation
+
+Trajectories through a MDPs are created using `simulate_MDP()`
+
+The outcome of single actions can be calculated by
+`act()`. 
+
+
+## Acknowledgments
+
+Development of this package was supported in part by
+National Institute of Standards and Technology (NIST) under grant number
+[60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
 
 # References
