@@ -29,12 +29,13 @@ library(markovDP)
 Gridworlds represent an easy to explore how Markov Decision Problems (MDPs)
 and various approaches to solve these problems
 work.
-The R package **markovDP** provides a set of helper functions starting with the 
+The R package **markovDP** [@CRAN_markovDP] provides a set of helper functions starting with the 
 prefix `gridworld_`
 to make defining and experimenting with gridworlds easy. 
 
 Gridworlds can also easily be extended to Partially Observable Decision Problems (POMDPs)
-using the R package **pomdp** [@Hahsler2024].
+using the R package **pomdp** [@CRAN_pomdp].
+
 ## Defining a Gridworld
 
 Many gridworlds represent mazes with start and goal states that the agent needs to solve.
@@ -167,3 +168,5 @@ gridworld_animate(x, "sarsa", n = 20, zlim = c(0, 2), horizon = 100)
 ```{r, fig.show='animate'}
 gridworld_animate(x, "expected_sarsa", n = 20, zlim = c(0, 2), horizon = 100, alpha = 1)
 ```
+
+# References

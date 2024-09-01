@@ -9,7 +9,7 @@
 \alias{transition_matrix}
 \title{Access to Parts of the Model Description}
 \usage{
-start_vector(x, start = NULL)
+start_vector(x, start = NULL, sparse = NULL)
 
 normalize_MDP(
   x,
@@ -34,7 +34,7 @@ transition_matrix(
   start.state = NULL,
   end.state = NULL,
   ...,
-  sparse = FALSE,
+  sparse = NULL,
   trans_keyword = TRUE
 )
 }

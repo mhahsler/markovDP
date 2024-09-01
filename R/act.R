@@ -36,7 +36,8 @@ act <- function(model, state, action = NULL, ...) {
   S <- model$states
   sp <- sample.int(length(S), 
                    1L, 
-                   prob = transition_matrix(model, action, state))
+                   prob = transition_matrix(model, action, state, 
+                                            sparse = FALSE))
   sp <- factor(S[sp], levels = S)
   r <-  reward_matrix(model, action, state, sp)
                    

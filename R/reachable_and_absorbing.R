@@ -67,6 +67,10 @@ reachable_states.MDP <- function(x,
     r <- r[states]
   }
 
+  # r may be sparse
+  r <- as.vector(r)
+  names(r) <- x$states
+  
   r
 }
 

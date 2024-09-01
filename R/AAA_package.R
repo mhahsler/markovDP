@@ -5,7 +5,7 @@
 #' - Solvers: [solve_MDP()]
 #'
 #' @import Rcpp
-#' @importFrom Matrix spMatrix crossprod coerce Math Math2 cBind rBind nnzero
+#' @importFrom Matrix spMatrix sparseVector crossprod coerce Math Math2 cBind rBind nnzero
 #' @importFrom methods as
 #' @importFrom utils head tail read.table type.convert
 #' @importFrom foreach foreach times %dopar% getDoParWorkers

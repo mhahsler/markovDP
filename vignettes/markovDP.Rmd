@@ -27,7 +27,7 @@ library("markovDP")
 
 # Introduction
 
-The package **markovDP** provides the infrastructure to work with discrete-time Markov
+The package **markovDP** [@CRAN_markovDP] provides the infrastructure to work with discrete-time Markov
 Decision Processes (MDPs) [@Bellman1957; @Howard1960] in R. The focus is on convenience in formulating MDPs,
 the support of sparse representations (using sparse matrices, lists and
 data.frames) and visualization of results. Some key components are implemented
@@ -56,14 +56,15 @@ It also provides to the following popular solving procedures:
   - Random-sample one-step tabular Q-planning [@Sutton1998]
 
 The implementations follow the description is [@Russell2020] and 
-[@Sutton1998] closely.
-The package is intended to solve small to medium sized 
-problems, to teach how the different methods work and to develop and test 
-new algorithms.
+[@Sutton1998] closely. The implementations represent the state space explicitly, 
+so only problems with small to medium state spaces can be used. It is intended
+to work with simplified models, to be useful to teach how the different 
+methods work, and to experiment with new algorithmic ideas.
 
 **markovDP** provides an alternative implementation to the existing R package
 **MDPToolbox** [@CRAN_MDPtoolbox]. The main difference is that **markovDP**
-has a stronger focus on visualizing models and results and is designed with 
+has a stronger focus on visualizing models and resulting policies.
+It is also designed with 
 compatibility with the package **pomdp** for Partially Observable Markov 
 Processes [@CRAN_pomdp] in mind. We also implement some reinforcement learning 
 algorithms (e.g., Q-learning) to solve MDP models. Here the MDP is defines the

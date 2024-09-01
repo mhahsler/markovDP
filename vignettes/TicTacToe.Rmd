@@ -1,0 +1,308 @@
+---
+title: "Model Tic-Tac-Toe With Package markovDP"
+author: "Michael Hahsler"
+bibliography: references.bib
+link-citations: yes
+vignette: >
+  %\VignetteIndexEntry{Model Tic-Tac-Toe With Package markovDP}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  rmarkdown::html_vignette
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = TRUE,
+  animation.hook = knitr::hook_gifski
+)
+```
+
+```{r setup}
+library(markovDP)
+```
+
+## Introduction 
+
+## Defining Tic-Tac-Toe as an MDP
+
+We implement the game form the perspective of player `x`, where the other 
+player is part of the environment. We represent the board as a 3-by-3 matrix. 
+
+### Actions
+
+The possible actions are placing the symbol `x` into one of nine positions on the 
+broad. We will number the actions from 1 through 9 using the index in the 
+matrix (note that R indexed by column). We get the following layout for actions. 
+
+```{r }
+matrix(1:9, ncol = 3, nrow = 3)
+```
+
+The set of actions of the MDP is therefore:
+
+```{r }
+A <- 1:9
+A
+```
+
+FIXME: Unavailable actions!
+
+### State Space
+
+We use a characters in the board matrix to represent the players (`x` and `o`).
+For an empty place we use the underscore symbol `_`. As the label for a state,
+we use a string of all the places of the board in index order. 
+
+```{r}
+empty_board <- function() matrix('_', ncol = 3, nrow = 3)
+
+state2label <- function(state) paste(state, collapse = '')
+
+label2state <- function(label) matrix(strsplit(label, "")[[1]], nrow = 3, ncol = 3)
+
+available_actions <- function(state) which(state == '_')
+
+result <- function(state, player, action) {
+  if (state[action] != "_")
+    stop("Illegal action.")
+  state[action] <- player
+  state
+}
+```
+
+```{r}
+b <- empty_board()
+b <- result(b, 'x', 1)
+b <- result(b, 'o', 4)
+b <- result(b, 'x', 2)
+b <- result(b, 'o', 5)
+b <- result(b, 'x', 3)
+b
+
+state2label(b)
+
+available_actions(b)
+```
+
+Check if the game is over.
+
+```{r }
+terminal <- function(state) {
+  # Check the board for a win and return one of 
+  # 'x', 'o', 'd' (draw), or 'n' (for next move)
+  win_possibilities <- rbind(state, t(state), diag(state), diag(t(state)))
+  
+  wins <- apply(win_possibilities, MARGIN = 1, FUN = function(x) {
+    if (x[1] != '_' && length(unique(x)) == 1) x[1]
+    else '_'
+  })
+  
+  if (any(wins == 'x')) 
+    return('x')
+  
+  if (any(wins == 'o')) 
+    return('o')
+  
+  # Check for draw
+  if (sum(state == '_') < 1) {
+    return('d')
+  }
+  
+  return('n')
+}
+```
+
+
+
+```{r }
+b
+```
+
+```{r }
+terminal(b)
+```
+
+
+```{r}
+other <- function(player) if (player == 'x') 'o' else 'x'
+
+other('o')
+```
+
+We enumerate all valid boards for player `x` using a simple depth-first traversal.
+All found states are recorded in a hashed data structure (an environment).
+
+```{r }
+enumerate_valid_TicTacToe_states <- function(record_player = 'x') {
+  start_state <- empty_board()
+  states <- new.env(hash = TRUE)
+  
+  if (record_player == 'x') states[[state2label(start_state)]] <- TRUE
+  
+  move <- function(state, player) {
+    for (action in available_actions(state)){
+      next_state <- result(state, player, action)
+      next_state_label <- state2label(next_state)
+      
+      if (exists(next_state_label, states))
+          return()
+      
+      if (terminal(next_state) != 'n')
+          return()
+      
+      if (record_player != player)
+        states[[next_state_label]] <- TRUE
+      
+      
+      move(next_state, other(player))
+    }
+  }
+  
+  move(start_state, 'x')
+  states
+}
+
+states <- enumerate_valid_TicTacToe_states()
+
+S <- c("win", "loss", "draw", ls(states))
+length(S)
+```
+
+## Rewards
+
+The default reward is 0.
+We define the reward for ending up in the states `win`, `loss`, and `draw`. 
+
+```{r }
+R <- rbind(
+  R_(                    value = 0),
+  R_(end.state = 'win',  value = +1),
+  R_(end.state = 'loss', value = -1),
+  R_(end.state = 'draw', value = +.5)
+)
+
+
+R <- function(action, start.state, end.state) {
+  # don't do illegal moves
+#  if (start.state == end.state) return(-100)
+  
+  if (end.state == 'win') return(+1)
+  if (end.state == 'loss') return(0)
+  if (end.state == 'draw') return(.5)
+  return(0)
+}
+
+```
+
+## Transition Probabilities
+
+We implement here a random player for `o`.
+That means that the probability is distributed uniformly over all
+actions that `o` has available. 
+The transition probability
+function returns the probability given an action, and the labels for the 
+start state and the end state.
+
+
+```{r }
+T <- function(action, start.state, end.state) {
+  # absorbing states
+  if (start.state %in% c('win', 'loss', 'draw')) {
+    if (end.state == start.state) return(1)
+    else return(0)
+  }
+  
+  # illegal action: board stays unchanged
+  if (!(action %in% available_actions(label2state(start.state)))) {
+    if (end.state == start.state) return(1)
+    else return(0)
+  }
+  
+  # make x's move
+  next_state <- result(label2state(start.state), 'x', action)
+  
+  # terminal?
+  term <- terminal(next_state)
+  
+  if (term == 'x') {
+    if (end.state == 'win') return(1)
+    else return(0)
+  }
+  
+  if (term == 'o') {
+    if (end.state == 'loss') return(1)
+    else return(0)
+  }
+  
+  if (term == 'd') {
+    if (end.state == 'draw') return(1)
+    else return(0)
+  }
+    
+  # determine o's available actions
+  actions_of_o <- available_actions(next_state)
+  possible_end_states <- lapply(actions_of_o, 
+                                FUN = function(a) result(next_state, 'o', a))
+ 
+  # fix terminal states
+  term <- sapply(possible_end_states, terminal)
+  possible_end_states <- sapply(possible_end_states, state2label)
+  possible_end_states[term == 'x'] <- 'win'
+  possible_end_states[term == 'o'] <- 'loss'
+  possible_end_states[term == 'd'] <- 'draw'
+  
+  possible_end_states <- unique(possible_end_states)
+  
+  if(state2label(end.state) %in% possible_end_states)
+    return(1 / length(possible_end_states))
+  else
+    return(0)
+}
+```
+
+## Constructing the MDP
+
+```{r }
+tictactoe <- MDP(S, A, T, R, 
+                 discount = 1, 
+                 start = 1,
+                 name = "TicTacToe",
+                 normalize = FALSE) 
+
+tictactoe
+```
+
+```{r }
+transition_matrix(tictactoe, 1, 'win', 'win')
+
+#reward_matrix(tictactoe, sparse = TRUE)
+reward_matrix(tictactoe, 1, 10, 'win')
+```
+
+```{r }
+sol <- solve_MDP(tictactoe, method = "MC_exploring_starts", N = 10, verbose = TRUE)
+sol
+
+p <- policy(sol)
+p[p$U > 0, ]
+p[p$U < 0, ]
+```
+
+```{r }
+sol <- solve_MDP(tictactoe, method = "q_learning", N = 5, verbose = TRUE)
+```
+
+```{r }
+sol <- solve_MDP(tictactoe, method = "q_planning", N = 100, verbose = TRUE)
+
+p <- policy(sol)
+p[p$U > 0, ]
+p[p$U < 0, ]
+
+```
+
+
+# References

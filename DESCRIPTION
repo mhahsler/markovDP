@@ -1,7 +1,7 @@
 Package: markovDP
 Title: Infrastructure for Discrete-Time Markov Decision Processes (MDP)
 Version: 0.99.0
-Date: 2024-xx-xx
+Date: 2024-08-29
 Authors@R: 
     person("Michael", "Hahsler", , "mhahsler@lyle.smu.edu", role = c("aut", "cph", "cre"),
            comment = c(ORCID = "0000-0003-2716-1405"))
@@ -21,6 +21,7 @@ Imports:
     lpSolve,
     Matrix,
     methods,
+    progress,
     Rcpp,
     stats
 Suggests: 
@@ -43,6 +44,7 @@ SystemRequirements: C++17
 Collate: 
     'AAA_check_installed.R'
     'AAA_package.R'
+    'AAA_progress.R'
     'AAA_shorten.R'
     'Cliff_walking.R'
     'DynaMaze.R'

@@ -6,6 +6,7 @@
 #' are used.
 #' @param fist_visit if `TRUE` then only the first visit of a state/action pair
 #'   in an episode is used to update Q, otherwise, every-visit update is used. 
+#' @param progress logical; show a progress bar with estimated time for completion.
 #' @export
 solve_MDP_MC <-
   function(model,
@@ -17,6 +18,7 @@ solve_MDP_MC <-
            U = NULL,
            epsilon = 0.1,
            first_visit = TRUE,
+           progress = TRUE,
            verbose = FALSE) {
     ### default is infinite horizon, but we use 1000 to guarantee termination
     if (is.null(horizon)) {
@@ -40,12 +42,17 @@ solve_MDP_MC <-
       match.arg(method,
                 c("MC_exploring_starts", "MC_on_policy", "MC_off_policy"))
     
-    
     switch(
       method,
-      MC_exploring_starts = MC_exploring_starts(model, method, horizon, discount, N, U, first_visit, verbose, ...),
-      MC_on_policy = MC_on_policy(model, method, horizon, discount, N, U, first_visit, verbose, epsilon = epsilon, ...),
-      MC_off_policy = MC_off_policy(model, method, horizon, discount, N, U, first_visit, verbose, epsilon = epsilon, ...)
+      MC_exploring_starts = MC_exploring_starts(model, method, horizon, 
+                                  discount, N, U, first_visit, 
+                                  progress, verbose, ...),
+      MC_on_policy = MC_on_policy(model, method, horizon, 
+                                  discount, N, U, first_visit, 
+                                  progress, verbose, epsilon = epsilon, ...),
+      MC_off_policy = MC_off_policy(model, method, horizon, 
+                                  discount, N, U, first_visit, 
+                                  progress, verbose, epsilon = epsilon, ...)
     )
   }
 
@@ -56,6 +63,7 @@ MC_exploring_starts <- function(model,
                                 N,
                                 U = NULL,
                                 first_visit = TRUE,
+                                progress = TRUE,
                                 verbose = FALSE) {
   ## Learns a greedy policy. In order to still keep exploring it uses the
   ## idea of exploring starts: All state-action pairs have a non-zero
@@ -85,16 +93,21 @@ MC_exploring_starts <- function(model,
                 ncol = length(A),
                 dimnames = list(S, A))
   
-  if (verbose) {
-    cat("Initial policy:\n")
-    print(pi)
-    
-    cat("Initial Q:\n")
-    print(Q)
-  }
+  # if (verbose) {
+  #   cat("Initial policy:\n")
+  #   print(pi)
+  #   
+  #   cat("Initial Q:\n")
+  #   print(Q)
+  # }
+  
+  if (progress)
+    pb <- my_progress_bar(N)
   
   # Loop through N episodes
   for (e in seq(N)) {
+    if (progress)
+      pb$tick()
     
     # add faster without checks
     #model <- add_policy(model, policy = pi)
@@ -179,6 +192,7 @@ MC_on_policy <- function(model,
                                 N,
                                 U = NULL,
                                 first_visit = TRUE,
+                                progress = TRUE,
                                 verbose = FALSE,
                                 epsilon) {
   ## Learns an epsilon-soft policy (also used as behavior)
@@ -216,8 +230,13 @@ MC_on_policy <- function(model,
     print(Q)
   }
   
+  if (progress)
+    pb <- my_progress_bar(N)
+  
   # Loop through N episodes
   for (e in seq(N)) {
+    if (progress)
+      pb$tick()
     
     # add faster without checks
     #model <- add_policy(model, policy = pi)
@@ -305,6 +324,7 @@ MC_off_policy <- function(model,
                           N,
                           U = NULL,
                           first_visit = TRUE,
+                          progress = TRUE,
                           verbose = FALSE,
                           epsilon) {
   ## Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
@@ -321,8 +341,14 @@ MC_off_policy <- function(model,
   # cumulative sum of the weights W used in incremental updates
   C <- matrix(0L, nrow = length(S), ncol = length(A), dimnames = list(S, A))
   
+  if (progress)
+    pb <- my_progress_bar(N)
+  
   # Loop through N episodes
   for (e in seq(N)) {
+    if (progress)
+      pb$tick()
+    
     # we use as the soft behavioral policy an epsilon-soft version of pi.
     # use epsilon-soft policy!
     b <- pi

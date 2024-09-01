@@ -21,6 +21,7 @@ solve_MDP_DP(
   error = 0.01,
   k_backups = 10,
   U = NULL,
+  progress = TRUE,
   verbose = FALSE
 )
 
@@ -43,6 +44,7 @@ solve_MDP_MC(
   U = NULL,
   epsilon = 0.1,
   first_visit = TRUE,
+  progress = TRUE,
   verbose = FALSE
 )
 
@@ -55,6 +57,7 @@ solve_MDP_TD(
   epsilon = 0.1,
   N = 100,
   U = NULL,
+  progress = TRUE,
   verbose = FALSE
 )
 
@@ -66,6 +69,7 @@ solve_MDP_sampling(
   alpha = 0.5,
   N = 10000,
   U = NULL,
+  progress = TRUE,
   verbose = FALSE
 )
 }
@@ -105,6 +109,8 @@ used by the policy iteration method.}
 
 \item{U}{a vector with initial utilities used for each state. If
 \code{NULL}, then the default of a vector of all 0s is used.}
+
+\item{progress}{logical; show a progress bar with estimated time for completion.}
 
 \item{verbose}{logical, if set to \code{TRUE}, the function provides the
 output of the solver in the R console.}

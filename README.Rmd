@@ -52,7 +52,11 @@ It also provides to the following popular solving procedures:
   - Random-sample one-step tabular Q-planning [@Sutton1998]
 
 These implementations follow the description is [@Russell2020] and 
-[@Sutton1998].
+[@Sutton1998]. The implementations represent the state space explicitly, so only
+problems with small to medium state spaces can be used.
+
+Partially observable Markov Decision Problems (POMDPs) can me modeled in a similar 
+fashion using package **pomdp** [@CRAN_pomdp].
 
 
 ```{r echo=FALSE, results = 'asis'}

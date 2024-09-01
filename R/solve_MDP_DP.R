@@ -19,6 +19,7 @@ solve_MDP_DP <- function(model,
                          error = 0.01,
                          k_backups = 10,
                          U = NULL,
+                         progress = TRUE,
                          verbose = FALSE) {
   if (!inherits(model, "MDP")) {
     stop("'model' needs to be of class 'MDP'.")
@@ -50,12 +51,14 @@ solve_MDP_DP <- function(model,
           error,
           N_max,
           U = U,
+          progress = progress,
           verbose = verbose
         )
       } else {
         MDP_value_iteration_finite_horizon(model,
           horizon = model$horizon,
           U = U,
+          progress = progress,
           verbose = verbose
         )
       }
@@ -66,6 +69,7 @@ solve_MDP_DP <- function(model,
           N_max,
           k_backups,
           U = U,
+          progress = progress,
           verbose = verbose
         )
       } else {
@@ -75,7 +79,9 @@ solve_MDP_DP <- function(model,
     prioritized_sweeping = {
       if (is.infinite(model$horizon)) {
         MDP_PS_inf_horizon(model,
-          error = error, N_max = N_max,
+          error = error, 
+          N_max = N_max,
+          progress = progress,
           verbose = verbose
         )
       } else {
@@ -94,6 +100,7 @@ MDP_value_iteration_finite_horizon <-
   function(model,
            horizon,
            U = NULL,
+           progress = TRUE,
            verbose = FALSE) {
     if (!inherits(model, "MDP")) {
       stop("'model' needs to be of class 'MDP'.")
@@ -102,8 +109,7 @@ MDP_value_iteration_finite_horizon <-
     S <- model$states
     A <- model$actions
     P <- transition_matrix(model, sparse = TRUE)
-    R <-
-      reward_matrix(model, sparse = FALSE) ## Note sparse leaves it as a data.frame
+    R <- reward_matrix(model, sparse = TRUE)
     GAMMA <- model$discount
 
     horizon <- as.integer(horizon)
@@ -115,7 +121,16 @@ MDP_value_iteration_finite_horizon <-
 
     policy <- vector(mode = "list", length = horizon)
 
+    if (progress) {
+      pb <- my_progress_bar(horizon) 
+      pb$tick(0)
+    }
+      
     for (t in seq(horizon, 1)) {
+      if (progress)
+        pb$tick()
+      
+      
       if (verbose) {
         cat("Iteration for t = ", t)
       }
@@ -146,11 +161,12 @@ MDP_value_iteration_inf_horizon <-
            error,
            N_max = 1000,
            U = NULL,
+           progress = TRUE,
            verbose = FALSE) {
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model)
-    R <- reward_matrix(model)
+    P <- transition_matrix(model, sparse = TRUE)
+    R <- reward_matrix(model, sparse = TRUE)
     GAMMA <- model$discount
     if (GAMMA < 1) {
       convergence_factor <- (1 - GAMMA) / GAMMA
@@ -163,8 +179,14 @@ MDP_value_iteration_inf_horizon <-
     }
     names(U) <- S
 
+    if (progress)
+      pb <- my_progress_spinner()
+    
     converged <- FALSE
     for (i in seq_len(N_max)) {
+      if (progress)
+        pb$tick()
+      
       if (verbose) {
         cat("Iteration:", i)
       }
@@ -228,11 +250,12 @@ MDP_PS_inf_horizon <-
            error,
            N_max = 1000,
            U = NULL,
+           progress = TRUE,
            verbose = FALSE) {
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model)
-    R <- reward_matrix(model)
+    P <- transition_matrix(model, sparse = TRUE)
+    R <- reward_matrix(model, sparse = TRUE)
     GAMMA <- model$discount
     if (GAMMA < 1) {
       convergence_factor <- (1 - GAMMA) / GAMMA
@@ -247,15 +270,18 @@ MDP_PS_inf_horizon <-
 
     pi <- rep(NA_integer_, times = length(S))
 
-    ## State priorities. Set all priotities to error so we randomly pick one first.
+    ## State priorities. Set all priorities to error so we randomly pick one first.
     # chosen at least once.
 
+    if (progress)
+      pb <- my_progress_spinner()
+    
     H <- rep(error, times = length(S))
+    err <- sum(H)
     converged <- FALSE
     for (i in seq_len(N_max)) {
-      if (verbose) {
-        cat("Iteration", i)
-      }
+      if (progress)
+        pb$tick(tokens = list(details = paste("| error: ", err)))
 
       # only update state with highest priority
       s <- which.max.random(H)
@@ -283,12 +309,14 @@ MDP_PS_inf_horizon <-
       # delta <- max(abs(U_t_minus_1 - U))
       # U <- U_t_minus_1
 
+      err <- sum(H)
+      
       if (verbose) {
-        cat(": state", s, " -> delta:", delta, "sum(H):", sum(H), "\n")
+        cat(": state", s, " -> delta:", delta, "sum(H):", err, "\n")
       }
-
+      
       ### FIXME
-      if (sum(H) < error) {
+      if (err < error) {
         converged <- TRUE
         break
       }
@@ -335,11 +363,12 @@ MDP_policy_iteration_inf_horizon <-
            N_max = 1000,
            k_backups = 10,
            U = NULL,
+           progress = TRUE,
            verbose = FALSE) {
     S <- model$states
     A <- model$actions
     P <- transition_matrix(model, sparse = TRUE)
-    R <- reward_matrix(model, sparse = FALSE)
+    R <- reward_matrix(model, sparse = TRUE)
     GAMMA <- model$discount
 
     if (is.null(U)) {
@@ -354,12 +383,14 @@ MDP_policy_iteration_inf_horizon <-
 
     names(U) <- S
     names(pi) <- S
-
+    
+    if (progress)
+      pb <- my_progress_spinner()
+    
     converged <- FALSE
     for (i in seq_len(N_max)) {
-      if (verbose) {
-        cat("Iteration:", i, "\n")
-      }
+      if (progress)
+        pb$tick()
 
       # evaluate to get U from pi
       U <-

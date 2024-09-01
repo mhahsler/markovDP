@@ -11,7 +11,9 @@ solve_MDP_sampling <-
            alpha = 0.5,
            N = 10000,
            U = NULL,
-           verbose = FALSE) {
+           progress = TRUE,
+           verbose = FALSE
+           ) {
     if (!is.null(horizon))
       warning("q_planning does not use horizon. The specified horizon is ignored.")
    
@@ -27,8 +29,7 @@ solve_MDP_sampling <-
     S <- model$states
     S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
-    start <- .translate_belief(NULL, model = model)
+    start <- .translate_belief(NULL, model = model, sparse = FALSE)
 
     method <-
       match.arg(method, c("q_planning"))
@@ -45,11 +46,17 @@ solve_MDP_sampling <-
       Q <- q_values(model, U = U)
     }
 
+    if (progress)
+      pb <- my_progress_bar(N)
+    
     # loop through tries
     n <- N
     while (n > 0) {
-      n <- n - 1L
+      if (progress)
+        pb$tick()
       
+      n <- n - 1L
+       
       # sample a state/act pair
       s <- sample(S, 1L)
       a <- sample(A, 1L)

@@ -14,6 +14,7 @@ solve_MDP_TD <-
            epsilon = 0.1,
            N = 100,
            U = NULL,
+           progress = TRUE,
            verbose = FALSE) {
     ### default is infinite horizon, but we use 10000 to guarantee termination
     warn_horizon <- FALSE
@@ -41,7 +42,7 @@ solve_MDP_TD <-
     S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
     P <- transition_matrix(model, sparse = TRUE)
-    start <- .translate_belief(NULL, model = model)
+    start <- .translate_belief(NULL, model = model, sparse = FALSE)
 
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
@@ -58,8 +59,14 @@ solve_MDP_TD <-
       Q <- q_values(model, U = U)
     }
 
+    if (progress)
+      pb <- my_progress_bar(N)
+    
     # loop episodes
     for (e in seq(N)) {
+      if (progress)
+        pb$tick()
+      
       s <- sample(S, 1, prob = start)
       a <- greedy_action(Q, s, epsilon)
 

@@ -97,13 +97,12 @@ simulate_MDP <-
            ...) {
     engine <- match.arg(tolower(engine), c("cpp", "r"))
     if (engine == "cpp" &&
-      (is.function(model$transition_prob) ||
-        is.function(model$reward))) {
-      warning("Some elements of the MDP are defined as R function. The CPP engine is very slow with R function calls.\n",
-        "Falling back to R. Normalize the model first to use CPP.",
-        immediate. = TRUE
-      )
+        (is.function(model$transition_prob) || is.function(model$reward))) {
       engine <- "r"
+      
+      if(verbose)
+        cat("Some elements of the MDP are defined as R function. The CPP engine is very slow with R function calls.\n",
+        "Falling back to R. Normalize the model first to use CPP.")
     }
 
     solved <- is_solved_MDP(model)
@@ -113,10 +112,10 @@ simulate_MDP <-
     if (exploring_starts) {
       if(!is.null(start))
         warning("start cannot be specified for exploring starts. Using 'uniform'!")
-      start <- .translate_belief("uniform", model = model)
+      start <- .translate_belief("uniform", model = model, sparse = FALSE)
     }
     else
-      start <- .translate_belief(start, model = model)
+      start <- .translate_belief(start, model = model, sparse = FALSE)
 
     if (is.null(horizon)) {
       horizon <- model$horizon
@@ -152,9 +151,6 @@ simulate_MDP <-
     }
 
     if (engine == "cpp") {
-      # Cpp can now deal with unnormalized MDPs
-      # model <- normalize_MDP(model, sparse = TRUE)
-
       if (foreach::getDoParWorkers() == 1 || n * horizon < 100000) {
         return(simulate_MDP_cpp(
           model,
@@ -223,9 +219,6 @@ simulate_MDP <-
     states_absorbing <- which(absorbing_states(model))
     actions <- as.character(model$actions)
 
-    # FIXME: Memory!
-    trans_m <- transition_matrix(model, sparse = NULL)
-
     # for easier access
     pol <-
       lapply(
@@ -254,7 +247,14 @@ simulate_MDP <-
 
     # warning("Debug mode on!!!")
     # sim <- replicate(n, expr = {
+    
+    # FIXME: Progressbar does not work with foreach
+    #pb <- my_progress_bar(n)
+    #pb$tick()
+    
     sim <- foreach(i = 1:n) %dopar% {
+      #pb$tick()
+      
       # find a initial state
       s <- sample.int(length(states), 1L, prob = start)
 
@@ -295,7 +295,8 @@ simulate_MDP <-
 
         s_prev <- s
         s <-
-          sample.int(length(states), 1L, prob = trans_m[[a]][s, ])
+          sample.int(length(states), 1L, 
+                     prob = transition_matrix(model, a, s, sparse = FALSE))
 
         # rew <- rew + rew_m[[a]][[s_prev]][s] * disc ^ (j - 1L)
         # MDPs have no observation!

@@ -50,16 +50,23 @@ following popular solving procedures:
 
 These implementations follow the description is ([Russell and Norvig
 2020](#ref-Russell2020)) and ([Sutton and Barto 2018](#ref-Sutton1998)).
+The implementations represent the state space explicitly, so only
+problems with small to medium state spaces can be used.
+
+Partially observable Markov Decision Problems (POMDPs) can me modeled in
+a similar fashion using package **pomdp** ([Hahsler
+2024](#ref-CRAN_pomdp)).
 
 To cite package ‘markovDP’ in publications use:
 
-> Hahsler M (????). *markovDP: Infrastructure for Discrete-Time Markov
+> Hahsler M (2024). *markovDP: Infrastructure for Discrete-Time Markov
 > Decision Processes (MDP)*. R package version 0.99.0,
 > <https://github.com/mhahsler/markovDP>.
 
     @Manual{,
       title = {markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
       author = {Michael Hahsler},
+      year = {2024},
       note = {R package version 0.99.0},
       url = {https://github.com/mhahsler/markovDP},
     }
@@ -148,6 +155,14 @@ entry-spacing="0">
 Bellman, Richard. 1957. “A Markovian Decision Process.” *Indiana
 University Mathematics Journal* 6: 679–84.
 <https://www.jstor.org/stable/24900506>.
+
+</div>
+
+<div id="ref-CRAN_pomdp" class="csl-entry">
+
+Hahsler, Michael. 2024. *Pomdp: Infrastructure for Partially Observable
+Markov Decision Processes (POMDP)*.
+<https://doi.org/10.32614/CRAN.package.pomdp>.
 
 </div>
 

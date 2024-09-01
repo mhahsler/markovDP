@@ -96,132 +96,129 @@ NULL
 #' @param start a start state description (see [MDP]). If `NULL` then the
 #'   start vector is created using the start stored in the model.
 #' @export
-start_vector <- function(x, start = NULL) {
+start_vector <- function(x, start = NULL, sparse = NULL) {
   if (is.null(start)) {
     start <- x$start
   }
-  .translate_belief(start, model = x)
+  
+  .translate_belief(start, model = x, sparse = sparse)
 }
 
 # this is the start distribution in MDPs
 # translate belief specifications into numeric belief vectors
-.translate_belief <- function(belief = NULL, model) {
+.translate_belief <- function(belief = NULL, model, sparse = NULL) {
   ## producing the starting belief vector
-
+  
   states <- as.character(model$states)
-
-  if (is.null(belief)) {
+  
+  if (is.null(belief)) 
     belief <- model$start
-  }
-  if (is.null(belief)) {
+  
+  # uniform is the default
+  if (is.null(belief))
     belief <- "uniform"
-  }
-
+  
+  # NAs are an issue
   if (any(is.na(belief))) {
+    warning("Belief contains NAs!")
     return(belief)
   }
-
+  
   if (is.matrix(belief)) {
     if (ncol(belief) != length(states)) {
       stop("Number of column is not the number of states.")
     }
     colnames(belief) <- states
-    return(belief)
+    return(.sparsify(belief, sparse = sparse))
   }
-
-  # start: 0.3 0.1 0.0 0.2 0.5
-  if (is.numeric(belief) &&
-    length(belief) == length(states) &&
-    round(sum(belief), 3) == 1) {
-    if (!is.null(names(belief)) && !all(names(belief) == states)) {
-      names(belief) <- states
-    }
-    return(belief)
-  }
-
-  # start: uniform
-  if (is.character(belief) &&
-    length(belief) == 1 &&
-    belief[1] == "uniform") {
-    belief <- rep(1 / length(states), times = length(states))
-    names(belief) <- states
-    return(belief)
-  }
-
-
+  
   # general checks for state IDs
   if (is.numeric(belief)) {
     belief <- as.integer(belief)
     if (any(abs(belief) < 1) || any(abs(belief) > length(states))) {
-      stop(
-        "Illegal belief format.\n",
-        belief,
-        "\nState IDs need to be in [1, # of states]."
-      )
+      stop("Illegal belief format.\n",
+           belief,
+           "\nState IDs need to be in [1, # of states].")
     }
   }
-
+  
   # general checks for state names
-  else if (is.character(belief)) {
+  if (is.character(belief)) {
     if (any(is.na(match(belief, c(
-      as.character(states), "-"
+      as.character(states), "-", "uniform"
     ))))) {
-      stop(
-        "Illegal belief format.\n",
-        belief,
-        "\nUnrecognized state name."
-      )
+      stop("Illegal belief format.\n",
+           belief,
+           "\nUnrecognized state name.")
     }
-  } else {
-    stop("Illegal belief format.")
+  } 
+  
+  # start: 0.3 0.1 0.0 0.2 0.5
+  if (is.numeric(belief) &&
+      length(belief) == length(states) &&
+      round(sum(belief), 3) == 1) {
+    if (!is.null(names(belief)) && !all(names(belief) == states)) {
+      names(belief) <- states
+    }
   }
-
+  
+  # start: uniform
+  else if (is.character(belief) &&
+      length(belief) == 1 &&
+      belief[1] == "uniform") {
+    belief <- rep(1 / length(states), times = length(states))
+    names(belief) <- states
+  }
+  
   # start: first-state
   # start: 5
   # start include: first-state third state
   # start include: 1 3
-  if ((is.numeric(belief) && all(belief > 0)) ||
-    (is.character(belief) && belief[1] != "-")) {
+  else if ((is.numeric(belief) && all(belief > 0)) ||
+      (is.character(belief) && belief[1] != "-")) {
     if (length(belief) > length(states)) {
-      stop(
-        "Illegal belief format.\n",
-        belief,
-        "\nToo many states specified."
-      )
+      stop("Illegal belief format.\n",
+           belief,
+           "\nToo many states specified.")
     }
-    belief_ <- rep(0, times = length(states))
-    names(belief_) <- states
-    belief_[belief] <- 1 / length(belief)
-    return(belief_)
+    
+    if (is.character(belief))
+      belief <- match(belief, states)
+    
+    belief <- sparseVector(x = 1/length(belief), 
+                           i = belief, 
+                           length = length(states))
   }
-
+  
   # start exclude: 1 3
-  if (is.numeric(belief) && any(belief < 0)) {
+  else if (is.numeric(belief) && any(belief < 0)) {
     belief_ <- rep(1, times = length(states))
     if (length(belief) >= length(states)) {
-      stop(
-        "Illegal belief format.\n",
-        belief,
-        "\nToo many states specified."
-      )
+      stop("Illegal belief format.\n",
+           belief,
+           "\nToo many states specified.")
     }
     names(belief_) <- states
     belief_[-belief] <- 0
     belief_ <- belief_ / sum(belief_)
-    return(belief_)
+    belief <- belief_
   }
-
+  
   # start exclude: fifth-state seventh-state
-  if (is.character(belief) && belief[1] == "-") {
+  else if (is.character(belief) && belief[1] == "-") {
     belief <- belief[-1]
     belief_ <- rep(1, times = length(states))
     names(belief_) <- states
     belief_[belief] <- 0
     belief_ <- belief_ / sum(belief_)
-    return(belief_)
+    belief <- belief_
   }
-
-  stop("Illegal belief format.\n", belief)
+  
+  else {
+    stop("Illegal belief format.\n", belief)
+  }
+    
+  return(.sparsify_vector(belief, sparse))
 }
 
 
@@ -235,24 +232,24 @@ normalize_MDP <- function(x,
   if (!inherits(x, "MDP")) {
     stop("x is not an MDP object!")
   }
-
+  
   if (trans_start) {
     x$start <- start_vector(x)
   }
-
+  
   if (is.function(x$transition_prob) && !trans_function) {
     # do nothing
   } else {
     x$transition_prob <-
       transition_matrix(x, sparse = sparse)
   }
-
+  
   if ((is.function(x$reward) && !trans_function)) {
     # do nothing
   } else {
     x$reward <- reward_matrix(x, sparse = sparse)
   }
-
+  
   x$absorbing_states <- absorbing_states(x)
   
   x
@@ -263,10 +260,12 @@ normalize_MDP <- function(x,
                       sparse = TRUE,
                       max_density = .5) {
   # NULL means as is, we also keep special keywords
-  if (is.null(sparse) || is.character(x)) {
+  if (is.null(sparse)) 
     return(x)
-  }
-
+  
+  if (is.character(x))
+    return(x)
+  
   if (!sparse) {
     if (is.matrix(x)) {
       return(x)
@@ -274,18 +273,38 @@ normalize_MDP <- function(x,
       return(as.matrix(x))
     }
   }
-
+  
   # sparse
   if (inherits(x, "CsparseMatrix")) {
     return(x)
   }
-
+  
   if (nnzero(x) / length(x) < max_density) {
     return(as(as(x, "generalMatrix"), "CsparseMatrix"))
   } else {
     return(as.matrix(x))
   }
 }
+
+
+.sparsify_vector <- function(x,
+                      sparse = TRUE) {
+  # NULL means as is but we make sure it is a vector
+  if (is.null(sparse)) {
+    if (is.vector(x))
+      return(x)
+    if (is.matrix(x))
+      return(drop(x))
+    
+    return(as(x, "sparseVector"))
+  }
+ 
+  if (sparse)
+    as(x, "sparseVector")
+  else
+    as(x, "vector")
+}
+
 
 value_matrix <-
   function(x,
@@ -296,37 +315,24 @@ value_matrix <-
            sparse = NULL,
            trans_keyword = TRUE) {
     ## action list of s x s matrices
-
+    
     value <- x[[field]]
-
+    
     # convert functions
     if (is.function(value)) {
-      # shortcut for a single value
-      if (!is.null(action) && !is.null(row) && !is.null(col)) {
-        if (is.numeric(action)) action <- x$actions[action]
-        if (is.numeric(row)) row <- x$states[row]
-        if (field == "transition_prob") {
-          cols <- x$states
-        } else {
-          ### obs
-          cols <- x$observations
-        }
-        if (is.numeric(col)) col <- cols[col]
-        return(value(action, row, col))
-      }
-
       return(function2value(x, field, value, action, row, col, sparse))
     }
-
+    
     # data.frame
     if (is.data.frame(value)) {
       return(df2value(value, action, row, col, sparse))
     }
-
+    
     # we have a list of matrices
     # subset
     list2value(x, field, value, action, row, col, sparse, trans_keyword)
   }
+
 
 
 df2value <-
@@ -338,7 +344,8 @@ df2value <-
     actions <- levels(df$action)
     rows <- levels(df[[2L]])
     cols <- levels(df[[3L]])
-
+    value <- df[[4L]]
+    
     if (is.null(action)) {
       l <- sapply(
         actions,
@@ -347,15 +354,15 @@ df2value <-
         },
         simplify = FALSE
       )
-
+      
       return(l)
     }
-
+    
     if (is.null(col) && is.null(row)) {
       # matrix
       df <-
         df[(is.na(df$action) | df$action == action), , drop = FALSE]
-
+      
       m <-
         matrix(
           0,
@@ -363,73 +370,72 @@ df2value <-
           ncol = length(cols),
           dimnames = list(rows, cols)
         )
-
+      
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-
+        
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-
-        m[r, c] <- df$probability[i]
+        
+        m[r, c] <- value[i]
       }
-
-      m <- .sparsify(m, sparse)
-      return(m)
+      
+      return(.sparsify(m, sparse))
     }
-
+    
     if (is.null(col)) {
       # row vector
       if (is.numeric(row)) {
         row <- rows[row]
       }
       df <- df[(is.na(df$action) | df$action == action) &
-        (is.na(df[[2L]]) |
-          df[[2L]] == row), , drop = FALSE]
-
+                 (is.na(df[[2L]]) |
+                    df[[2L]] == row), , drop = FALSE]
+      
       v <-
         structure(numeric(length(cols)), names = cols)
-
+      
       for (i in seq_len(nrow(df))) {
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-
-        v[c] <- df$probability[i]
+        
+        v[c] <- value[i]
       }
-
-      return(v)
+      
+      return(.sparsify_vector(v, sparse))
     }
-
+    
+    # row vector
     if (is.null(row)) {
       if (is.numeric(col)) {
         col <- cols[col]
       }
-      # row vector
       df <- df[(is.na(df$action) | df$action == action) &
-        (is.na(df[[2L]]) |
-          df[[2L]] == col), , drop = FALSE]
-
+                 (is.na(df[[2L]]) |
+                    df[[2L]] == col), , drop = FALSE]
+      
       v <-
         structure(numeric(length(rows)), names = rows)
-
+      
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-
-        v[r] <- df$probability[i]
+        
+        v[r] <- value[i]
       }
-
-      return(v)
+      
+      return(.sparsify_vector(v, sparse))
     }
-
+    
     # value
     if (is.numeric(row)) {
       row <- rows[row]
@@ -437,72 +443,85 @@ df2value <-
     if (is.numeric(col)) {
       col <- cols[col]
     }
-
-    val <- df$probability[(is.na(df$action) | df$action == action) &
-      (is.na(df[[2L]]) |
-        df[[2L]] == row) &
-      (is.na(df[[3L]]) |
-        df$end.state == col)]
-
+    
+    val <- value[(is.na(df$action) | df$action == action) &
+                            (is.na(df[[2L]]) |
+                               df[[2L]] == row) &
+                            (is.na(df[[3L]]) |
+                               df$end.state == col)]
+    
     if (length(val) == 0L) {
       return(0)
     }
-
+    
     return(tail(val, 1L))
   }
 
-function2value <- function(x,
-                           field,
-                           f,
-                           action,
-                           row,
-                           col,
-                           sparse = FALSE) {
-  if (length(action) == 1L &&
-    length(row) == 1L &&
-    length(col) == 1L) {
+function2value <- function(x, field, f, action, row, col, sparse = FALSE) {
+  if (is.null(action))
+    action <- x$action
+  
+  if (is.numeric(action))
+    action <- x$actions[action]
+  
+  if (length(action) > 1L)
+    return(sapply(
+      action,
+      FUN = function(a)
+        function2value(x, field, f, a, row, col, sparse),
+      simplify = FALSE, USE.NAMES = TRUE
+    ))
+  
+  
+  # we have a single action
+  if (!is.null(row) && is.numeric(row))
+    row <- x$states[row]
+  if (!is.null(col) && is.numeric(col))
+    col <- x$states[col]
+  
+  # single value
+  if (!is.null(row) && !is.null(col))
     return(f(action, row, col))
+  
+  # rows/no cols
+  if (!is.null(row) && is.null(col)) {
+    return(.sparsify_vector(sapply(
+      x$states,
+      FUN =
+        function(s)
+          f(action, row, s)
+    ), sparse))
   }
-
-  # TODO: we could make access faster
-
-  f <- Vectorize(f)
-  actions <- x$actions
-  rows <- x$states
-  if (field == "transition_prob") {
-    cols <- x$states
-  } else {
-    ### obs
-    cols <- x$observations
+  
+  # no rows/cols
+  if (is.null(row) && !is.null(col)) {
+    return(.sparsify_vector(sapply(
+      x$states,
+      FUN =
+        function(s)
+          f(action, s, col)
+    ), sparse))
   }
-
-  m <- sapply(
-    actions,
-    FUN = function(a) {
-      p <- outer(
-        rows,
-        cols,
-        FUN = function(r, c) {
-          f(
-            a,
-            r,
-            c
-          )
-        }
-      )
-      dimnames(p) <- list(rows, cols)
-      .sparsify(p, sparse)
-    },
-    simplify = FALSE
+  
+  
+  # no rows/no cols
+  f_v <- Vectorize(f)
+  o <- outer(
+    x$states,
+    x$states,
+    FUN =
+      function(r, c)
+        f_v(action, r, c)
   )
-
-  list2value(x, field, m,
-    action,
-    row,
-    col,
-    sparse = NULL
-  )
+ 
+  dimnames(o) <- list(x$states, x$states) 
+  
+  if (!is.null(sparse) && sparse) 
+    o <- .sparsify(o, sparse)
+  o
+  
 }
+
 
 ### this just subsets the matrix list
 list2value <-
@@ -516,21 +535,17 @@ list2value <-
            trans_keyword = TRUE) {
     actions <- x$actions
     rows <- x$states
-    if (field == "transition_prob") {
-      cols <- x$states
-    } else {
-      ### obs
-      cols <- x$observations
-    }
-
+    cols <- x$states
+ 
     ## convert from character
     .fix <- function(mm, sparse, trans_keyword = TRUE) {
       if (is.character(mm)) {
         if (!trans_keyword) {
           return(mm)
         }
-
-        mm <- switch(mm,
+        
+        mm <- switch(
+          mm,
           identity = {
             if (is.null(sparse) || sparse) {
               Matrix::Diagonal(length(rows))
@@ -544,30 +559,31 @@ list2value <-
             ncol = length(cols)
           )
         )
-
+        
         dimnames(mm) <- list(rows, cols)
       }
       .sparsify(mm, sparse)
     }
-
+    
     if (is.null(action)) {
       m <- lapply(m, .fix, sparse = sparse, trans_keyword = trans_keyword)
       return(m)
     }
-
+    
     m <- .fix(m[[action]], sparse, trans_keyword)
-
+    
     if (is.null(row) && is.null(col)) {
       return(m)
     }
-
+    
     if (is.null(row)) {
-      row <- rows
+      return(.sparsify_vector(Matrix::t(m[, col, drop = FALSE]), sparse))
     }
+    
     if (is.null(col)) {
-      col <- cols
+      return(.sparsify_vector(m[row, , drop = FALSE], sparse))
     }
-
+    
     return(m[row, col])
   }
 
@@ -581,7 +597,9 @@ df2value <-
     actions <- levels(df$action)
     rows <- levels(df[[2L]])
     cols <- levels(df[[3L]])
-
+    value <- df[[4L]]
+    
+    # return list for actions
     if (is.null(action)) {
       l <- sapply(
         actions,
@@ -590,15 +608,16 @@ df2value <-
         },
         simplify = FALSE
       )
-
+      
       return(l)
     }
-
+    
+    ### FIXME: create a sparse matrix directly!
+    # return a matrix
     if (is.null(col) && is.null(row)) {
-      # matrix
       df <-
         df[(is.na(df$action) | df$action == action), , drop = FALSE]
-
+      
       m <-
         matrix(
           0,
@@ -606,73 +625,73 @@ df2value <-
           ncol = length(cols),
           dimnames = list(rows, cols)
         )
-
+      
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-
+        
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-
-        m[r, c] <- df$probability[i]
+        
+        m[r, c] <- value[i]
       }
-
+      
       m <- .sparsify(m, sparse)
       return(m)
     }
-
+    
+    # row vector
     if (is.null(col)) {
-      # row vector
       if (is.numeric(row)) {
         row <- rows[row]
       }
       df <- df[(is.na(df$action) | df$action == action) &
-        (is.na(df[[2L]]) |
-          df[[2L]] == row), , drop = FALSE]
-
+                 (is.na(df[[2L]]) |
+                    df[[2L]] == row), , drop = FALSE]
+      
       v <-
         structure(numeric(length(cols)), names = cols)
-
+      
       for (i in seq_len(nrow(df))) {
         c <- df[[3L]][i]
         if (is.na(c)) {
           c <- cols
         }
-
-        v[c] <- df$probability[i]
+        
+        v[c] <- value[i]
       }
-
-      return(v)
+      
+      return(.sparsify_vector(v, sparse))
     }
-
+    
     if (is.null(row)) {
       if (is.numeric(col)) {
         col <- cols[col]
       }
       # row vector
       df <- df[(is.na(df$action) | df$action == action) &
-        (is.na(df[[2L]]) |
-          df[[2L]] == col), , drop = FALSE]
-
+                 (is.na(df[[2L]]) |
+                    df[[2L]] == col), , drop = FALSE]
+      
       v <-
         structure(numeric(length(rows)), names = rows)
-
+      
       for (i in seq_len(nrow(df))) {
         r <- df[[2L]][i]
         if (is.na(r)) {
           r <- rows
         }
-
-        v[r] <- df$probability[i]
+        
+        v[r] <- value[i]
       }
-
+      
       return(v)
     }
-
+    
     # value
     if (is.numeric(row)) {
       row <- rows[row]
@@ -680,69 +699,16 @@ df2value <-
     if (is.numeric(col)) {
       col <- cols[col]
     }
-
-    val <- df$probability[(is.na(df$action) | df$action == action) &
-      (is.na(df[[2L]]) |
-        df[[2L]] == row) &
-      (is.na(df[[3L]]) |
-        df$end.state == col)]
-
+    
+    val <- value[(is.na(df$action) | df$action == action) &
+                            (is.na(df[[2L]]) |
+                               df[[2L]] == row) &
+                            (is.na(df[[3L]]) |
+                               df$end.state == col)]
+    
     if (length(val) == 0L) {
       return(0)
     }
-
+    
     return(tail(val, 1L))
   }
-
-function2value <- function(x,
-                           field,
-                           f,
-                           action,
-                           row,
-                           col,
-                           sparse = FALSE) {
-  if (length(action) == 1L &&
-    length(row) == 1L &&
-    length(col) == 1L) {
-    return(f(action, row, col))
-  }
-
-  # TODO: we could make access faster
-
-  f <- Vectorize(f)
-  actions <- x$actions
-  rows <- x$states
-  if (field == "transition_prob") {
-    cols <- x$states
-  } else {
-    ### obs
-    cols <- x$observations
-  }
-
-  m <- sapply(
-    actions,
-    FUN = function(a) {
-      p <- outer(
-        rows,
-        cols,
-        FUN = function(r, c) {
-          f(
-            a,
-            r,
-            c
-          )
-        }
-      )
-      dimnames(p) <- list(rows, cols)
-      .sparsify(p, sparse)
-    },
-    simplify = FALSE
-  )
-
-  list2value(x, field, m,
-    action,
-    row,
-    col,
-    sparse = NULL
-  )
-}
