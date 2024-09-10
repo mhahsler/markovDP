@@ -46,63 +46,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// reward_val_from_df_cpp
-double reward_val_from_df_cpp(const List& model, int action, int start_state, int end_state, int observation);
-RcppExport SEXP _markovDP_reward_val_from_df_cpp(SEXP modelSEXP, SEXP actionSEXP, SEXP start_stateSEXP, SEXP end_stateSEXP, SEXP observationSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< int >::type action(actionSEXP);
-    Rcpp::traits::input_parameter< int >::type start_state(start_stateSEXP);
-    Rcpp::traits::input_parameter< int >::type end_state(end_stateSEXP);
-    Rcpp::traits::input_parameter< int >::type observation(observationSEXP);
-    rcpp_result_gen = Rcpp::wrap(reward_val_from_df_cpp(model, action, start_state, end_state, observation));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reward_alpha_cpp
-DataFrame reward_alpha_cpp(const NumericMatrix& alpha, const NumericMatrix& belief);
-RcppExport SEXP _markovDP_reward_alpha_cpp(SEXP alphaSEXP, SEXP beliefSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type belief(beliefSEXP);
-    rcpp_result_gen = Rcpp::wrap(reward_alpha_cpp(alpha, belief));
-    return rcpp_result_gen;
-END_RCPP
-}
-// reward_cpp
-DataFrame reward_cpp(const List& model, const NumericMatrix& belief);
-RcppExport SEXP _markovDP_reward_cpp(SEXP modelSEXP, SEXP beliefSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type belief(beliefSEXP);
-    rcpp_result_gen = Rcpp::wrap(reward_cpp(model, belief));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_belief_cpp
-NumericVector update_belief_cpp(const List& model, const NumericVector& belief, int action, int observation, int digits);
-RcppExport SEXP _markovDP_update_belief_cpp(SEXP modelSEXP, SEXP beliefSEXP, SEXP actionSEXP, SEXP observationSEXP, SEXP digitsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const List& >::type model(modelSEXP);
-    Rcpp::traits::input_parameter< const NumericVector& >::type belief(beliefSEXP);
-    Rcpp::traits::input_parameter< int >::type action(actionSEXP);
-    Rcpp::traits::input_parameter< int >::type observation(observationSEXP);
-    Rcpp::traits::input_parameter< int >::type digits(digitsSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_belief_cpp(model, belief, action, observation, digits));
-    return rcpp_result_gen;
-END_RCPP
-}
-// simulate_MDP_cpp
-List simulate_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool return_trajectories, const double epsilon, const bool exploring_starts, const bool verbose);
-RcppExport SEXP _markovDP_simulate_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP exploring_startsSEXP, SEXP verboseSEXP) {
+// sample_MDP_cpp
+List sample_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool return_trajectories, const double epsilon, const bool exploring_starts, const bool verbose);
+RcppExport SEXP _markovDP_sample_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP exploring_startsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -115,7 +61,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< const bool >::type exploring_starts(exploring_startsSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(simulate_MDP_cpp(model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose));
+    rcpp_result_gen = Rcpp::wrap(sample_MDP_cpp(model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -124,11 +70,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_markovDP_round_stochastic_cpp", (DL_FUNC) &_markovDP_round_stochastic_cpp, 2},
     {"_markovDP_veccrossprod", (DL_FUNC) &_markovDP_veccrossprod, 2},
     {"_markovDP_vecprod", (DL_FUNC) &_markovDP_vecprod, 2},
-    {"_markovDP_reward_val_from_df_cpp", (DL_FUNC) &_markovDP_reward_val_from_df_cpp, 5},
-    {"_markovDP_reward_alpha_cpp", (DL_FUNC) &_markovDP_reward_alpha_cpp, 2},
-    {"_markovDP_reward_cpp", (DL_FUNC) &_markovDP_reward_cpp, 2},
-    {"_markovDP_update_belief_cpp", (DL_FUNC) &_markovDP_update_belief_cpp, 5},
-    {"_markovDP_simulate_MDP_cpp", (DL_FUNC) &_markovDP_simulate_MDP_cpp, 9},
+    {"_markovDP_sample_MDP_cpp", (DL_FUNC) &_markovDP_sample_MDP_cpp, 9},
     {NULL, NULL, 0}
 };
 

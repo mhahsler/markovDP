@@ -3,9 +3,10 @@
 \name{MDP}
 \alias{MDP}
 \alias{is_solved_MDP}
-\alias{epoch_to_episode}
 \alias{T_}
 \alias{R_}
+\alias{epoch_to_episode}
+\alias{normalize_MDP}
 \title{Define an MDP Problem}
 \usage{
 MDP(
@@ -17,17 +18,26 @@ MDP(
   horizon = Inf,
   start = "uniform",
   info = NULL,
-  name = NA,
-  normalize = TRUE
+  name = NA
 )
 
 is_solved_MDP(x, stop = FALSE)
 
-epoch_to_episode(x, epoch)
-
 T_(action = NA, start.state = NA, end.state = NA, probability)
 
 R_(action = NA, start.state = NA, end.state = NA, value)
+
+epoch_to_episode(x, epoch)
+
+normalize_MDP(
+  model,
+  sparse = TRUE,
+  trans_keyword = TRUE,
+  trans_function = TRUE,
+  keep_reward_df = FALSE,
+  cache_absorbing_unreachable = TRUE,
+  progress = TRUE
+)
 }
 \arguments{
 \item{states}{a character vector specifying the names of the states.}
@@ -51,14 +61,7 @@ horizon.}
 
 \item{name}{a string to identify the MDP problem.}
 
-\item{normalize}{logical; normalize representation (see \code{\link[=normalize_MDP]{normalize_MDP()}}).}
-
-\item{x}{a \code{MDP} object.}
-
 \item{stop}{logical; stop with an error.}
-
-\item{epoch}{integer; an epoch that should be converted to the
-corresponding episode in a time-dependent MDP.}
 
 \item{action}{action as a action label or integer. The value \code{NA} matches any action.}
 
@@ -66,7 +69,24 @@ corresponding episode in a time-dependent MDP.}
 
 \item{probability, value}{Values used in the helper functions \code{T_()} and \code{R_()}.}
 
-\item{observation}{unused for MDPs. Must be \code{NA}.}
+\item{epoch}{integer; an epoch that should be converted to the
+corresponding episode in a time-dependent MDP.}
+
+\item{model}{a \code{MDP} object.}
+
+\item{sparse}{logical; use sparse representation. matrices when the density is below 50\% and keeps data.frame representation
+for the reward field.}
+
+\item{trans_keyword}{logical; convert distribution keywords (uniform and identity)
+in \code{transition_prob} matrices?}
+
+\item{trans_function}{logical; convert functions into matrices?}
+
+\item{keep_reward_df}{logical; if reward is a data.frame, then keep it.}
+
+\item{cache_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
+
+\item{progress}{logical; show a progress bar with estimated time for completion.}
 }
 \value{
 The function returns an object of class MDP which is list with
@@ -79,9 +99,9 @@ Defines all the elements of a discrete-time finite state-space MDP problem.
 \details{
 Markov decision processes (MDPs) are discrete-time stochastic control
 process. We implement here MDPs with a finite state space.
-\code{MDP()} defines all the element of a MDP problem including the discount rate, the
+\code{MDP()} defines all the element of an MDP problem including the discount rate, the
 set of states, the set of actions,the transition
-probabilities, the observation probabilities, and the rewards.
+probabilities, and the rewards.
 
 In the following we use the following notation. The MDP is a 5-duple:
 
@@ -89,14 +109,12 @@ In the following we use the following notation. The MDP is a 5-duple:
 
 \eqn{S} is the set of states; \eqn{A}
 is the set of actions; \eqn{T} are the conditional transition probabilities
-between states; \eqn{R} is the reward function; \eqn{\Omega} is the set of
-observations; and
+between states; \eqn{R} is the reward function; and
 \eqn{\gamma} is the discount factor. We will use lower case letters to
 represent a member of a set, e.g., \eqn{s} is a specific state. To refer to
 the size of a set we will use cardinality, e.g., the number of actions is
 \eqn{|A|}.
-
-\strong{Names used for mathematical symbols in code}
+\subsection{Names used for mathematical symbols in code}{
 \itemize{
 \item \eqn{S, s, s'}: \verb{'states', start.state', 'end.state'}
 \item \eqn{A, a}: \verb{'actions', 'action'}
@@ -106,8 +124,9 @@ State names and actions can be specified as strings or index numbers
 (e.g., \code{start.state} can be specified as the index of the state in \code{states}).
 For the specification as data.frames below, \code{NA} can be used to mean
 any  \code{start.state}, \code{end.state} or \code{action}.
+}
 
-\strong{Specification of transition probabilities: \eqn{T(s' | s, a)}}
+\subsection{Specification of transition probabilities: \eqn{T(s' | s, a)}}{
 
 Transition probability to transition to state \eqn{s'} from given state \eqn{s}
 and action \eqn{a}. The transition probabilities can be
@@ -123,8 +142,9 @@ Instead of a matrix, also the strings \code{'identity'} or \code{'uniform'} can 
 \item A function with the same arguments are \code{T_()}, but no default values
 that returns the transition probability.
 }
+}
 
-\strong{Specification of the reward function: \eqn{R(a, s, s')}}
+\subsection{Specification of the reward function: \eqn{R(a, s, s')}}{
 
 The reward function can be specified in the following
 ways:
@@ -146,16 +166,13 @@ range of
 \verb{[-1e10, +1e10]}. \code{-Inf} can be used as the reward for unavailable actions and
 will be translated into a large negative reward for solvers that only support
 finite reward values.
+}
 
-Note: The code also includes in \code{R_()} an argument called \code{observation}.
-Observations are only used POMDPs implemented in package
-\code{pomdp} obs must always be \code{NA} for MDPs.
-
-\strong{Start State}
+\subsection{Specification of the Start State}{
 
 The start state of the agent can be a single state or a distribution over the states.
 The start state definition is used as the default when the reward is calculated by \code{\link[=reward]{reward()}}
-and for simulations with \code{\link[=simulate_MDP]{simulate_MDP()}}.
+and for sampling with \code{\link[=sample_MDP]{sample_MDP()}}.
 
 Options to specify the start state are:
 \itemize{
@@ -169,6 +186,24 @@ of \eqn{|S|} probabilities, that add up to \eqn{1}.
 The default state state is a uniform
 distribution over all states.
 }
+
+\subsection{Normalizing MDP Descriptions}{
+
+Different components can be specified in various ways. It is often
+necessary to convert each component into a specific form (e.g., a
+dense matrix) to save time during access.
+Convert the Complete MDP Description into a consistent form
+\code{normalize_MDP()} converts all components of the MDP description
+into a consistent form and
+returns a new MDP definition where \code{transition_prob},
+\code{reward}, and \code{start} are normalized. This includes the internal
+representation (dense, sparse, as a data.frame) and
+also, \code{states}, and \code{actions} are ordered as given in the problem
+definition to make safe access using numerical indices possible. Normalized
+MDP descriptions can be
+used in custom code that expects consistently a certain format.
+}
+}
 \examples{
 # simple MDP example
 #
@@ -181,8 +216,14 @@ car <- MDP(
   states = c("s1", "s2", "s3", "s4"),
   actions = c("forward", "back", "stop"),
   transition <- list(
-    forward = rbind(c(0, 1, 0, 0), c(0, 0, 1, 0), c(0, 0, 0, 1), c(0, 0, 0, 1)),
-    back = rbind(c(1, 0, 0, 0), c(1, 0, 0, 0), c(0, 1, 0, 0), c(0, 0, 1, 0)),
+    forward = rbind(c(0, 1, 0, 0), 
+                    c(0, 0, 1, 0), 
+                    c(0, 0, 0, 1), 
+                    c(0, 0, 0, 1)),
+    back =    rbind(c(1, 0, 0, 0), 
+                    c(1, 0, 0, 0), 
+                    c(0, 1, 0, 0), 
+                    c(0, 0, 1, 0)),
     stop = "identity"
   ),
   reward = rbind(
@@ -196,12 +237,21 @@ car <- MDP(
 
 car
 
-transition_matrix(car)
+# internal representation
+str(car)
+
+# accessing elements
+transition_matrix(car, sparse = FALSE)
+transition_matrix(car, sparse = TRUE)
+reward_matrix(car, sparse = FALSE)
 reward_matrix(car, sparse = TRUE)
-reward_matrix(car)
 
 sol <- solve_MDP(car)
 policy(sol)
+
+# normalize MDP: make everything dense (transition_prob, reward and start)
+car_dense <- normalize_MDP(car, sparse = FALSE)
+str(car_dense)
 }
 \seealso{
 Other MDP: 
@@ -212,11 +262,11 @@ Other MDP:
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 
 Other MDP_examples: 

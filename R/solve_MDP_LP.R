@@ -58,7 +58,8 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
     cat("creating constraints ...\n")
   }
 
-  model <- normalize_MDP(model)
+  # TODO: This could be sparse!
+  model <- normalize_MDP(model, sparse = FALSE)
 
   # objective is sum_s V(s)
   obj <- rep(1, n_s)

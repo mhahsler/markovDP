@@ -60,7 +60,7 @@ solve_MDP_TD <-
     }
 
     if (progress)
-      pb <- my_progress_bar(N)
+      pb <- my_progress_bar(N, name = "solve_MDP")
     
     # loop episodes
     for (e in seq(N)) {

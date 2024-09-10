@@ -13,32 +13,32 @@
 #' @include accessors.R
 #' @rdname accessors
 #' @export
-reward_matrix <- function(x,
+reward_matrix <- function(model,
                           action = NULL,
                           start.state = NULL,
                           end.state = NULL,
                           ...,
-                          sparse = FALSE) {
+                          sparse = NULL) {
   UseMethod("reward_matrix")
 }
 
 #' @export
 reward_matrix.MDP <-
-  function(x,
+  function(model,
            action = NULL,
            start.state = NULL,
            end.state = NULL,
            ...,
            state_matrix = TRUE,
-           sparse = FALSE) {
+           sparse = NULL) {
     value_matrix(
-      x,
+      model,
       "reward",
       action,
       start.state,
       end.state,
-      sparse,
-      FALSE
+      sparse = sparse,
+      trans_keyword = FALSE
     )
   }
 
@@ -83,17 +83,15 @@ reward_list2df <- function(x) {
   reward_df
 }
 
-
+## fast way to get the range from a reward data.frame
 .reward_range <- function(model) {
-  reward <- model[["reward"]]
   
-  if (is.data.frame(reward))
-    return (range(reward$value))
+  # this is fast
+  if (is.data.frame(model$reward))
+    return (range(model$reward$value))
   
-  # function is slow!
-  if (is.function(reward))
-    reward <- reward_function2list(reward, model)
+  # converting a function is slow!
+  reward <- reward_matrix(model, sparse = NULL)
   
-  # it is a list of matrices
-  range(unlist(reward, recursive = TRUE))
+  c(min(sapply(reward, min)), max(sapply(reward, max)))
 }

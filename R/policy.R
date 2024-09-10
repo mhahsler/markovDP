@@ -15,7 +15,7 @@
 #'
 #' @family policy
 #'
-#' @param x A solved [MDP] object.
+#' @param model A solved [MDP] object.
 #' @param epoch return the policy of the given epoch. `NULL` returns a list
 #'   with elements for each epoch.
 #' @param drop logical; drop the list for converged, epoch-independent policies.
@@ -56,18 +56,18 @@
 #' policy(sol)
 #' gridworld_plot(sol)
 #' @export
-policy <- function(x, epoch = NULL, drop = TRUE) {
+policy <- function(model, epoch = NULL, drop = TRUE) {
   UseMethod("policy")
 }
 
 #' @export
-policy.MDP <- function(x, epoch = NULL, drop = TRUE) {
-  is_solved_MDP(x, stop = TRUE)
+policy.MDP <- function(model, epoch = NULL, drop = TRUE) {
+  is_solved_MDP(model, stop = TRUE)
 
-  policy <- x$solution$policy
+  policy <- model$solution$policy
 
   if (!is.null(epoch)) {
-    return(policy[[.get_pol_index(x, epoch)]])
+    return(policy[[.get_pol_index(model, epoch)]])
   }
 
   if (drop && length(policy) == 1) {
@@ -84,15 +84,15 @@ policy.MDP <- function(x, epoch = NULL, drop = TRUE) {
 #'   `greedy_action()`.
 #' @export
 random_policy <-
-  function(x, prob = NULL) {
-    if (!inherits(x, "MDP")) {
-      stop("'x' needs to be of class 'MDP'.")
+  function(model, prob = NULL, U = FALSE) {
+    if (!inherits(model, "MDP")) {
+      stop("'model' needs to be of class 'MDP'.")
     }
     
-    A <- x$actions
-    S <- x$states
+    A <- model$actions
+    S <- model$states
     
-    data.frame(
+    pol <- data.frame(
       state = S,
       U = NA_real_,
       action = factor(
@@ -106,21 +106,38 @@ random_policy <-
         labels = A
       )
     )
+    
+    if (U) {
+      pol$U <- policy_evaluation(model, pol)
+    }
+    
+    pol
   }
 
 
 #' @rdname policy
 #' @param actions a vector with the action (either the action label or the
 #'  numeric id) for each state.
+#' @param U a vector with the value function for the policy. If `TRUE`, then
+#'    the it is estimated using `policy_evaluation()`.
 #' @export
 manual_policy <-
-  function(x, actions) {
-    if (!inherits(x, "MDP")) {
-      stop("'x' needs to be of class 'MDP'.")
+  function(model, actions, U = NULL) {
+    if (!inherits(model, "MDP")) {
+      stop("'model' needs to be of class 'MDP'.")
     }
     
-    A <- x$actions
-    S <- x$states
+    estimate_U <- FALSE
+    if (is.null(U))
+      U <- NA_real_
+    else if (is.logical(U)) {
+      if(U) 
+        estimate_U <- TRUE
+      U <- NA_real_  
+    }
+    
+    A <- model$actions
+    S <- model$states
     
     if (is.numeric(actions)) {
       actions <- A[actions]
@@ -128,8 +145,16 @@ manual_policy <-
     
     actions <- factor(actions, levels = A)
     
-    data.frame(
+    
+    pol <- data.frame(
       state = S,
+      U = U,
       action = actions
     )
+    
+    if (all(is.na(U)) && estimate_U) {
+      pol$U <- policy_evaluation(model, pol)
+    }
+    
+    pol
   }

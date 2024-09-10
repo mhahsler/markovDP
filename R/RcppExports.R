@@ -13,23 +13,7 @@ vecprod <- function(A, b) {
     .Call(`_markovDP_vecprod`, A, b)
 }
 
-reward_val_from_df_cpp <- function(model, action, start_state, end_state, observation) {
-    .Call(`_markovDP_reward_val_from_df_cpp`, model, action, start_state, end_state, observation)
-}
-
-reward_alpha_cpp <- function(alpha, belief) {
-    .Call(`_markovDP_reward_alpha_cpp`, alpha, belief)
-}
-
-reward_cpp <- function(model, belief) {
-    .Call(`_markovDP_reward_cpp`, model, belief)
-}
-
-update_belief_cpp <- function(model, belief, action, observation, digits = 7L) {
-    .Call(`_markovDP_update_belief_cpp`, model, belief, action, observation, digits)
-}
-
-simulate_MDP_cpp <- function(model, n, start, horizon, disc = 1.0, return_trajectories = FALSE, epsilon = 1.0, exploring_starts = FALSE, verbose = FALSE) {
-    .Call(`_markovDP_simulate_MDP_cpp`, model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose)
+sample_MDP_cpp <- function(model, n, start, horizon, disc = 1.0, return_trajectories = FALSE, epsilon = 1.0, exploring_starts = FALSE, verbose = FALSE) {
+    .Call(`_markovDP_sample_MDP_cpp`, model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose)
 }
 

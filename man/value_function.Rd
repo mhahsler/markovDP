@@ -78,11 +78,11 @@ Other MDP:
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
-\code{\link{transition_graph}()}
+\code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}}
 }
 \author{
 Michael Hahsler

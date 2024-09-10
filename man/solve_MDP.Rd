@@ -119,14 +119,10 @@ output of the solver in the R console.}
 
 \item{epsilon}{used for \eqn{\epsilon}-greedy policies.}
 
-\item{alpha}{step size in \verb{(0, 1]}.}
-
-\item{exploring_starts}{if \code{TRUE} then the first state and action for
-each episode is uniformly sampled, otherwise the specifications in the model
-are used.}
-
-\item{fist_visit}{if \code{TRUE} then only the first visit of a state/action pair
+\item{first_visit}{if \code{TRUE} then only the first visit of a state/action pair
 in an episode is used to update Q, otherwise, every-visit update is used.}
+
+\item{alpha}{step size in \verb{(0, 1]}.}
 }
 \value{
 \code{solve_MDP()} returns an object of class MDP which is a list with the
@@ -367,10 +363,10 @@ Other MDP:
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 }
 \author{

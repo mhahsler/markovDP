@@ -250,7 +250,7 @@
 #' @export
 solve_MDP <- function(model, method = "value_iteration", ...) {
   if (!inherits(model, "MDP")) {
-    stop("x needs to be a MDP!")
+    stop("x needs to be an MDP!")
   }
 
   methods_DP <- c("value_iteration", "policy_iteration", "prioritized_sweeping")

@@ -4,22 +4,25 @@
 \alias{gridworld}
 \alias{gridworld_init}
 \alias{gridworld_maze_MDP}
-\alias{gridworld_s2rc}
-\alias{gridworld_rc2s}
 \alias{gridworld_matrix}
 \alias{gridworld_plot}
 \alias{gridworld_plot_transition_graph}
 \alias{gridworld_animate}
 \alias{gridworld_read_maze}
+\alias{gridworld_s2rc}
+\alias{gridworld_rc2s}
+\alias{gridworld_transition_prob}
 \title{Helper Functions for Gridworld MDPs}
 \usage{
 gridworld_init(
   dim,
-  action_labels = c("up", "right", "down", "left"),
+  actions = c("up", "right", "down", "left"),
+  start = NULL,
+  goal = NULL,
   unreachable_states = NULL,
   restrict_actions = FALSE,
   absorbing_states = NULL,
-  labels = NULL
+  state_labels = list()
 )
 
 gridworld_maze_MDP(
@@ -27,19 +30,16 @@ gridworld_maze_MDP(
   start,
   goal,
   walls = NULL,
-  action_labels = c("up", "right", "down", "left"),
+  actions = c("up", "right", "down", "left"),
   goal_reward = 1,
   step_cost = 0,
   restart = FALSE,
   discount = 0.9,
   horizon = Inf,
   info = NULL,
+  normalize = TRUE,
   name = NA
 )
-
-gridworld_s2rc(s)
-
-gridworld_rc2s(rc)
 
 gridworld_matrix(model, epoch = 1L, what = "states")
 
@@ -55,7 +55,7 @@ gridworld_plot(
   offset = 0.5,
   lines = TRUE,
   col = hcl.colors(12, "YlOrRd", rev = TRUE),
-  unreachable_col = "black",
+  unreachable_col = "gray20",
   ...
 )
 
@@ -73,15 +73,24 @@ gridworld_plot_transition_graph(
   ...
 )
 
-gridworld_animate(x, method, n, zlim = NULL, ...)
+gridworld_animate(model, method, n, zlim = NULL, ...)
 
 gridworld_read_maze(file, discount = 1, restart = FALSE, name = "Maze")
+
+gridworld_s2rc(s)
+
+gridworld_rc2s(rc)
+
+gridworld_transition_prob(model, action, start.state = NULL, end.state = NULL)
 }
 \arguments{
 \item{dim}{vector of length two with the x and y extent of the gridworld.}
 
-\item{action_labels}{vector with four action labels that move the agent up, right, down,
-and left.}
+\item{actions}{how to show actions. Options are:
+simple \code{"character"}, \code{"unicode"} arrows (needs to be supported by the used font),
+\code{"label"} of the action, and  \code{"none"} to suppress showing the action.}
+
+\item{start, goal}{labels for the start state and the goal state.}
 
 \item{unreachable_states}{a vector with state labels for unreachable states.
 These states will be excluded.}
@@ -92,9 +101,8 @@ If false, then the action results in the agent staying in place.}
 
 \item{absorbing_states}{a vector with state labels for absorbing states.}
 
-\item{labels}{logical; show state labels.}
-
-\item{start, goal}{labels for the start state and the goal state.}
+\item{state_labels}{a list with labels for states. The element names need
+to be state names.}
 
 \item{walls}{a vector with state labels for walls. Walls will
 become unreachable states.}
@@ -109,15 +117,12 @@ the agent reaches the goal state.}
 \item{discount, horizon}{MDP discount factor, and horizon.}
 
 \item{info}{A list with additional information. Has to contain the gridworld
-dimensions as element \code{gridworld_dim}.}
+dimensions as element \code{dim} and can be created using \code{gridworld_init()}.}
+
+\item{normalize}{logical; should the description be normalized for
+faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
 \item{name}{a string to identify the MDP problem.}
-
-\item{s}{a state label or a vector of labels.}
-
-\item{rc}{a vector of length two with the row and column coordinate of a
-state in the gridworld matrix. A matrix with one state per row can be also
-supplied.}
 
 \item{model, x}{a solved gridworld MDP.}
 
@@ -125,13 +130,11 @@ supplied.}
 
 \item{what}{What should be returned in the matrix. Options are:
 \code{"states"}, \code{"labels"}, \code{"values"}, \code{"actions"}, \code{"absorbing"}, and
-\code{"reachable"}.}
-
-\item{actions}{how to show actions. Options are:
-simple \code{"character"}, \code{"unicode"} arrows (needs to be supported by the used font),
-\code{"label"} of the action, and  \code{"none"} to suppress showing the action.}
+\code{"unreachable"}.}
 
 \item{states}{logical; show state names.}
+
+\item{labels}{logical; show state labels.}
 
 \item{impossible_actions}{logical; show the value and the action for absorbing or unreachable states.}
 
@@ -160,13 +163,21 @@ state labels on the graph.}
 \item{margin}{a single number specifying the margin of the plot. Can be used if the
 graph does not fit inside the plotting area.}
 
-\item{method}{a MDP solution method for \code{\link[=solve_MDP]{solve_MDP()}}.}
+\item{method}{an MDP solution method for \code{\link[=solve_MDP]{solve_MDP()}}.}
 
 \item{n}{number of iterations to animate.}
 
 \item{zlim}{limits for visualizing the state value.}
 
 \item{file}{filename for a maze text file.}
+
+\item{s}{a state label or a vector of labels.}
+
+\item{rc}{a vector of length two with the row and column coordinate of a
+state in the gridworld matrix. A matrix with one state per row can be also
+supplied.}
+
+\item{action, start.state, end.state}{parameters for the transition function.}
 }
 \description{
 Helper functions for gridworld MDPs to convert between state names and
@@ -203,23 +214,21 @@ gw <- gridworld_init(
   dim = c(7, 7),
   unreachable_states = c("s(2,2)", "s(7,3)", "s(3,6)"),
   absorbing_states = "s(4,4)",
-  labels = list("s(4,4)" = "Black Hole")
+  state_labels = list("s(4,4)" = "Black Hole")
 )
 
-gw$states
-gw$actions
-gw$info
+str(gw)
 
 # display the state labels in the gridworld
 gridworld_matrix(gw)
 gridworld_matrix(gw, what = "label")
-gridworld_matrix(gw, what = "reachable")
 gridworld_matrix(gw, what = "absorbing")
+gridworld_matrix(gw, what = "unreachable")
 
 # a transition function for regular moves in the gridworld is provided
-gw$transition_prob("right", "s(1,1)", "s(1,2)")
-gw$transition_prob("right", "s(2,1)", "s(2,2)") ### we cannot move into an unreachable state
-gw$transition_prob("right", "s(2,1)", "s(2,1)") ### but the agent stays in place
+gw$transition_prob(gw, "right", "s(1,1)", "s(1,2)")
+gw$transition_prob(gw, "right", "s(2,1)", "s(2,2)") ### we cannot move into an unreachable state
+gw$transition_prob(gw, "right", "s(2,1)", "s(2,1)") ### but the agent stays in place
 
 # convert between state names and row/column indices
 gridworld_s2rc("s(1,1)")
@@ -229,8 +238,11 @@ gridworld_rc2s(c(1, 1))
 
 # We modify the standard transition function so there is a 50\% chance that
 # you will get sucked into the black hole from the adjacent squares.
-trans_black_hole <- function(action = NA, start.state = NA, end.state = NA) {
-  # ignore the action next to the black hole
+trans_black_hole <- function(model,
+                             action = NA,
+                             start.state = NA,
+                             end.state = NA) {
+  # states around the black hole
   if (start.state \%in\% c(
     "s(3,3)", "s(3,4)", "s(3,5)", "s(4,3)", "s(4,5)",
     "s(5,3)", "s(5,4)", "s(5,5)"
@@ -238,19 +250,20 @@ trans_black_hole <- function(action = NA, start.state = NA, end.state = NA) {
     if (end.state == "s(4,4)") {
       return(.5)
     } else {
-      return(gw$transition_prob(action, start.state, end.state) * .5)
+      return(gw$transition_prob(model, action, start.state, end.state) * .5)
     }
   }
 
   # use the standard gridworld movement
-  gw$transition_prob(action, start.state, end.state)
+  gw$transition_prob(model, action, start.state, end.state)
 }
 
 black_hole <- MDP(
   states = gw$states,
   actions = gw$actions,
   transition_prob = trans_black_hole,
-  reward = rbind(R_(value = +1), R_(end.state = "s(4,4)", value = -100)),
+  reward = rbind(R_(                      value = +1),
+                 R_(end.state = "s(4,4)", value = -100)),
   info = gw$info,
   name = "Black hole"
 )
@@ -309,6 +322,7 @@ file.show(file.path(maze_dir, "small_maze.txt"))
 
 maze <- gridworld_read_maze(file.path(maze_dir, "small_maze.txt"))
 maze
+gridworld_matrix(maze, what = "label")
 gridworld_plot(maze)
 sol <- solve_MDP(maze, method = "lp", discount = 0.999)
 sol
@@ -330,11 +344,11 @@ Other MDP:
 \code{\link{add_policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 }
 \concept{MDP}

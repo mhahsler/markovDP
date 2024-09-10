@@ -6,14 +6,14 @@
 \alias{manual_policy}
 \title{Extract or Create a Policy}
 \usage{
-policy(x, epoch = NULL, drop = TRUE)
+policy(model, epoch = NULL, drop = TRUE)
 
-random_policy(x, prob = NULL)
+random_policy(model, prob = NULL, U = FALSE)
 
-manual_policy(x, actions)
+manual_policy(model, actions, U = NULL)
 }
 \arguments{
-\item{x}{A solved \link{MDP} object.}
+\item{model}{A solved \link{MDP} object.}
 
 \item{epoch}{return the policy of the given epoch. \code{NULL} returns a list
 with elements for each epoch.}
@@ -23,6 +23,9 @@ with elements for each epoch.}
 \item{prob}{probability vector for random actions for \code{random_policy()}.
 a logical indicating if action probabilities should be returned for
 \code{greedy_action()}.}
+
+\item{U}{a vector with the value function for the policy. If \code{TRUE}, then
+the it is estimated using \code{policy_evaluation()}.}
 
 \item{actions}{a vector with the action (either the action label or the
 numeric id) for each state.}

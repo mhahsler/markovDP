@@ -71,8 +71,8 @@ round_stochastic_int <- function(x, digits = 7) {
 
 # check if vector sums to 1
 sum1 <- function(x, digits = getOption("digits")) {
-  if (is.matrix(x)) {
-    all(apply(x, MARGIN = 1, sum1))
+  if (!is.null(dim(x))) {
+    all(zapsmall(rowSums(x), digits) == 1)
   } else {
     zapsmall(sum(x), digits) == 1
   }

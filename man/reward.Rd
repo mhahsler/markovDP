@@ -5,12 +5,12 @@
 \alias{reward.MDP}
 \title{Calculate the Expected Reward of a Policy}
 \usage{
-reward(x, ...)
+reward(model, ...)
 
-\method{reward}{MDP}(x, start = NULL, epoch = 1L, ...)
+\method{reward}{MDP}(model, start = NULL, epoch = 1L, ...)
 }
 \arguments{
-\item{x}{a solved \link{MDP} object.}
+\item{model}{a solved \link{MDP} object.}
 
 \item{...}{further arguments are passed on.}
 
@@ -27,13 +27,13 @@ the model as start is used. Multiple states can be specified as rows in a matrix
 state of model is used.}
 }
 \description{
-This function calculates the expected total reward for a MDP policy
+This function calculates the expected total reward for an MDP policy
 given a start state (distribution). The value is calculated using the value function stored
 in the MDP solution.
 }
 \details{
 The reward is typically calculated using the value function
-of the solution. If these are not available, then \code{\link[=simulate_MDP]{simulate_MDP()}} is
+of the solution. If these are not available, then \code{\link[=sample_MDP]{sample_MDP()}} is
 used instead with a warning.
 }
 \examples{

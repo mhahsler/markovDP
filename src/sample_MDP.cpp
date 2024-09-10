@@ -1,42 +1,17 @@
 #include <Rcpp.h>
 #include <numeric>
 #include "math.h"
-#include "model.h"
+#include "MDP.h"
 
 //#define DEBUG
 
 using namespace Rcpp;
 
-/*** R
-library(pomdp)
-data(Maze)
-Maze_norm <- normalize_MDP(Maze, sparse = FALSE)
-Maze_norm_sparse <- normalize_MDP(Maze, sparse = TRUE)
-
-# unsolved MDP
-pomdp:::simulate_MDP_cpp(Maze_norm, 2, start_vector(Maze_norm), 10, 
-  disc = 1, return_trajectories = TRUE, epsilon = 1, verbose = TRUE)
-
-pomdp:::simulate_MDP_cpp(Maze_norm_sparse, 2, start_vector(Maze_norm_sparse), 10, 
-  disc = 1, return_trajectories = TRUE, epsilon = 1, verbose = TRUE)
-
-# solve MDP
-sol <- solve_MDP(Maze_norm)
-sol
-policy(sol)
-
-pomdp:::simulate_MDP_cpp(sol, 1, start_vector(sol), 10, 
-  disc = 1, return_trajectories = FALSE, epsilon = 0, verbose = TRUE)
-
-pomdp:::simulate_MDP_cpp(sol, 10, start_vector(sol), 10, 
-  disc = 1, return_trajectories = TRUE, epsilon = 0, verbose = TRUE)
-*/
-
 // Note: all are 0-based integer indices
 // epsilon -1 means 0 for solved models and 1 for unsolved models
 
 // [[Rcpp::export]]
-List simulate_MDP_cpp(const List& model,
+List sample_MDP_cpp(const List& model,
   const int n,
   const NumericVector& start,
   const int horizon,

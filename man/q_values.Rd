@@ -92,11 +92,11 @@ Other MDP:
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 
 Other policy: 

@@ -1,16 +1,16 @@
 #' Calculate the Expected Reward of a Policy
 #'
-#' This function calculates the expected total reward for a MDP policy
+#' This function calculates the expected total reward for an MDP policy
 #' given a start state (distribution). The value is calculated using the value function stored
 #' in the MDP solution.
 #'
 #' The reward is typically calculated using the value function
-#' of the solution. If these are not available, then [simulate_MDP()] is
+#' of the solution. If these are not available, then [sample_MDP()] is
 #' used instead with a warning.
 #'
 #' @family policy
 #'
-#' @param x a solved [MDP] object.
+#' @param model a solved [MDP] object.
 #' @param start specification of the current state (see argument start
 #' in [MDP] for details). By default the start state defined in
 #' the model as start is used. Multiple states can be specified as rows in a matrix.
@@ -39,28 +39,28 @@
 #' # expected reward when we start from a random state
 #' reward(sol, start = "uniform")
 #' @export
-reward <- function(x, ...) {
+reward <- function(model, ...) {
   UseMethod("reward")
 }
 
 #' @rdname reward
 #' @export
-reward.MDP <- function(x,
+reward.MDP <- function(model,
                        start = NULL,
                        epoch = 1L,
                        ...) {
-  is_solved_MDP(x, stop = TRUE)
+  is_solved_MDP(model, stop = TRUE)
 
   if (is.null(start)) {
-    start <- start_vector(x)
+    start <- start_vector(model)
   } else {
-    start <- .translate_belief(start, x)
+    start <- .translate_belief(start, model)
   }
 
-  pol <- policy(x, epoch)
+  pol <- policy(model, epoch)
 
   if (is.null(pol$U)) {
-    pol$U <- policy_evaluation(pol, x)
+    pol$U <- policy_evaluation(pol, model)
   }
 
   return(drop(crossprod(pol$U, start)))

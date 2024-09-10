@@ -2,7 +2,7 @@
 #'
 #' Returns the transition model as an \pkg{igraph} object.
 #'
-#' The transition model of a MDP is a Markov Chain. This function extracts the transition model as
+#' The transition model of an MDP is a Markov Chain. This function extracts the transition model as
 #' an igraph object.
 #'
 #' @family MDP

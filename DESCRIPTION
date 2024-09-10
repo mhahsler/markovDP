@@ -43,6 +43,7 @@ RoxygenNote: 7.3.2
 SystemRequirements: C++17
 Collate: 
     'AAA_check_installed.R'
+    'AAA_nodots.R'
     'AAA_package.R'
     'AAA_progress.R'
     'AAA_shorten.R'
@@ -70,7 +71,7 @@ Collate:
     'regret.R'
     'reward.R'
     'round_stochchastic.R'
-    'simulate_MDP.R'
+    'sample_MDP.R'
     'solve_MDP.R'
     'solve_MDP_DP.R'
     'solve_MDP_LP.R'

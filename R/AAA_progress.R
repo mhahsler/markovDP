@@ -1,9 +1,15 @@
-my_progress_bar <- function(N) 
+my_progress_bar <- function(N, name = NULL, format_extra = NULL, 
+                            clear = FALSE, ...) 
   progress::progress_bar$new(
-    format = "[:bar] :percent (remaining :eta)", 
-    total = N)
+    format = paste(name, "[:bar] :percent (remaining :eta)", format_extra),
+    clear = clear, 
+    total = N,
+    ...)
 
-my_progress_spinner <- function() 
+my_progress_spinner <- function(name = NULL, ticks = "iterations", 
+                                format_extra = "", clear = FALSE, ...) 
   progress::progress_bar$new(
-    format = "(:spin) ticks: :current | elapsed: :elapsed :details", 
-    total = NA)
+    format = paste(name, "(:spin)", paste0(ticks, ":"), " :current | elapsed: :elapsed", format_extra), 
+    clear = clear,
+    total = NA,
+    ...)

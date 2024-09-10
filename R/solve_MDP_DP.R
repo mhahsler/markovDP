@@ -122,7 +122,7 @@ MDP_value_iteration_finite_horizon <-
     policy <- vector(mode = "list", length = horizon)
 
     if (progress) {
-      pb <- my_progress_bar(horizon) 
+      pb <- my_progress_bar(horizon, name = "solve_MDP") 
       pb$tick(0)
     }
       
@@ -180,7 +180,7 @@ MDP_value_iteration_inf_horizon <-
     names(U) <- S
 
     if (progress)
-      pb <- my_progress_spinner()
+      pb <- my_progress_spinner(name = "solve_MDP")
     
     converged <- FALSE
     for (i in seq_len(N_max)) {
@@ -274,7 +274,7 @@ MDP_PS_inf_horizon <-
     # chosen at least once.
 
     if (progress)
-      pb <- my_progress_spinner()
+      pb <- my_progress_spinner(name = "solve_MDP")
     
     H <- rep(error, times = length(S))
     err <- sum(H)
@@ -385,7 +385,7 @@ MDP_policy_iteration_inf_horizon <-
     names(pi) <- S
     
     if (progress)
-      pb <- my_progress_spinner()
+      pb <- my_progress_spinner(name = "solve_MDP")
     
     converged <- FALSE
     for (i in seq_len(N_max)) {

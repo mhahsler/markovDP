@@ -60,6 +60,12 @@ x <- gridworld_maze_MDP(
 x
 ```
 
+Normalize the model for faster access.
+
+```{r }
+x <- normalize_MDP(x)
+```
+
 Gridworlds are implemented with state names `"s(<row>,<col>)"`, where
 `row` and `col` are locations in the matrix representing the gridworld.
 The actions are `"up"`, `"right"`,  `"down"`, and  `"left"`.
@@ -86,9 +92,11 @@ The gridworld can be accessed as a matrix.
 ```{r}
 gridworld_matrix(x)
 gridworld_matrix(x, what = "labels")
-gridworld_matrix(x, what = "reachable")
+gridworld_matrix(x, what = "unreachable")
 ```
 
+`NA` represents states that were excluded from the state space since they are
+not reachable (e.g., walls).
 Other options for `what` are `"values"` (for state values) and `"action"`, but these are only 
 available for solved problems that contain a policy.
 
@@ -136,17 +144,15 @@ gridworld_plot(sol, zlim = c(0, 2), sub = "Iteration 5")
 ```
 The solver creates a warning indicating that the solution has not converged after only
 5 iterations. In the visualization, we see that value iteration has expanded values from the 
-goal state up to 5 squares away. To make this analysis easier, we can use 
-`gridworld_animate()` to draw a visualization after each iteration.
+goal state up to 5 squares away. 
 
-```{r}
-gridworld_animate(x, "value_iteration", n = 5, zlim = c(0, 2))
-```
+To see how the updates in the solver work, we can use 
+`gridworld_animate()` to draw a visualization after each iteration.
 R markdown documents can use `{r, fig.show='animate'}` so create an animation using 
 the individual frames.
 
 ```{r, fig.show='animate'}
-gridworld_animate(x, "value_iteration", n = 20, zlim = c(0, 2))
+gridworld_animate(x, "value_iteration", n = 15, zlim = c(0, 2))
 ```
 
 It is easy to see how value iteration propagates value from the goal to the start.
@@ -154,19 +160,11 @@ In the following, we create animations for more solving methods.
 
 
 ```{r, fig.show='animate'}
-gridworld_animate(x, "policy_iteration", n = 20, zlim = c(0, 2))
+gridworld_animate(x, "policy_iteration", n = 15, zlim = c(0, 2))
 ```
 
 ```{r, fig.show='animate'}
-gridworld_animate(x, "q_learning", n = 20, zlim = c(0, 2), horizon = 100)
-```
-
-```{r, fig.show='animate'}
-gridworld_animate(x, "sarsa", n = 20, zlim = c(0, 2), horizon = 100)
-```
-
-```{r, fig.show='animate'}
-gridworld_animate(x, "expected_sarsa", n = 20, zlim = c(0, 2), horizon = 100, alpha = 1)
+gridworld_animate(x, "q_learning", n = 15, zlim = c(0, 2), horizon = 100)
 ```
 
 # References

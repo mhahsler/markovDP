@@ -4,9 +4,9 @@
 #'
 #' Markov decision processes (MDPs) are discrete-time stochastic control
 #' process. We implement here MDPs with a finite state space.
-#' `MDP()` defines all the element of a MDP problem including the discount rate, the
+#' `MDP()` defines all the element of an MDP problem including the discount rate, the
 #' set of states, the set of actions,the transition
-#' probabilities, the observation probabilities, and the rewards.
+#' probabilities, and the rewards.
 #'
 #' In the following we use the following notation. The MDP is a 5-duple:
 #'
@@ -14,14 +14,13 @@
 #'
 #' \eqn{S} is the set of states; \eqn{A}
 #' is the set of actions; \eqn{T} are the conditional transition probabilities
-#' between states; \eqn{R} is the reward function; \eqn{\Omega} is the set of
-#' observations; and
+#' between states; \eqn{R} is the reward function; and
 #' \eqn{\gamma} is the discount factor. We will use lower case letters to
 #' represent a member of a set, e.g., \eqn{s} is a specific state. To refer to
 #' the size of a set we will use cardinality, e.g., the number of actions is
 #' \eqn{|A|}.
 #'
-#' **Names used for mathematical symbols in code**
+#' ## Names used for mathematical symbols in code
 #'
 #' * \eqn{S, s, s'}: `'states', start.state', 'end.state'`
 #' * \eqn{A, a}: `'actions', 'action'`
@@ -31,7 +30,7 @@
 #' For the specification as data.frames below, `NA` can be used to mean
 #' any  `start.state`, `end.state` or `action`.
 #'
-#' **Specification of transition probabilities: \eqn{T(s' | s, a)}**
+#' ## Specification of transition probabilities: \eqn{T(s' | s, a)}
 #'
 #' Transition probability to transition to state \eqn{s'} from given state \eqn{s}
 #' and action \eqn{a}. The transition probabilities can be
@@ -49,7 +48,7 @@
 #' * A function with the same arguments are `T_()`, but no default values
 #'   that returns the transition probability.
 #'
-#' **Specification of the reward function: \eqn{R(a, s, s')}**
+#' ## Specification of the reward function: \eqn{R(a, s, s')}
 #'
 #' The reward function can be specified in the following
 #' ways:
@@ -73,15 +72,11 @@
 #' will be translated into a large negative reward for solvers that only support
 #' finite reward values.
 #'
-#' Note: The code also includes in `R_()` an argument called `observation`.
-#' Observations are only used POMDPs implemented in package
-#' `pomdp` obs must always be `NA` for MDPs.
-#'
-#' **Start State**
+#' ## Specification of the Start State
 #'
 #' The start state of the agent can be a single state or a distribution over the states.
 #' The start state definition is used as the default when the reward is calculated by [reward()]
-#' and for simulations with [simulate_MDP()].
+#' and for sampling with [sample_MDP()].
 #'
 #' Options to specify the start state are:
 #'
@@ -93,6 +88,22 @@
 #'
 #' The default state state is a uniform
 #' distribution over all states.
+#' 
+#' ## Normalizing MDP Descriptions
+#' 
+#' Different components can be specified in various ways. It is often 
+#' necessary to convert each component into a specific form (e.g., a 
+#' dense matrix) to save time during access.  
+#' Convert the Complete MDP Description into a consistent form
+#' `normalize_MDP()` converts all components of the MDP description
+#'  into a consistent form and
+#' returns a new MDP definition where `transition_prob`,
+#' `reward`, and `start` are normalized. This includes the internal
+#' representation (dense, sparse, as a data.frame) and 
+#' also, `states`, and `actions` are ordered as given in the problem
+#' definition to make safe access using numerical indices possible. Normalized
+#' MDP descriptions can be
+#' used in custom code that expects consistently a certain format.
 #'
 #' @family MDP
 #' @family MDP_examples
@@ -109,8 +120,7 @@
 #' @param start Specifies in which state the MDP starts.
 #' @param info A list with additional information.
 #' @param name a string to identify the MDP problem.
-#' @param x a `MDP` object.
-#' @param normalize logical; normalize representation (see [normalize_MDP()]).
+#' @param model,x a `MDP` object.
 #'
 #' @return The function returns an object of class MDP which is list with
 #'   the model specification. [solve_MDP()] reads the object and adds a list element called
@@ -128,8 +138,14 @@
 #'   states = c("s1", "s2", "s3", "s4"),
 #'   actions = c("forward", "back", "stop"),
 #'   transition <- list(
-#'     forward = rbind(c(0, 1, 0, 0), c(0, 0, 1, 0), c(0, 0, 0, 1), c(0, 0, 0, 1)),
-#'     back = rbind(c(1, 0, 0, 0), c(1, 0, 0, 0), c(0, 1, 0, 0), c(0, 0, 1, 0)),
+#'     forward = rbind(c(0, 1, 0, 0), 
+#'                     c(0, 0, 1, 0), 
+#'                     c(0, 0, 0, 1), 
+#'                     c(0, 0, 0, 1)),
+#'     back =    rbind(c(1, 0, 0, 0), 
+#'                     c(1, 0, 0, 0), 
+#'                     c(0, 1, 0, 0), 
+#'                     c(0, 0, 1, 0)),
 #'     stop = "identity"
 #'   ),
 #'   reward = rbind(
@@ -143,12 +159,21 @@
 #'
 #' car
 #'
-#' transition_matrix(car)
+#' # internal representation
+#' str(car)
+#'
+#' # accessing elements
+#' transition_matrix(car, sparse = FALSE)
+#' transition_matrix(car, sparse = TRUE)
+#' reward_matrix(car, sparse = FALSE)
 #' reward_matrix(car, sparse = TRUE)
-#' reward_matrix(car)
 #'
 #' sol <- solve_MDP(car)
 #' policy(sol)
+#' 
+#' # normalize MDP: make everything dense (transition_prob, reward and start)
+#' car_dense <- normalize_MDP(car, sparse = FALSE)
+#' str(car_dense)
 #' @export
 MDP <- function(states,
                 actions,
@@ -158,9 +183,8 @@ MDP <- function(states,
                 horizon = Inf,
                 start = "uniform",
                 info = NULL,
-                name = NA,
-                normalize = TRUE) {
-  # MDP does not have observations
+                name = NA) {
+  # MDP does not have observations (only POMDPs in package pomdp have it)
   if (is.data.frame(reward)) {
     if (!is.null(reward$observation) && !all(is.na(reward$observation))) {
       stop("MDPs do not have observations. Remove observation information from rewards!")
@@ -182,11 +206,6 @@ MDP <- function(states,
 
   class(x) <- list("MDP", "list")
   x <- check_and_fix_MDP(x)
-  
-  if (normalize) {
-    x <- normalize_MDP(x)
-  }
-    
     
   x
 }
@@ -250,12 +269,13 @@ print.MDP <- function(x, ...) {
   ))
 }
 
+
 #' @rdname MDP
 #' @param stop logical; stop with an error.
 #' @export
 is_solved_MDP <- function(x, stop = FALSE) {
   if (!inherits(x, "MDP")) {
-    stop("x needs to be a MDP object!")
+    stop("x needs to be an MDP object!")
   }
   solved <- !is.null(x$solution)
   if (stop && !solved) {
@@ -308,6 +328,42 @@ is_solved_MDP <- function(x, stop = FALSE) {
 }
 
 #' @rdname MDP
+#' @param action action as a action label or integer. The value `NA` matches any action.
+#' @param start.state,end.state state as a state label or an integer. The value `NA` matches any state.
+#' @param probability,value Values used in the helper functions `T_()` and `R_()`.
+#'
+#' @export
+T_ <-
+  function(action = NA,
+           start.state = NA,
+           end.state = NA,
+           probability) {
+    data.frame(
+      action = action,
+      start.state = start.state,
+      end.state = end.state,
+      probability = as.numeric(probability),
+      stringsAsFactors = FALSE
+    )
+  }
+
+#' @rdname MDP
+#' @export
+R_ <-
+  function(action = NA,
+           start.state = NA,
+           end.state = NA,
+           value) {
+    data.frame(
+      action = action,
+      start.state = start.state,
+      end.state = end.state,
+      value = as.numeric(value),
+      stringsAsFactors = FALSE
+    )
+  }
+
+#' @rdname MDP
 #' @param epoch integer; an epoch that should be converted to the
 #'              corresponding episode in a time-dependent MDP.
 #' @export
@@ -335,41 +391,75 @@ epoch_to_episode.MDP <- function(x, epoch) {
 }
 
 
-#' @rdname MDP
-#' @param action action as a action label or integer. The value `NA` matches any action.
-#' @param start.state,end.state state as a state label or an integer. The value `NA` matches any state.
-#' @param observation unused for MDPs. Must be `NA`.
-#' @param probability,value Values used in the helper functions `T_()` and `R_()`.
-#'
-#' @export
-T_ <-
-  function(action = NA,
-           start.state = NA,
-           end.state = NA,
-           probability) {
-    data.frame(
-      action = action,
-      start.state = start.state,
-      end.state = end.state,
-      probability = as.numeric(probability),
-      stringsAsFactors = FALSE
-    )
-  }
 
 #' @rdname MDP
+#' @param sparse logical; use sparse representation. matrices when the density is below 50% and keeps data.frame representation
+#'  for the reward field. 
+#' @param trans_function logical; convert functions into matrices?
+#' @param trans_keyword logical; convert distribution keywords (uniform and identity)
+#'  in `transition_prob` matrices?
+#' @param keep_reward_df logical; if reward is a data.frame, then keep it.
+#' @param cache_absorbing_unreachable logical; should absorbing and unreachable states be precalculated?
+#' @param progress logical; show a progress bar with estimated time for completion.
 #' @export
-R_ <-
-  function(action = NA,
-           start.state = NA,
-           end.state = NA,
-           #observation = NA,
-           value) {
-    data.frame(
-      action = action,
-      start.state = start.state,
-      end.state = end.state,
-      #observation = observation,
-      value = as.numeric(value),
-      stringsAsFactors = FALSE
-    )
+normalize_MDP <- function(model,
+                          sparse = TRUE,
+                          trans_keyword = TRUE,
+                          trans_function = TRUE,
+                          keep_reward_df = FALSE,
+                          cache_absorbing_unreachable = TRUE,
+                          progress = TRUE
+                          ) {
+  if (!inherits(model, "MDP")) {
+    stop("model is not an MDP object!")
   }
+  
+  # start state vector + transitions matrix + reward matrix + check and fix
+  n_states <- length(model$states)
+  n_actions <- length(model$actions)
+  N <- n_states + n_actions * n_states * n_states * 3
+  if (progress)
+    pb <- my_progress_bar(N, name = "normalize_MDP")
+  
+  if (trans_keyword)
+    model$start <- start_vector(model, sparse = sparse)
+  
+  if (progress)
+    pb$tick(n_states)
+  
+  if (is.function(model$transition_prob) && !trans_function) {
+    # do nothing
+  } else {
+    model$transition_prob <-
+      transition_matrix(model, sparse = sparse, trans_keyword = trans_keyword)
+  }
+  
+  if (progress)
+    pb$tick(n_actions * n_states * n_states)
+  
+  if ((is.function(model$reward) && !trans_function)) {
+    # do nothing
+  } else if (is.data.frame(model$reward) && keep_reward_df) {
+    # do nothing
+  } else {
+    model$reward <- reward_matrix(model, sparse = sparse)
+  }
+  
+  if (progress)
+    pb$tick(n_actions * n_states * n_states)
+  
+  # make sure order is OK
+  model <- check_and_fix_MDP(model)
+  
+  if (progress)
+    pb$tick(n_actions * n_states * n_states)
+  
+  # TODO: remember absorbing states
+  # remember recalculated absorbing/unreachable states
+  model$absorbing_states <- NULL
+  model$absorbing_states <- absorbing_states(model, sparse = TRUE)
+  model$unreachable_states <- NULL
+  model$unreachable_states <- unreachable_states(model, sparse = TRUE)
+  
+  model
+}

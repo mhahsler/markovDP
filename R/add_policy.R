@@ -1,6 +1,6 @@
-#' Add a Policy to a MDP Problem Description
+#' Add a Policy to an MDP Problem Description
 #'
-#' Add a policy to a MDP problem description allows the user to
+#' Add a policy to an MDP problem description allows the user to
 #' test policies on modified problem descriptions or to test manually created
 #' policies.
 #'

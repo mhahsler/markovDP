@@ -15,8 +15,9 @@
 
 #' @include accessors.R
 #' @rdname accessors
+#' @param trans_keyword logical; translate keywords like "uniform" into matrices.
 #' @export
-transition_matrix <- function(x,
+transition_matrix <- function(model,
                               action = NULL,
                               start.state = NULL,
                               end.state = NULL,
@@ -28,7 +29,7 @@ transition_matrix <- function(x,
 
 #' @export
 transition_matrix.MDP <-
-  function(x,
+  function(model,
            action = NULL,
            start.state = NULL,
            end.state = NULL,
@@ -36,7 +37,7 @@ transition_matrix.MDP <-
            sparse = NULL,
            trans_keyword = TRUE) {
     value_matrix(
-      x,
+      model,
       "transition_prob",
       action,
       start.state,

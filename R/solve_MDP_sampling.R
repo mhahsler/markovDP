@@ -47,7 +47,7 @@ solve_MDP_sampling <-
     }
 
     if (progress)
-      pb <- my_progress_bar(N)
+      pb <- my_progress_bar(N, name = "solve_MDP")
     
     # loop through tries
     n <- N

@@ -45,23 +45,34 @@
 #' @examples
 #' # The problem can be loaded using data(Maze).
 #'
-#' # Here is the complete problem definition:
-#' gw <- gridworld_init(dim = c(3, 4), unreachable_states = c("s(2,2)"))
+#' # Here is the complete problem definition.
+#' 
+#' # We first look at the state layout
+#' gridworld_matrix(gridworld_init(dim = c(3, 4)))
+#' 
+#' # the wall at s(2,2) is unreachable
+#' gw <- gridworld_init(dim = c(3, 4),  
+#'                      unreachable_states = "s(2,2)",
+#'                      absorbing_states = c("s(1,4)", "s(2,4)"),
+#'                      state_labels = list(
+#'                          "s(3,1)" = "Start",
+#'                          "s(2,4)" = "-1",
+#'                          "s(1,4)" = "Goal: +1"
+#'                          )
+#'                      )
 #' gridworld_matrix(gw)
+#' gridworld_matrix(gw, what = "labels")
+#'
+#' # gridworld_init has created the following information
+#' str(gw)
 #'
 #' # the transition function is stochastic so we cannot use the standard
 #' # gridworld gw$transition_prob() function and have to replace it
-#' T <- function(action, start.state, end.state) {
-#'   actions <- c("up", "right", "down", "left")
-#'   states <- c(
-#'     "s(1,1)", "s(2,1)", "s(3,1)", "s(1,2)", "s(3,2)", "s(1,3)",
-#'     "s(2,3)", "s(3,3)", "s(1,4)", "s(2,4)", "s(3,4)"
-#'   )
-#'
-#'   action <- match.arg(action, choices = actions)
+#' T <- function(model, action, start.state, end.state) {
+#'   action <- match.arg(action, choices = model$actions)
 #'
 #'   # absorbing states
-#'   if (start.state %in% c("s(1,4)", "s(2,4)")) {
+#'   if (start.state %in% model$info$absorbing_states) {
 #'     if (start.state == end.state) {
 #'       return(1)
 #'     } else {
@@ -86,7 +97,8 @@
 #'
 #'   add_prob <- function(P, rc, a, value) {
 #'     new_rc <- rc + delta[[a]]
-#'     if (!(gridworld_rc2s(new_rc) %in% states)) {
+#'     # stay in place for moved to a non-existing state
+#'     if (!(gridworld_rc2s(new_rc) %in% model$states)) {
 #'       new_rc <- rc
 #'     }
 #'     P[new_rc[1], new_rc[2]] <- P[new_rc[1], new_rc[2]] + value
@@ -99,14 +111,14 @@
 #'   P[rbind(gridworld_s2rc(end.state))]
 #' }
 #'
-#' T("up", "s(3,1)", "s(2,1)")
+#' T(gw, "up", "s(3,1)", "s(2,1)")
 #'
 #' R <- rbind(
-#'   R_(end.state = NA, value = -0.04),
-#'   R_(end.state = "s(2,4)", value = -1),
-#'   R_(end.state = "s(1,4)", value = +1),
-#'   R_(start.state = "s(2,4)", value = 0),
-#'   R_(start.state = "s(1,4)", value = 0)
+#'   R_(                         value = -0.04),
+#'   R_(end.state = "s(2,4)",    value = -1),
+#'   R_(end.state = "s(1,4)",    value = +1),
+#'   R_(start.state = "s(2,4)",  value = 0),
+#'   R_(start.state = "s(1,4)",  value = 0)
 #' )
 #'
 #'
@@ -119,14 +131,7 @@
 #'   start = "s(3,1)",
 #'   transition_prob = T,
 #'   reward = R,
-#'   info = list(
-#'     gridworld_dim = c(3, 4),
-#'     gridworld_labels = list(
-#'       "s(3,1)" = "Start",
-#'       "s(2,4)" = "-1",
-#'       "s(1,4)" = "Goal: +1"
-#'     )
-#'   )
+#'   info = gw$info
 #' )
 #'
 #' Maze

@@ -51,7 +51,7 @@ returns the transition model as an igraph object.
 Returns the transition model as an \pkg{igraph} object.
 }
 \details{
-The transition model of a MDP is a Markov Chain. This function extracts the transition model as
+The transition model of an MDP is a Markov Chain. This function extracts the transition model as
 an igraph object.
 }
 \examples{
@@ -98,10 +98,10 @@ Other MDP:
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 }
 \concept{MDP}

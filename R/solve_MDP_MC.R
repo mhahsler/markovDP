@@ -1,10 +1,7 @@
 # Solve MDPs using Monte Carlo Methods
 
 #' @rdname solve_MDP
-#' @param exploring_starts if `TRUE` then the first state and action for 
-#' each episode is uniformly sampled, otherwise the specifications in the model
-#' are used.
-#' @param fist_visit if `TRUE` then only the first visit of a state/action pair
+#' @param first_visit if `TRUE` then only the first visit of a state/action pair
 #'   in an episode is used to update Q, otherwise, every-visit update is used. 
 #' @param progress logical; show a progress bar with estimated time for completion.
 #' @export
@@ -102,7 +99,7 @@ MC_exploring_starts <- function(model,
   # }
   
   if (progress)
-    pb <- my_progress_bar(N)
+    pb <- my_progress_bar(N, name = "solve_MDP")
   
   # Loop through N episodes
   for (e in seq(N)) {
@@ -117,7 +114,7 @@ MC_exploring_starts <- function(model,
       converged = NA
     )
     
-    ep <- simulate_MDP(
+    ep <- sample_MDP(
       model,
       n = 1,
       horizon = horizon,
@@ -231,7 +228,7 @@ MC_on_policy <- function(model,
   }
   
   if (progress)
-    pb <- my_progress_bar(N)
+    pb <- my_progress_bar(N, name = "solve_MDP")
   
   # Loop through N episodes
   for (e in seq(N)) {
@@ -247,12 +244,14 @@ MC_on_policy <- function(model,
     )
     
     # use epsilon-soft policy!
-    ep <- simulate_MDP(
+    ep <- sample_MDP(
       model,
       n = 1,
       horizon = horizon,
       epsilon = epsilon,
-      return_trajectories = TRUE
+      return_trajectories = TRUE,
+      progress = FALSE,
+      verbose = FALSE
     )$trajectories
     
     if (verbose) {
@@ -342,7 +341,7 @@ MC_off_policy <- function(model,
   C <- matrix(0L, nrow = length(S), ncol = length(A), dimnames = list(S, A))
   
   if (progress)
-    pb <- my_progress_bar(N)
+    pb <- my_progress_bar(N, name = "solve_MDP")
   
   # Loop through N episodes
   for (e in seq(N)) {
@@ -361,12 +360,14 @@ MC_off_policy <- function(model,
       converged = NA
     )
     
-    ep <- simulate_MDP(
+    ep <- sample_MDP(
       model,
       n = 1,
       horizon = horizon,
       epsilon = epsilon,
-      return_trajectories = TRUE
+      return_trajectories = TRUE,
+      progress = FALSE,
+      verbose = FALSE
     )$trajectories
      
     if (verbose) {

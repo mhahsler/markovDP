@@ -4,7 +4,7 @@
 #'
 #' @family MDP
 #'
-#' @param model a MDP model.
+#' @param model an MDP model.
 #' @param state the current state.
 #' @param action the chosen action. If the action is not specified (`NULL`) and
 #'   the MDP model contains a policy, then the action is chosen according to the

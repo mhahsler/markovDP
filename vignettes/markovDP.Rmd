@@ -205,7 +205,8 @@ The transition probabilities (`transition_prob`) and reward function
     representation for most problems.
 -   A named list of matrices representing the transition probabilities
     or rewards. Each list elements corresponds to an action.
--   A function with the same arguments `T_()` or `R_()` that returns the
+-   A function with the model as the first argument and then 
+    the same arguments `T_()` or `R_()` that returns the
     probability or reward.
 
 More details can be found in the manual page for `MDP()`.
@@ -266,7 +267,16 @@ After loading the library, we create the states using a gridworld helper
 function.
 
 ```{r}
-gw <- gridworld_init(dim = c(3, 4), unreachable_states = c("s(2,2)"))
+gw <- gridworld_init(dim = c(3, 4),  
+                     unreachable_states = "s(2,2)",
+                     absorbing_states = c("s(1,4)", "s(2,4)"),
+                     state_labels = list(
+                         "s(3,1)" = "Start",
+                         "s(2,4)" = "-1",
+                         "s(1,4)" = "Goal: +1"
+                         )
+                     )
+
 gw$states
 gw$actions
 ```
@@ -275,11 +285,11 @@ The helper function also creates a deterministic transition function,
 but we need to create our own stochastic transition function is stochastic.
 
 ```{r}
-T <- function(action, start.state, end.state) {
-  action <- match.arg(action, choices = gw$actions)
+T <- function(model, action, start.state, end.state) {
+  action <- match.arg(action, choices = model$actions)
 
   # absorbing states
-  if (start.state %in% c("s(1,4)", "s(2,4)")) {
+  if (start.state %in% model$info$absorbing_states) {
     if (start.state == end.state) {
       return(1)
     } else {
@@ -287,7 +297,6 @@ T <- function(action, start.state, end.state) {
     }
   }
 
-  # actions are stochastic so we cannot use gw$trans_prob
   if (action %in% c("up", "down")) {
     error_direction <- c("right", "left")
   } else {
@@ -305,7 +314,8 @@ T <- function(action, start.state, end.state) {
 
   add_prob <- function(P, rc, a, value) {
     new_rc <- rc + delta[[a]]
-    if (!(gridworld_rc2s(new_rc) %in% gw$states)) {
+    # stay in place for moved to a non-existing state
+    if (!(gridworld_rc2s(new_rc) %in% model$states)) {
       new_rc <- rc
     }
     P[new_rc[1], new_rc[2]] <- P[new_rc[1], new_rc[2]] + value
@@ -329,11 +339,11 @@ that staying in the terminal state does not add to the reward.
 
 ```{r}
 R <- rbind(
-  R_(value = -0.04),
-  R_(end.state = "s(1,4)", value = +1),
-  R_(end.state = "s(2,4)", value = -1),
-  R_(start.state = "s(1,4)", value = 0),
-  R_(start.state = "s(2,4)", value = 0)
+  R_(                         value = -0.04),
+  R_(end.state = "s(2,4)",    value = -1),
+  R_(end.state = "s(1,4)",    value = +1),
+  R_(start.state = "s(2,4)",  value = 0),
+  R_(start.state = "s(1,4)",  value = 0)
 )
 ```
 
@@ -348,14 +358,7 @@ Maze <- MDP(
   start = "s(3,1)",
   transition_prob = T,
   reward = R,
-  info = list(
-    gridworld_dim = c(3, 4),
-    gridworld_labels = list(
-      "s(3,1)" = "Start",
-      "s(2,4)" = "-1",
-      "s(1,4)" = "Goal: +1"
-    )
-  )
+  info = gw$info
 )
 
 Maze
@@ -457,10 +460,9 @@ MDP policies can be evaluated using:
 * `reward()` calculates the expected reward of a policy
 * `regret()` calculates the regret of a policy relative to a benchmark policy.
 
-## Simulation
+## Sampling
 
-Trajectories through a MDPs are created using `simulate_MDP()`
-
+Trajectories through a MDPs are created using `sample_MDP()`.
 The outcome of single actions can be calculated by
 `act()`. 
 

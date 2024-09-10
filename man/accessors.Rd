@@ -4,32 +4,23 @@
 \name{accessors}
 \alias{accessors}
 \alias{start_vector}
-\alias{normalize_MDP}
 \alias{reward_matrix}
 \alias{transition_matrix}
 \title{Access to Parts of the Model Description}
 \usage{
-start_vector(x, start = NULL, sparse = NULL)
-
-normalize_MDP(
-  x,
-  sparse = TRUE,
-  trans_start = FALSE,
-  trans_function = TRUE,
-  trans_keyword = FALSE
-)
+start_vector(model, start = NULL, sparse = NULL)
 
 reward_matrix(
-  x,
+  model,
   action = NULL,
   start.state = NULL,
   end.state = NULL,
   ...,
-  sparse = FALSE
+  sparse = NULL
 )
 
 transition_matrix(
-  x,
+  model,
   action = NULL,
   start.state = NULL,
   end.state = NULL,
@@ -39,27 +30,21 @@ transition_matrix(
 )
 }
 \arguments{
-\item{x}{A \link{MDP} object.}
+\item{model}{A \link{MDP} object.}
 
 \item{start}{a start state description (see \link{MDP}). If \code{NULL} then the
 start vector is created using the start stored in the model.}
 
-\item{sparse}{logical; use sparse matrices when the density is below 50\% and keeps data.frame representation
-for the reward field. \code{NULL} returns the
+\item{sparse}{logical; use sparse representation. \code{NULL} returns the
 representation stored in the problem description which saves the time for conversion.}
-
-\item{trans_start}{logical; expand the start to a probability vector?}
-
-\item{trans_function}{logical; convert functions into matrices?}
-
-\item{trans_keyword}{logical; convert distribution keywords (uniform and identity)
-in \code{transition_prob} matrices?}
 
 \item{action}{name or index of an action.}
 
 \item{start.state, end.state}{name or index of the state.}
 
 \item{...}{further arguments are passed on.}
+
+\item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
 }
 \value{
 A list or a list of lists of matrices.
@@ -104,17 +89,6 @@ resulting in no entries with 0.
 
 \code{start_vector()} translates the start state description into a probability vector.
 }
-
-\subsection{Convert the Complete MDP Description into a consistent form}{
-
-\code{normalize_MDP()} returns a new MDP definition where \code{transition_prob},
-\code{reward}, and \code{start} are normalized.
-
-Also, \code{states}, and \code{actions} are ordered as given in the problem
-definition to make safe access using numerical indices possible. Normalized
-MDP descriptions can be
-used in custom code that expects consistently a certain format.
-}
 }
 \examples{
 data("Maze")
@@ -156,11 +130,11 @@ Other MDP:
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 }
 \author{

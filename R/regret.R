@@ -15,7 +15,6 @@
 #' @param benchmark a solved MDP with the (optimal) policy. Regret is calculated relative to this
 #'    policy.
 #' @param start start state distribution. If NULL then the start state of the `benchmark` is used.
-#'
 #' @return the regret as a difference of expected long-term rewards.
 #'
 #'
@@ -30,7 +29,9 @@
 #' acts <- rep("up", times = length(Maze$states))
 #' names(acts) <- Maze$states
 #' acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
-#' sol_manual <- add_policy(Maze, manual_policy(Maze, acts))
+#' U <- policy_evaluation(Maze, manual_policy(Maze, acts))
+#' 
+#' sol_manual <- add_policy(Maze, manual_policy(Maze, acts, U = TRUE))
 #' policy(sol_manual)
 #'
 #' regret(sol_manual, benchmark = sol_optimal)
@@ -50,11 +51,11 @@ regret.MDP <- function(policy, benchmark, start = NULL) {
   }
 
   if (is.null(start)) {
-    start <- which(start_vector(benchmark) == 1)
+    start <- Matrix::which(start_vector(benchmark) > 0)
   }
 
   if (is.character(start)) {
-    start <- which(benchmark$states == start)
+    start <- match(start, benchmark$states)
   }
 
   if (length(start) != 1L) {

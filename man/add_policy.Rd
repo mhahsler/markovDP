@@ -2,7 +2,7 @@
 % Please edit documentation in R/add_policy.R
 \name{add_policy}
 \alias{add_policy}
-\title{Add a Policy to a MDP Problem Description}
+\title{Add a Policy to an MDP Problem Description}
 \usage{
 add_policy(model, policy)
 }
@@ -15,7 +15,7 @@ add_policy(model, policy)
 The model description with the added policy.
 }
 \description{
-Add a policy to a MDP problem description allows the user to
+Add a policy to an MDP problem description allows the user to
 test policies on modified problem descriptions or to test manually created
 policies.
 }
@@ -58,11 +58,11 @@ Other MDP:
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
-\code{\link{reachable_and_absorbing}},
 \code{\link{regret}()},
-\code{\link{simulate_MDP}()},
+\code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{unreachable_and_absorbing}},
 \code{\link{value_function}()}
 
 Other policy: 

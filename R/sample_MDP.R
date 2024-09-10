@@ -1,23 +1,23 @@
-#' Simulate Trajectories in a MDP
+#' Sample Trajectories from an MDP
 #'
-#' Simulate trajectories through a MDP. The start state for each
+#' Sample trajectories through an MDP. The start state for each
 #' trajectory is randomly chosen using the specified belief. The belief is used to choose actions
 #' from an epsilon-greedy policy and then update the state.
 #'
 #' The default is a
 #' faster C++ implementation (`engine = 'cpp'`).
-#' A native R implementation is available (`engine = 'r'`). 
+#' A native R implementation is available (`engine = 'r'`).
 #'
 #' Both implementations support parallel execution using the package
 #' \pkg{foreach}. To enable parallel execution, a parallel backend like
 #' \pkg{doparallel} needs to be available needs to be registered (see
 #' [doParallel::registerDoParallel()]).
-#' Note that small simulations are slower using parallelization. Therefore, C++ simulations
+#' Note that small samples are slower using parallelization. Therefore, C++ simulations
 #' with n * horizon less than 100,000 are always executed using a single worker.
 #' @family MDP
 #' @importFrom stats runif
 #'
-#' @param model a MDP model.
+#' @param model an MDP model.
 #' @param n number of trajectories.
 #' @param start probability distribution over the states for choosing the
 #'  starting states for the trajectories. Defaults to "uniform".
@@ -30,7 +30,10 @@
 #'  or a native R implementation.
 #' @param return_trajectories logical; return the complete trajectories.
 #' @param delta_horizon precision used to determine the horizon for infinite-horizon problems.
-#' @param verbose report used parameters.
+#' @param exploring_starts logical; randomly sample a start/action combination to
+#'  start the episode from.
+#' @param progress show a progress bar?
+#' @param verbose report used parameters
 #' @param ... further arguments are ignored.
 #' @return A list with elements:
 #'  * `avg_reward`: The average discounted reward.
@@ -59,7 +62,7 @@
 #'
 #' ## Example 1: simulate 100 trajectories following the policy,
 #' #             only the final belief state is returned
-#' sim <- simulate_MDP(sol, n = 100, horizon = 10, verbose = TRUE)
+#' sim <- sample_MDP(sol, n = 100, horizon = 10, verbose = TRUE)
 #' sim
 #'
 #' # Note that all simulations start at s_1 and that the simulated avg. reward
@@ -74,7 +77,7 @@
 #'
 #' ## Example 2: simulate starting following a uniform distribution over all
 #' #             states and return all trajectories
-#' sim <- simulate_MDP(sol,
+#' sim <- sample_MDP(sol,
 #'   n = 100, start = "uniform", horizon = 10,
 #'   return_trajectories = TRUE
 #' )
@@ -83,7 +86,7 @@
 #' # how often was each state visited?
 #' table(sim$trajectories$s)
 #' @export
-simulate_MDP <-
+sample_MDP <-
   function(model,
            n = 100,
            start = NULL,
@@ -93,30 +96,36 @@ simulate_MDP <-
            delta_horizon = 1e-3,
            return_trajectories = FALSE,
            engine = "cpp",
+           progress = TRUE,
            verbose = FALSE,
            ...) {
+    .nodots(...)
+    
     engine <- match.arg(tolower(engine), c("cpp", "r"))
     if (engine == "cpp" &&
-        (is.function(model$transition_prob) || is.function(model$reward))) {
+        (is.function(model$transition_prob) ||
+         is.function(model$reward))) {
       engine <- "r"
       
-      if(verbose)
-        cat("Some elements of the MDP are defined as R function. The CPP engine is very slow with R function calls.\n",
-        "Falling back to R. Normalize the model first to use CPP.")
+      if (verbose)
+        message(
+          "Some elements of the MDP are defined as R functions. The CPP engine is very slow with R function calls.\n",
+          "Falling back to R. Normalize the model first to use engine 'cpp'.\n"
+        )
     }
-
+    
     solved <- is_solved_MDP(model)
     n <- as.integer(n)
     
     # exploring starts: uniform start + first action is random
     if (exploring_starts) {
-      if(!is.null(start))
+      if (!is.null(start))
         warning("start cannot be specified for exploring starts. Using 'uniform'!")
       start <- .translate_belief("uniform", model = model, sparse = FALSE)
     }
     else
       start <- .translate_belief(start, model = model, sparse = FALSE)
-
+    
     if (is.null(horizon)) {
       horizon <- model$horizon
     }
@@ -124,7 +133,7 @@ simulate_MDP <-
       if (is.null(model$discount) || !(model$discount < 1)) {
         stop("Simulation needs a finite simulation horizon.")
       }
-
+      
       # find a horizon that approximates the reward using
       # discount^horizon * max_abs_R <= 0.001
       max_abs_R <- max(abs(.reward_range(model)))
@@ -132,7 +141,7 @@ simulate_MDP <-
         ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
     }
     horizon <- as.integer(horizon)
-
+    
     if (is.null(epsilon)) {
       if (!solved) {
         epsilon <- 1
@@ -140,35 +149,37 @@ simulate_MDP <-
         epsilon <- 0
       }
     }
-
+    
     if (!solved && epsilon != 1) {
       stop("epsilon has to be 1 for unsolved models.")
     }
-
+    
     disc <- model$discount
     if (is.null(disc)) {
       disc <- 1
     }
-
+    
     if (engine == "cpp") {
       if (foreach::getDoParWorkers() == 1 || n * horizon < 100000) {
-        return(simulate_MDP_cpp(
-          model,
-          n,
-          start,
-          horizon,
-          disc,
-          return_trajectories,
-          epsilon,
-          exploring_starts,
-          verbose = verbose
-        ))
+        return(
+          sample_MDP_cpp(
+            model,
+            n,
+            start,
+            horizon,
+            disc,
+            return_trajectories,
+            epsilon,
+            exploring_starts,
+            verbose = verbose
+          )
+        )
       }
-
+      
       ns <- foreach_split(n)
-
+      
       if (verbose) {
-        cat("Simulating MDP trajectories.\n")
+        cat("Sampling MDP trajectories.\n")
         cat("- engine: cpp \n")
         cat("- horizon:", horizon, "\n")
         cat("- n:", n, "- parallel workers:", length(ns), "\n")
@@ -176,12 +187,13 @@ simulate_MDP <-
         cat("- discount factor:", disc, "\n")
         cat("\n")
       }
-
+      
       w <-
         NULL # to shut up the warning for the foreach counter variable
-
+      
       sim <- foreach(w = 1:length(ns)) %dopar%
-        simulate_MDP_cpp(model,
+        sample_MDP_cpp(
+          model,
           ns[w],
           start,
           horizon,
@@ -191,16 +203,16 @@ simulate_MDP <-
           exploring_starts,
           verbose = FALSE
         )
-
+      
       # adjust the episode number for parallel processing
       episode_add <- cumsum(c(0L, ns))
       for (i in seq_along(sim)) {
         sim[[i]]$trajectories$episode <-
           sim[[i]]$trajectories$episode + episode_add[i]
       }
-
+      
       rew <- Reduce(c, lapply(sim, "[[", "reward"))
-
+      
       return(
         list(
           avg_reward = mean(rew, na.rm = TRUE),
@@ -211,14 +223,14 @@ simulate_MDP <-
         )
       )
     }
-
+    
     # R implementation starts here ##############
-
+    
     states <- as.character(model$states)
     n_states <- length(states)
     states_absorbing <- which(absorbing_states(model))
     actions <- as.character(model$actions)
-
+    
     # for easier access
     pol <-
       lapply(
@@ -227,43 +239,45 @@ simulate_MDP <-
           structure(p$action, names = p$state)
         }
       )
-
+    
     if (verbose) {
-      cat("Simulating MDP trajectories.\n")
+      cat("Sampling MDP trajectories.\n")
       cat("- engine:", engine, "\n")
       cat("- horizon:", horizon, "\n")
       cat("- exploring starts:", exploring_starts, "\n")
-      cat(
-        "- n:",
-        n,
-        "- parallel workers:",
-        foreach::getDoParWorkers(),
-        "\n"
-      )
+      cat("- n:",
+          n,
+          "- parallel workers:",
+          foreach::getDoParWorkers(),
+          "\n")
       cat("- epsilon:", epsilon, "\n")
       cat("- discount factor:", disc, "\n")
       cat("\n")
     }
-
-    # warning("Debug mode on!!!")
-    # sim <- replicate(n, expr = {
     
-    # FIXME: Progressbar does not work with foreach
-    #pb <- my_progress_bar(n)
-    #pb$tick()
     
+    # Progressbar does not work with foreach
+    if (foreach::getDoParWorkers() != 1L)
+      progress <- FALSE
+    
+    if (progress)
+      pb <- my_progress_bar(n, name = "sample_MDP")
+    
+    #warning("Debug mode on!!!")
+    #sim <- for(i in 1:n){
     sim <- foreach(i = 1:n) %dopar% {
-      #pb$tick()
+      if (progress)
+        pb$tick()
       
       # find a initial state
       s <- sample.int(length(states), 1L, prob = start)
-
+      
       action_cnt <- rep(0L, length(actions))
       names(action_cnt) <- actions
       state_cnt <- rep(0L, length(states))
       names(state_cnt) <- states
       rew <- 0
-
+      
       if (return_trajectories) {
         trajectory <- data.frame(
           episode = rep(NA_integer_, horizon),
@@ -276,7 +290,7 @@ simulate_MDP <-
       } else {
         trajectory <- NULL
       }
-
+      
       for (j in seq_len(horizon)) {
         if (exploring_starts && j == 1L) {
           # choose first action randomly
@@ -292,17 +306,17 @@ simulate_MDP <-
         
         action_cnt[a] <- action_cnt[a] + 1L
         state_cnt[s] <- state_cnt[s] + 1L
-
+        
         s_prev <- s
         s <-
           sample.int(length(states), 1L, 
                      prob = transition_matrix(model, a, s, sparse = FALSE))
-
+        
         # rew <- rew + rew_m[[a]][[s_prev]][s] * disc ^ (j - 1L)
         # MDPs have no observation!
         r <- reward_matrix(model, a, s_prev, s)
-        rew <- rew + r * disc^(j - 1L)
-
+        rew <- rew + r * disc ^ (j - 1L)
+        
         if (return_trajectories) {
           trajectory[j, ] <-
             data.frame(
@@ -314,7 +328,7 @@ simulate_MDP <-
               s_prime = s
             )
         }
-
+        
         if (s %in% states_absorbing) {
           if (return_trajectories) {
             trajectory <- trajectory[1:j, , drop = FALSE]
@@ -322,7 +336,7 @@ simulate_MDP <-
           break
         }
       }
-
+      
       list(
         action_cnt = action_cnt,
         state_cnt = state_cnt,
@@ -330,30 +344,27 @@ simulate_MDP <-
         trajectory = trajectory
       )
     }
-
+    
     rew <- Reduce(c, lapply(sim, "[[", "reward"))
     rew <- unname(rew)
-
+    
     trajectories <- NULL
     if (return_trajectories) {
       trajectories <- Reduce(rbind, lapply(sim, "[[", "trajectory"))
       trajectories$s <-
         factor(trajectories$s,
-          levels = seq_along(states),
-          labels = states
-        )
+               levels = seq_along(states),
+               labels = states)
       trajectories$a <-
         factor(trajectories$a,
-          levels = seq_along(actions),
-          labels = actions
-        )
+               levels = seq_along(actions),
+               labels = actions)
       trajectories$s_prime <-
         factor(trajectories$s_prime,
-          levels = seq_along(states),
-          labels = states
-        )
+               levels = seq_along(states),
+               labels = states)
     }
-
+    
     list(
       avg_reward = mean(rew, na.rm = TRUE),
       reward = rew,
