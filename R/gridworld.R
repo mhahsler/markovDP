@@ -413,7 +413,7 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
       l
     },
     unreachable = {
-      l <- structure(rep(NA, length(all_states)), names = all_states)
+      l <- structure(rep(TRUE, length(all_states)), names = all_states)
       l[model$states] <- unreachable_states(model, sparse = FALSE)
       l
     }
@@ -470,7 +470,8 @@ gridworld_plot <-
     }
     
     if (!solved) {
-      m <- matrix(NA_real_, nrow = nrows, ncol = ncols)
+      m <- matrix(0, nrow = nrows, ncol = ncols)
+      col <- "white"
     } else {
       if (is.null(main)) {
         main <- paste("Policy:",

@@ -72,7 +72,7 @@ horizon.}
 \item{epoch}{integer; an epoch that should be converted to the
 corresponding episode in a time-dependent MDP.}
 
-\item{model}{a \code{MDP} object.}
+\item{model, x}{a \code{MDP} object.}
 
 \item{sparse}{logical; use sparse representation. matrices when the density is below 50\% and keeps data.frame representation
 for the reward field.}

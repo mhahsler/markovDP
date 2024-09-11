@@ -42,7 +42,7 @@ solve_MDP_TD <-
     S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
     P <- transition_matrix(model, sparse = TRUE)
-    start <- .translate_belief(NULL, model = model, sparse = FALSE)
+    start <- start_vector(model, sparse = FALSE)
 
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))

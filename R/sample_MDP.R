@@ -121,10 +121,10 @@ sample_MDP <-
     if (exploring_starts) {
       if (!is.null(start))
         warning("start cannot be specified for exploring starts. Using 'uniform'!")
-      start <- .translate_belief("uniform", model = model, sparse = FALSE)
-    }
-    else
-      start <- .translate_belief(start, model = model, sparse = FALSE)
+   	start <- NULL 
+      }
+    
+    start <- start_vector(model, start = start, sparse = FALSE)
     
     if (is.null(horizon)) {
       horizon <- model$horizon

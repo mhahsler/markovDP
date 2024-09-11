@@ -97,10 +97,11 @@ Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
-    ##   Start: s(3,1)
+    ##   Start: 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'transition_prob', 'reward', 'info', 'start'
+    ##     'transition_prob', 'reward', 'info', 'start', 'absorbing_states',
+    ##     'unreachable_states'
 
 ``` r
 gridworld_plot(Maze)
@@ -117,13 +118,14 @@ sol
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
-    ##   Start: s(3,1)
+    ##   Start: 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
     ##   Solved:
     ##     Method: 'value_iteration'
     ##     Solution converged: TRUE
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'transition_prob', 'reward', 'info', 'start', 'solution'
+    ##     'transition_prob', 'reward', 'info', 'start', 'absorbing_states',
+    ##     'unreachable_states', 'solution'
 
 Display the value function.
 

@@ -81,124 +81,116 @@
 NULL
 
 
-# this is the start distribution in MDPs
-# translate belief specifications into numeric belief vectors
-.translate_belief <- function(belief = NULL,
+# Translate a probability distribution like the start distribution in MDPs
+.translate_distribution <- function(prob,
                               model,
                               sparse = NULL) {
   ## producing the starting belief vector
   
   states <- model$states
   
-  if (is.null(belief))
-    belief <- model$start
-  
-  # uniform is the default
-  if (is.null(belief))
-    belief <- "uniform"
-  
   # NAs are an issue
-  if (any(is.na(belief))) {
-    warning("Belief contains NAs!")
-    return(belief)
+  if (any(is.na(prob))) {
+    warning("Some probabilities are NA!")
+    return(prob)
   }
   
-  if (is.matrix(belief) || is(belief, "dgCMatrix")) {
-    if (ncol(belief) != length(states)) {
+  if (is.matrix(prob) || is(prob, "dgCMatrix")) {
+    if (ncol(prob) != length(states)) {
       stop("Number of column is not the number of states.")
     }
-    colnames(belief) <- states
-    return(.sparsify(belief, sparse = sparse))
+    colnames(prob) <- states
+    return(.sparsify(prob, sparse = sparse))
   }
   
   # general checks for state names
-  if (is.character(belief)) {
+  if (is.character(prob)) {
     if (any(is.na(match(
-      belief, c(as.character(states), "-", "uniform")
+      prob, c(as.character(states), "-", "uniform")
     )))) {
-      stop("Illegal belief format.\n",
-           belief,
+      stop("Illegal probability format.\n",
+           prob,
            "\nUnrecognized state name.")
     }
   }
   
   # dense probability vector
   # start: 0.3 0.1 0.0 0.2 0.5
-  if (is.numeric(belief) &&
-      length(belief) == length(states) &&
-      round(sum(belief), 3) == 1) {
-    if (!is.null(names(belief)) && !all(names(belief) == states)) {
-      names(belief) <- states
+  if (is.numeric(prob) &&
+      length(prob) == length(states) &&
+      round(sum(prob), 3) == 1) {
+    if (!is.null(names(prob)) && !all(names(prob) == states)) {
+      names(prob) <- states
     }
   }
   
   # sparse probability vector
-  else if (is(belief, "sparseVector")) {
+  else if (is(prob, "sparseVector")) {
     # nothing to do
   }
   
   # start: uniform
-  else if (is.character(belief) &&
-           length(belief) == 1 &&
-           belief[1] == "uniform") {
-    belief <- rep(1 / length(states), times = length(states))
-    names(belief) <- states
+  else if (is.character(prob) &&
+           length(prob) == 1 &&
+           prob[1] == "uniform") {
+    prob <- rep(1 / length(states), times = length(states))
+    names(prob) <- states
   }
 
   # start: 5
   # start include: 1 3
   # start: first-state
   # start include: first-state third state
-  else if (is.character(belief) && belief[1] != "-" || 
-           is.numeric(belief) && all(belief > 0)) {
-    if (is.character(belief))
-      belief <- match(belief, model$states)
+  else if (is.character(prob) && prob[1] != "-" || 
+           is.numeric(prob) && all(prob > 0)) {
+    if (is.character(prob))
+      prob <- match(prob, model$states)
     else
-      belief <- as.integer(belief)
+      prob <- as.integer(prob)
     
-    if (length(belief) > length(states)) {
-      stop("Illegal belief format.\n",
-           belief,
+    if (length(prob) > length(states)) {
+      stop("Illegal probability format.\n",
+           prob,
            "\nToo many states specified.")
     }
     
-    belief <- sparseVector(
-      x = 1 / length(belief),
-      i = belief,
+    prob <- sparseVector(
+      x = 1 / length(prob),
+      i = prob,
       length = length(states)
     )
     
   # start exclude: -1 -3
   # start exclude: "-", "state_1", "state_2"
-  } else if (is.character(belief) && belief[1] == "-" || 
-             is.numeric(belief) && all(belief < 0)) {
+  } else if (is.character(prob) && prob[1] == "-" || 
+             is.numeric(prob) && all(prob < 0)) {
     
-    if (is.character(belief))
-      belief <- match(belief[-1L], model$states)
+    if (is.character(prob))
+      prob <- match(prob[-1L], model$states)
     else
-      belief <- -as.integer(belief)
+      prob <- -as.integer(prob)
     
-    if (any(is.na(belief)) || 
-        any(belief < 1) || 
-        any(belief > length(states))) {
-      stop("Illegal belief format.\n",
-           belief,
+    if (any(is.na(prob)) || 
+        any(prob < 1) || 
+        any(prob > length(states))) {
+      stop("Illegal probability format.\n",
+           prob,
            "\nState names need to exist or IDs need to be in [1, # of states].")
     }
    
-    belief <- seq_along(model$states)[-belief] 
-    belief <- sparseVector(
-      x = 1 / length(belief),
-      i = belief,
+    prob <- seq_along(model$states)[-prob] 
+    prob <- sparseVector(
+      x = 1 / length(prob),
+      i = prob,
       length = length(states)
     )
   }
   
   else {
-    stop("Illegal belief format.\n", belief)
+    stop("Illegal probability format.\n", prob)
   }
   
-  return(.sparsify_vector(belief, sparse, names = states))
+  return(.sparsify_vector(prob, sparse, names = states))
 }
 
 
@@ -256,7 +248,7 @@ start_vector <- function(model, start = NULL, sparse = NULL) {
     start <- model$start
   }
   
-  .translate_belief(start, model = model, sparse = sparse)
+  .translate_distribution(start, model = model, sparse = sparse)
 }
 
 

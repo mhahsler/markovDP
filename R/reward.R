@@ -51,11 +51,7 @@ reward.MDP <- function(model,
                        ...) {
   is_solved_MDP(model, stop = TRUE)
 
-  if (is.null(start)) {
-    start <- start_vector(model)
-  } else {
-    start <- .translate_belief(start, model)
-  }
+  start <- start_vector(model, start = start)
 
   pol <- policy(model, epoch)
 

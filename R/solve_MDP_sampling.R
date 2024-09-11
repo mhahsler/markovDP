@@ -29,7 +29,7 @@ solve_MDP_sampling <-
     S <- model$states
     S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
-    start <- .translate_belief(NULL, model = model, sparse = FALSE)
+    start <- start_vector(model, sparse = FALSE)
 
     method <-
       match.arg(method, c("q_planning"))
