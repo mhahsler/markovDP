@@ -83,12 +83,11 @@ NULL
 
 # Translate a probability distribution like the start distribution in MDPs
 .translate_distribution <- function(prob,
-                              model,
+                              state_labels,
                               sparse = NULL) {
-  ## producing the starting belief vector
-  
-  states <- model$states
-  
+  if (is.null(prob))
+    stop("No probabilities provided (NULL)!")
+   
   # NAs are an issue
   if (any(is.na(prob))) {
     warning("Some probabilities are NA!")
@@ -96,20 +95,20 @@ NULL
   }
   
   if (is.matrix(prob) || is(prob, "dgCMatrix")) {
-    if (ncol(prob) != length(states)) {
+    if (ncol(prob) != length(state_labels)) {
       stop("Number of column is not the number of states.")
     }
-    colnames(prob) <- states
+    colnames(prob) <- state_labels
     return(.sparsify(prob, sparse = sparse))
   }
   
   # general checks for state names
   if (is.character(prob)) {
     if (any(is.na(match(
-      prob, c(as.character(states), "-", "uniform")
+      prob, c(as.character(state_labels), "-", "uniform")
     )))) {
       stop("Illegal probability format.\n",
-           prob,
+           "[", paste(prob, collapse = ", "), "]",
            "\nUnrecognized state name.")
     }
   }
@@ -117,10 +116,10 @@ NULL
   # dense probability vector
   # start: 0.3 0.1 0.0 0.2 0.5
   if (is.numeric(prob) &&
-      length(prob) == length(states) &&
-      round(sum(prob), 3) == 1) {
-    if (!is.null(names(prob)) && !all(names(prob) == states)) {
-      names(prob) <- states
+      length(prob) == length(state_labels) &&
+      sum1(prob)) {
+    if (!is.null(names(prob)) && !all(names(prob) == state_labels)) {
+      names(prob) <- state_labels
     }
   }
   
@@ -133,8 +132,8 @@ NULL
   else if (is.character(prob) &&
            length(prob) == 1 &&
            prob[1] == "uniform") {
-    prob <- rep(1 / length(states), times = length(states))
-    names(prob) <- states
+    prob <- rep(1 / length(state_labels), times = length(state_labels))
+    names(prob) <- state_labels
   }
 
   # start: 5
@@ -144,20 +143,25 @@ NULL
   else if (is.character(prob) && prob[1] != "-" || 
            is.numeric(prob) && all(prob > 0)) {
     if (is.character(prob))
-      prob <- match(prob, model$states)
-    else
-      prob <- as.integer(prob)
+      prob <- match(prob, state_labels)
     
-    if (length(prob) > length(states)) {
+    if (length(prob) > length(state_labels)) {
       stop("Illegal probability format.\n",
-           prob,
+           "[", paste(prob, collapse = ", "), "]",
            "\nToo many states specified.")
     }
     
+    i <- as.integer(prob)
+    
+    if (any(prob != i))
+      stop("Illegal probability format.\n",
+           "[", paste(prob, collapse = ", "), "]",
+           "\nProbabilities do not sum up to one.")
+    
     prob <- sparseVector(
-      x = 1 / length(prob),
-      i = prob,
-      length = length(states)
+      x = 1 / length(i),
+      i = i,
+      length = length(state_labels)
     )
     
   # start exclude: -1 -3
@@ -166,31 +170,40 @@ NULL
              is.numeric(prob) && all(prob < 0)) {
     
     if (is.character(prob))
-      prob <- match(prob[-1L], model$states)
+      prob <- match(prob[-1L], state_labels)
     else
       prob <- -as.integer(prob)
     
     if (any(is.na(prob)) || 
         any(prob < 1) || 
-        any(prob > length(states))) {
+        any(prob > length(state_labels))) {
       stop("Illegal probability format.\n",
-           prob,
+           "[", paste(prob, collapse = ", "), "]",
            "\nState names need to exist or IDs need to be in [1, # of states].")
     }
    
-    prob <- seq_along(model$states)[-prob] 
+    prob <- seq_along(state_labels)[-prob] 
     prob <- sparseVector(
       x = 1 / length(prob),
       i = prob,
-      length = length(states)
+      length = length(state_labels)
     )
   }
   
   else {
     stop("Illegal probability format.\n", prob)
   }
+
+  v <- .sparsify_vector(prob, sparse, names = state_labels)
+  if (!sum1(v))
+    stop("Illegal probability format.\n",
+         "[", paste(prob, collapse = ", "), "]",
+         "\nProbabilities do not sum up to one.")
+   
+  if (length(v) != length(state_labels))
+    stop("Distribution does not have the correct number of entries!")
   
-  return(.sparsify_vector(prob, sparse, names = states))
+  return(v)
 }
 
 
@@ -229,6 +242,7 @@ NULL
     if (is.matrix(x))
       return(drop(x))
     
+    # otherwise
     return(as(x, "sparseVector"))
   }
   
@@ -247,8 +261,12 @@ start_vector <- function(model, start = NULL, sparse = NULL) {
   if (is.null(start)) {
     start <- model$start
   }
-  
-  .translate_distribution(start, model = model, sparse = sparse)
+
+  if (is.null(start)) {
+    start <- "uniform"
+  }
+    
+  .translate_distribution(start, model$states, sparse = sparse)
 }
 
 
@@ -360,7 +378,7 @@ function2value <- function(model, field, f, action, row, col, sparse = FALSE) {
     )
   }
   
-  # if the function returns not just 1 value!
+  # there is a problem if the function returns not just 1 value!
   if (is.list(o)){
     trans <- outer(model$states, model$states, 
                    FUN = function(start, end) paste(start, "->", end))
@@ -482,6 +500,10 @@ df2value <-
       ))
    
     # one action form here
+    
+    if (!(action %in% model$actions))
+        stop("unkown action: ", action)
+    
     rows <- seq_along(model$states)
     cols <- seq_along(model$states)
     
@@ -499,6 +521,9 @@ df2value <-
                j = integer(0), 
                x = numeric(0), 
                Dim = c(length(rows), length(cols)))
+     
+      ## FIXME: Matrix has an issue with subsetting dgTMAtrix so I use a dgCMatrix 
+      m <- as(m, "CsparseMatrix")
         
       for (i in seq_len(nrow(df))) {
         r <- rs[i]

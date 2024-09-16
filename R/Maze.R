@@ -51,15 +51,16 @@
 #' gridworld_matrix(gridworld_init(dim = c(3, 4)))
 #' 
 #' # the wall at s(2,2) is unreachable
-#' gw <- gridworld_init(dim = c(3, 4),  
-#'                      unreachable_states = "s(2,2)",
-#'                      absorbing_states = c("s(1,4)", "s(2,4)"),
-#'                      state_labels = list(
-#'                          "s(3,1)" = "Start",
-#'                          "s(2,4)" = "-1",
-#'                          "s(1,4)" = "Goal: +1"
-#'                          )
-#'                      )
+#' gw <- gridworld_init(dim = c(3, 4),
+#'         start = "s(3,1)",
+#'         goal = "s(1,4)",
+#'         absorbing_states = c("s(1,4)", "s(2,4)"),
+#'         unreachable_states = "s(2,2)",
+#'         state_labels = list(
+#'             "s(3,1)" = "Start",
+#'             "s(2,4)" = "-1",
+#'             "s(1,4)" = "Goal: +1")
+#' )
 #' gridworld_matrix(gw)
 #' gridworld_matrix(gw, what = "labels")
 #'

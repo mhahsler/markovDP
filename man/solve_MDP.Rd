@@ -21,6 +21,7 @@ solve_MDP_DP(
   error = 0.01,
   k_backups = 10,
   U = NULL,
+  continue = FALSE,
   progress = TRUE,
   verbose = FALSE
 )
@@ -39,11 +40,12 @@ solve_MDP_MC(
   method = "MC_exploring_starts",
   horizon = NULL,
   discount = NULL,
-  N = 1000,
+  N = 100,
   ...,
-  U = NULL,
+  Q = NULL,
   epsilon = 0.1,
   first_visit = TRUE,
+  continue = FALSE,
   progress = TRUE,
   verbose = FALSE
 )
@@ -56,7 +58,8 @@ solve_MDP_TD(
   alpha = 0.5,
   epsilon = 0.1,
   N = 100,
-  U = NULL,
+  Q = NULL,
+  continue = FALSE,
   progress = TRUE,
   verbose = FALSE
 )
@@ -110,12 +113,16 @@ used by the policy iteration method.}
 \item{U}{a vector with initial utilities used for each state. If
 \code{NULL}, then the default of a vector of all 0s is used.}
 
+\item{continue}{logical; Continue with an unconverged solution specified in \code{model}.}
+
 \item{progress}{logical; show a progress bar with estimated time for completion.}
 
 \item{verbose}{logical, if set to \code{TRUE}, the function provides the
 output of the solver in the R console.}
 
 \item{N}{number of episodes used for learning.}
+
+\item{Q}{a action value matrix.}
 
 \item{epsilon}{used for \eqn{\epsilon}-greedy policies.}
 

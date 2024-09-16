@@ -1,7 +1,7 @@
 my_progress_bar <- function(N, name = NULL, format_extra = NULL, 
                             clear = FALSE, ...) 
   progress::progress_bar$new(
-    format = paste(name, "[:bar] :percent (remaining :eta)", format_extra),
+    format = paste(name, "[:bar] :percent (remaining :eta | elapsed :elapsed)", format_extra),
     clear = clear, 
     total = N,
     ...)

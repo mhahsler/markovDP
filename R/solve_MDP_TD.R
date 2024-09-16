@@ -4,6 +4,7 @@
 #' @param alpha step size in `(0, 1]`.
 #' @param epsilon used for \eqn{\epsilon}-greedy policies.
 #' @param N number of episodes used for learning.
+#' @param Q a action value matrix.
 #' @export
 solve_MDP_TD <-
   function(model,
@@ -13,9 +14,13 @@ solve_MDP_TD <-
            alpha = 0.5,
            epsilon = 0.1,
            N = 100,
-           U = NULL,
+           Q = NULL,
+           continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
+    method <-
+      match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
+    
     ### default is infinite horizon, but we use 10000 to guarantee termination
     warn_horizon <- FALSE
     if (is.null(horizon)) {
@@ -28,7 +33,7 @@ solve_MDP_TD <-
       warn_horizon <- TRUE
       horizon <- 10000
     }
-
+    
     if (is.null(discount)) {
       discount <- model$discount
     }
@@ -44,21 +49,46 @@ solve_MDP_TD <-
     P <- transition_matrix(model, sparse = TRUE)
     start <- start_vector(model, sparse = FALSE)
 
-    method <-
-      match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
 
     # Initialize Q
-    if (is.null(U)) {
+    if (continue) {
+      if (is.null(model$solution$Q))
+        stop("model solution does not contain a Q matrix to continue from!")
+      Q <- model$solution$Q
+    } else if (is.null(Q)) {
       Q <-
         matrix(0,
-          nrow = length(S),
-          ncol = length(A),
-          dimnames = list(S, A)
+               nrow = length(S),
+               ncol = length(A),
+               dimnames = list(S, A)
         )
-    } else {
-      Q <- q_values(model, U = U)
     }
-
+    
+    # return unconverged result when interrupted
+    on.exit({ 
+      warning("MDP solver manually interrupted early.")
+      
+      if (verbose) {
+        cat("\nTerminated during iteration:", i, "\n")
+      }
+      
+      model$solution <- list(
+        method = method,
+        alpha = alpha,
+        epsilon = epsilon,
+        N = N,
+        Q = Q,
+        converged = NA,
+        policy = list(data.frame(
+          state = S,
+          U = apply(Q, MARGIN = 1, max),
+          action = A[apply(Q, MARGIN = 1, which.max.random)],
+          row.names = NULL
+        ))
+      )
+      return(model)
+    })
+    
     if (progress)
       pb <- my_progress_bar(N, name = "solve_MDP")
     
@@ -81,7 +111,9 @@ solve_MDP_TD <-
           if (i == 1L) {
             cat("\n*** Episode", e, "***\n")
           }
-          cat("Step", i, "- s a r s' a':", s, a, r, s_prime, a_prime, "\n")
+          cat(sprintf("Step %i - s:%s a:%i r:%.2f s':%s a':%i\n", 
+                      i, s, a, r, s_prime, a_prime))
+          #print(Q)
         }
 
         if (method == "sarsa") {
@@ -135,6 +167,8 @@ solve_MDP_TD <-
       }
     }
 
+    on.exit()
+    
     model$solution <- list(
       method = method,
       alpha = alpha,

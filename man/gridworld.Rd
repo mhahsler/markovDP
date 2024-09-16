@@ -4,6 +4,7 @@
 \alias{gridworld}
 \alias{gridworld_init}
 \alias{gridworld_maze_MDP}
+\alias{gridworld_path}
 \alias{gridworld_matrix}
 \alias{gridworld_plot}
 \alias{gridworld_plot_transition_graph}
@@ -12,6 +13,7 @@
 \alias{gridworld_s2rc}
 \alias{gridworld_rc2s}
 \alias{gridworld_transition_prob}
+\alias{gridworld_transition_prob3}
 \title{Helper Functions for Gridworld MDPs}
 \usage{
 gridworld_init(
@@ -19,9 +21,9 @@ gridworld_init(
   actions = c("up", "right", "down", "left"),
   start = NULL,
   goal = NULL,
-  unreachable_states = NULL,
-  restrict_actions = FALSE,
   absorbing_states = NULL,
+  unreachable_states = NULL,
+  remove_unreachable_states = TRUE,
   state_labels = list()
 )
 
@@ -31,15 +33,17 @@ gridworld_maze_MDP(
   goal,
   walls = NULL,
   actions = c("up", "right", "down", "left"),
-  goal_reward = 1,
-  step_cost = 0,
+  goal_reward = 100,
+  step_cost = 1,
   restart = FALSE,
-  discount = 0.9,
+  discount = 1,
   horizon = Inf,
   info = NULL,
   normalize = TRUE,
   name = NA
 )
+
+gridworld_path(model, start = NULL, goal = NULL, horizon = NULL)
 
 gridworld_matrix(model, epoch = 1L, what = "states")
 
@@ -54,7 +58,7 @@ gridworld_plot(
   cex = 1,
   offset = 0.5,
   lines = TRUE,
-  col = hcl.colors(12, "YlOrRd", rev = TRUE),
+  col = hcl.colors(100, "YlOrRd", rev = TRUE),
   unreachable_col = "gray20",
   ...
 )
@@ -81,7 +85,9 @@ gridworld_s2rc(s)
 
 gridworld_rc2s(rc)
 
-gridworld_transition_prob(model, action, start.state = NULL, end.state = NULL)
+gridworld_transition_prob(model, action, start.state)
+
+gridworld_transition_prob3(model, action, start.state, end.state)
 }
 \arguments{
 \item{dim}{vector of length two with the x and y extent of the gridworld.}
@@ -90,16 +96,16 @@ gridworld_transition_prob(model, action, start.state = NULL, end.state = NULL)
 simple \code{"character"}, \code{"unicode"} arrows (needs to be supported by the used font),
 \code{"label"} of the action, and  \code{"none"} to suppress showing the action.}
 
-\item{start, goal}{labels for the start state and the goal state.}
+\item{start, goal}{start and goal states. If \code{NULL} then the states specified
+in the model are used.}
+
+\item{absorbing_states}{a vector with state labels for absorbing states.}
 
 \item{unreachable_states}{a vector with state labels for unreachable states.
 These states will be excluded.}
 
-\item{restrict_actions}{logical; mark actions that move outside the gridworld
-or to an unreachable state as unreachable by adding a reward of \code{-Inf}.
-If false, then the action results in the agent staying in place.}
-
-\item{absorbing_states}{a vector with state labels for absorbing states.}
+\item{remove_unreachable_states}{logical; remove unreachable states from the
+state space?}
 
 \item{state_labels}{a list with labels for states. The element names need
 to be state names.}
@@ -179,6 +185,12 @@ supplied.}
 
 \item{action, start.state, end.state}{parameters for the transition function.}
 }
+\value{
+\code{gridworld_maze_MDP()} returns an MDP object.
+
+\code{gridworld_path()} returns a list with the elements \code{"path"},
+\code{"reward"} and \code{"solved"}.
+}
 \description{
 Helper functions for gridworld MDPs to convert between state names and
 gridworld positions, and for visualizing policies.
@@ -204,9 +216,30 @@ agent restarts the problem at the start state every time it reaches the goal
 and receives the reward. Note that this implies that the goal state itself
 becomes unreachable.
 
+\code{gridworld_path()} checks if a solved gridworld has a policy that
+leads from the start to the goal. Note this function currently samples only a single path which is
+an issue with stochastic transitions!
+
+\code{gridworld_matrix()} returns different information
+(state names, values, actions, etc.) as a matrix.
+
+\code{gridworld_plot()} plots a gridworld.
+
+\code{gridworld_plot_transition_graph()} plots the transition graph
+using the gridworld matrix as the layout.
+
 \code{gridworld_animate()} applies algorithms from \code{\link[=solve_MDP]{solve_MDP()}} iteration
 by iteration and visualized the state utilities. This helps to understand
 how the algorithms work.
+
+\code{gridworld_read_maze()} reads a maze in text format from a file
+and converts it into a gridworld MDP.
+
+\code{gridworld_s2rc()} and \code{gridworld_rc2s} help with converting from
+state names to xy-coordinates and vice versa.
+
+\code{gridworld_transition_prob()} and \code{gridworld_transition_prob3()}
+provide the standard transition functions for a gridworld.
 }
 \examples{
 # Defines states, actions and a transition model for a standard gridworld
@@ -226,9 +259,7 @@ gridworld_matrix(gw, what = "absorbing")
 gridworld_matrix(gw, what = "unreachable")
 
 # a transition function for regular moves in the gridworld is provided
-gw$transition_prob(gw, "right", "s(1,1)", "s(1,2)")
-gw$transition_prob(gw, "right", "s(2,1)", "s(2,2)") ### we cannot move into an unreachable state
-gw$transition_prob(gw, "right", "s(2,1)", "s(2,1)") ### but the agent stays in place
+gw$transition_prob(gw, "right", "s(1,1)")
 
 # convert between state names and row/column indices
 gridworld_s2rc("s(1,1)")
@@ -239,9 +270,9 @@ gridworld_rc2s(c(1, 1))
 # We modify the standard transition function so there is a 50\% chance that
 # you will get sucked into the black hole from the adjacent squares.
 trans_black_hole <- function(model,
-                             action = NA,
-                             start.state = NA,
-                             end.state = NA) {
+                             action,
+                             start.state,
+                             end.state) {
   # states around the black hole
   if (start.state \%in\% c(
     "s(3,3)", "s(3,4)", "s(3,5)", "s(4,3)", "s(4,5)",
@@ -250,12 +281,13 @@ trans_black_hole <- function(model,
     if (end.state == "s(4,4)") {
       return(.5)
     } else {
-      return(gw$transition_prob(model, action, start.state, end.state) * .5)
+      return(gridworld_transition_prob3(model, action, start.state, 
+                                        end.state) * .5)
     }
   }
 
   # use the standard gridworld movement
-  gw$transition_prob(model, action, start.state, end.state)
+  gridworld_transition_prob3(model, action, start.state, end.state)
 }
 
 black_hole <- MDP(
@@ -263,7 +295,9 @@ black_hole <- MDP(
   actions = gw$actions,
   transition_prob = trans_black_hole,
   reward = rbind(R_(                      value = +1),
-                 R_(end.state = "s(4,4)", value = -100)),
+                 R_(end.state = "s(4,4)", value = -100),
+                 R_(start.state = "s(4,4)", value = 0)
+                 ),
   info = gw$info,
   name = "Black hole"
 )
@@ -308,6 +342,9 @@ gridworld_matrix(sol, what = "actions")
 gridworld_plot(sol)
 gridworld_plot(sol, states = TRUE)
 
+# check if we found a solution
+gridworld_path(sol)
+
 # visualize the first 3 iterations of value iteration
 gridworld_animate(DynaMaze, method = "value", n = 3)
 
@@ -328,6 +365,7 @@ sol <- solve_MDP(maze, method = "lp", discount = 0.999)
 sol
 
 gridworld_plot(sol)
+gridworld_path(sol)
 }
 \seealso{
 Other gridworld: 

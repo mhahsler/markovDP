@@ -121,8 +121,8 @@ sample_MDP <-
     if (exploring_starts) {
       if (!is.null(start))
         warning("start cannot be specified for exploring starts. Using 'uniform'!")
-   	start <- NULL 
-      }
+      start <- "uniform"
+    }
     
     start <- start_vector(model, start = start, sparse = FALSE)
     
@@ -309,8 +309,7 @@ sample_MDP <-
         
         s_prev <- s
         s <-
-          sample.int(length(states), 1L, 
-                     prob = transition_matrix(model, a, s, sparse = FALSE))
+          sample.int(length(states), 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
         
         # rew <- rew + rew_m[[a]][[s_prev]][s] * disc ^ (j - 1L)
         # MDPs have no observation!

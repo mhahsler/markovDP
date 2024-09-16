@@ -11,7 +11,7 @@ unreachable_states(model, direct = FALSE, sparse = FALSE, ...)
 
 absorbing_states(model, sparse = FALSE, ...)
 
-remove_unreachable_states(model)
+remove_unreachable_states(model, direct = FALSE)
 }
 \arguments{
 \item{model}{a \link{MDP} object.}

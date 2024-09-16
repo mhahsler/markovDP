@@ -66,6 +66,7 @@ unreachable_states.MDP <- function(model,
                             names = model$states))
   }
   
+  
   all_reachable <- function(model, sparse = FALSE) 
     .sparsify_vector(new("lsparseVector", length = length(model$states)), 
                      sparse = sparse, 
@@ -136,8 +137,8 @@ absorbing_states.MDP <- function(model, sparse = FALSE, ...) {
 #' @returns `remove_unreachable_states()` returns a model with all
 #'  unreachable states removed.
 #' @export
-remove_unreachable_states <- function(model) {
-  reachable <- !unreachable_states(model)
+remove_unreachable_states <- function(model, direct = FALSE) {
+  reachable <- !unreachable_states(model, direct = direct)
   if (all(reachable)) {
     return(model)
   }
@@ -171,12 +172,13 @@ remove_unreachable_states <- function(model) {
     field
   }
   
+  
   # fix start state
-  if (is.numeric(model$start)) {
+  if (is.numeric(model$start) || is(model$start, "sparseVector")) {
     if (length(model$start) == length(model$states)) {
       ### prob vector
       model$start <- model$start[reachable]
-      if (sum(model$start) != 1) {
+      if (!sum1(model$start)) {
         stop(
           "Probabilities for reachable states do not sum up to one! An unreachable state had a non-zero probability."
         )

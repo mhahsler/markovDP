@@ -418,8 +418,10 @@ normalize_MDP <- function(model,
   n_states <- length(model$states)
   n_actions <- length(model$actions)
   N <- n_states + n_actions * n_states * n_states * 3
-  if (progress)
+  if (progress) {
     pb <- my_progress_bar(N, name = "normalize_MDP")
+    pb$tick(0)
+  }
   
   if (trans_keyword)
     model$start <- start_vector(model, sparse = sparse)
@@ -430,12 +432,25 @@ normalize_MDP <- function(model,
   if (is.function(model$transition_prob) && !trans_function) {
     # do nothing
   } else {
-    model$transition_prob <-
-      transition_matrix(model, sparse = sparse, trans_keyword = trans_keyword)
+    #model$transition_prob <-
+    #  transition_matrix(model, sparse = sparse, trans_keyword = trans_keyword)
+    
+    model$transition_prob <- 
+      sapply(
+        model$actions,
+        FUN = function(a) {
+          tm <- transition_matrix(model, a, sparse = sparse)
+          if (progress)
+            pb$tick(n_states * n_states)
+          tm
+        },
+        simplify = FALSE,
+        USE.NAMES = TRUE
+      )
   }
   
-  if (progress)
-    pb$tick(n_actions * n_states * n_states)
+  #  if (progress)
+  #    pb$tick(n_actions * n_states * n_states)
   
   if ((is.function(model$reward) && !trans_function)) {
     # do nothing
@@ -457,9 +472,10 @@ normalize_MDP <- function(model,
   # TODO: remember absorbing states
   # remember recalculated absorbing/unreachable states
   model$absorbing_states <- NULL
-  model$absorbing_states <- absorbing_states(model, sparse = TRUE)
   model$unreachable_states <- NULL
-  model$unreachable_states <- unreachable_states(model, sparse = TRUE)
-  
+  if (cache_absorbing_unreachable) {
+    model$absorbing_states <- absorbing_states(model, sparse = TRUE)
+    model$unreachable_states <- unreachable_states(model, sparse = TRUE)
+  }
   model
 }
