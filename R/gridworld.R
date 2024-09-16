@@ -394,7 +394,6 @@ gridworld_path <- function(model, start = NULL, goal = NULL, horizon = NULL) {
   
   if (is.null(goal))
     goal <- model$info$goal
-  
   if (is.null(goal))
     stop("No goal specified!")
   

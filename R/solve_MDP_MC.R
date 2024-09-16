@@ -10,7 +10,7 @@ solve_MDP_MC <-
            method = "MC_exploring_starts",
            horizon = NULL,
            discount = NULL,
-           N = 100,
+           n = 100,
            ...,
            Q = NULL,
            epsilon = 0.1,
@@ -27,7 +27,7 @@ solve_MDP_MC <-
       horizon <- model$horizon
     }
     if (is.null(horizon) || is.infinite(horizon)) {
-      warning("No finite horizon defined. Using a maximum horizon of 10000 to guarantee termination. Specify horizon to remove this warning.")
+      warning("No finite horizon defined. Using a maximum horizon of 1000 to guarantee termination. Specify horizon to remove this warning.")
       model$horizon <- horizon <- 1000
     }
     
@@ -56,15 +56,15 @@ solve_MDP_MC <-
     switch(
       method,
       MC_exploring_starts = MC_on_policy(model, method, horizon, 
-                                  discount, N, Q, exploring_starts = TRUE,
+                                  discount, n, Q, exploring_starts = TRUE,
                                   epsilon = 0, first_visit = first_visit, 
                                   progress = progress, verbose = verbose, ...),
       MC_on_policy = MC_on_policy(model, method, horizon, 
-                                  discount, N, Q, exploring_starts = FALSE,
+                                  discount, n, Q, exploring_starts = FALSE,
                                   epsilon = epsilon, first_visit = first_visit, 
                                   progress = progress, verbose = verbose, ...),
       MC_off_policy = MC_off_policy(model, method, horizon, 
-                                  discount, N, Q, first_visit, 
+                                  discount, n, Q, first_visit, 
                                   progress, verbose, epsilon = epsilon, ...)
     )
   }
@@ -73,7 +73,7 @@ MC_on_policy <- function(model,
                                 method,
                                 horizon,
                                 discount,
-                                N,
+                                n,
                                 Q = NULL,
                                 exploring_starts,
                                 epsilon,
@@ -99,14 +99,16 @@ MC_on_policy <- function(model,
   
   # Start with arbitrary policy, we make it soft by specifying epsilon 
   # in the simulation
-  pi <- random_policy(model)
   
   if (is.null(Q)) {
     Q <- matrix(0,
                 nrow = length(S),
                 ncol = length(A),
                 dimnames = list(S, A))
-  } 
+    pi <- random_policy(model)
+  } else {
+    pi <- greedy_policy(Q)
+  }
   
   # instead of returns we use a more efficient running average where Q_N is
   # the number of averaged values.
@@ -124,7 +126,7 @@ MC_on_policy <- function(model,
   }
   
   if (progress)
-    pb <- my_progress_bar(N, name = "solve_MDP")
+    pb <- my_progress_bar(n, name = "solve_MDP")
   
   on.exit({ 
     warning("MDP solver manually interrupted early.")
@@ -135,7 +137,7 @@ MC_on_policy <- function(model,
     
     model$solution <- list(
       method = method,
-      N = N,
+      n = n,
       Q = Q,
       converged = NA,
       policy = list(greedy_policy(Q))
@@ -145,7 +147,7 @@ MC_on_policy <- function(model,
   })
   
   # Loop through N episodes
-  for (e in seq(N)) {
+  for (e in seq(n)) {
     if (progress)
       pb$tick()
     
@@ -223,7 +225,7 @@ MC_on_policy <- function(model,
   
   model$solution <- list(
     method = method,
-    N = N,
+    n = n,
     Q = Q,
     converged = NA,
     policy = list(greedy_policy(Q))
@@ -237,7 +239,7 @@ MC_off_policy <- function(model,
                           method,
                           horizon,
                           discount,
-                          N,
+                          n,
                           Q = NULL,
                           first_visit = TRUE,
                           progress = TRUE,
@@ -261,7 +263,7 @@ MC_off_policy <- function(model,
   C <- matrix(0L, nrow = length(S), ncol = length(A), dimnames = list(S, A))
   
   if (progress)
-    pb <- my_progress_bar(N, name = "solve_MDP")
+    pb <- my_progress_bar(n, name = "solve_MDP")
   
   on.exit({ 
     warning("MDP solver manually interrupted early.")
@@ -272,7 +274,7 @@ MC_off_policy <- function(model,
     
     model$solution <- list(
       method = method,
-      N = N,
+      n = n,
       Q = Q,
       converged = NA,
       policy = list(greedy_policy(Q))
@@ -282,7 +284,7 @@ MC_off_policy <- function(model,
   })
   
   # Loop through N episodes
-  for (e in seq(N)) {
+  for (e in seq(n)) {
     if (progress)
       pb$tick()
     
@@ -350,7 +352,7 @@ MC_off_policy <- function(model,
   
   model$solution <- list(
     method = method,
-    N = N,
+    n = n,
     Q = Q,
     converged = NA,
     policy = list(greedy_policy(Q))

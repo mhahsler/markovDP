@@ -3,7 +3,7 @@
 #' @rdname solve_MDP
 #' @param alpha step size in `(0, 1]`.
 #' @param epsilon used for \eqn{\epsilon}-greedy policies.
-#' @param N number of episodes used for learning.
+#' @param n number of episodes used for learning.
 #' @param Q a action value matrix.
 #' @export
 solve_MDP_TD <-
@@ -13,7 +13,7 @@ solve_MDP_TD <-
            discount = NULL,
            alpha = 0.5,
            epsilon = 0.1,
-           N = 100,
+           n = 100,
            Q = NULL,
            continue = FALSE,
            progress = TRUE,
@@ -76,24 +76,19 @@ solve_MDP_TD <-
         method = method,
         alpha = alpha,
         epsilon = epsilon,
-        N = N,
+        n = n,
         Q = Q,
         converged = NA,
-        policy = list(data.frame(
-          state = S,
-          U = apply(Q, MARGIN = 1, max),
-          action = A[apply(Q, MARGIN = 1, which.max.random)],
-          row.names = NULL
-        ))
+        policy = list(greedy_policy(Q))
       )
       return(model)
     })
     
     if (progress)
-      pb <- my_progress_bar(N, name = "solve_MDP")
+      pb <- my_progress_bar(n, name = "solve_MDP")
     
     # loop episodes
-    for (e in seq(N)) {
+    for (e in seq(n)) {
       if (progress)
         pb$tick()
       
@@ -173,15 +168,10 @@ solve_MDP_TD <-
       method = method,
       alpha = alpha,
       epsilon = epsilon,
-      N = N,
+      n = n,
       Q = Q,
       converged = NA,
-      policy = list(data.frame(
-        state = S,
-        U = apply(Q, MARGIN = 1, max),
-        action = A[apply(Q, MARGIN = 1, which.max.random)],
-        row.names = NULL
-      ))
+      policy = list(greedy_policy(Q))
     )
 
     model

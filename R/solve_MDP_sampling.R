@@ -1,4 +1,4 @@
-# Solve MDPs using Random-Sample one-step tabular Q-planning 
+# Solve MDPs using Random-Sample one-step tabular Q-planning
 #(Sutton & Barto, Chapter 8)
 
 #' @rdname solve_MDP
@@ -9,14 +9,14 @@ solve_MDP_sampling <-
            horizon = NULL,
            discount = NULL,
            alpha = 0.5,
-           N = 10000,
-           U = NULL,
+           n = 1000,
+           Q = NULL,
+           continue = FALSE,
            progress = TRUE,
-           verbose = FALSE
-           ) {
+           verbose = FALSE) {
     if (!is.null(horizon))
       warning("q_planning does not use horizon. The specified horizon is ignored.")
-   
+    
     if (is.null(discount)) {
       discount <- model$discount
     }
@@ -25,38 +25,57 @@ solve_MDP_sampling <-
     }
     gamma <- discount
     model$discount <- discount
-
+    
     S <- model$states
     S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
     start <- start_vector(model, sparse = FALSE)
-
+    
     method <-
       match.arg(method, c("q_planning"))
-
+    
+    
     # Initialize Q
-    if (is.null(U)) {
+    if (continue) {
+      if (is.null(model$solution$Q))
+        stop("model solution does not contain a Q matrix to continue from!")
+      Q <- model$solution$Q
+    } else if (is.null(Q)) {
       Q <-
         matrix(0,
-          nrow = length(S),
-          ncol = length(A),
-          dimnames = list(S, A)
+               nrow = length(S),
+               ncol = length(A),
+               dimnames = list(S, A)
         )
-    } else {
-      Q <- q_values(model, U = U)
     }
-
+    
+    # return unconverged result when interrupted
+    on.exit({
+      warning("MDP solver manually interrupted early.")
+      
+      if (verbose) {
+        cat("\nTerminated during iteration:", i, "\n")
+      }
+      
+      model$solution <- list(
+        method = method,
+        alpha = alpha,
+        n = n,
+        Q = Q,
+        converged = NA,
+        policy = list(greedy_policy(Q))
+      )
+      return(model)
+    })
+    
     if (progress)
-      pb <- my_progress_bar(N, name = "solve_MDP")
+      pb <- my_progress_bar(n, name = "solve_MDP")
     
     # loop through tries
-    n <- N
-    while (n > 0) {
+    for (i in seq(n)) {
       if (progress)
         pb$tick()
       
-      n <- n - 1L
-       
       # sample a state/act pair
       s <- sample(S, 1L)
       a <- sample(A, 1L)
@@ -68,20 +87,17 @@ solve_MDP_sampling <-
       Q[s, a] <-
         Q[s, a] + alpha * (r + gamma * max(Q[sp, , drop = FALSE]) - Q[s, a])
     }
-
+    
+    on.exit()
+    
     model$solution <- list(
       method = method,
       alpha = alpha,
-      N = N,
+      n = n,
       Q = Q,
       converged = NA,
-      policy = list(data.frame(
-        state = S,
-        U = apply(Q, MARGIN = 1, max),
-        action = A[apply(Q, MARGIN = 1, which.max.random)],
-        row.names = NULL
-      ))
+      policy = list(greedy_policy(Q))
     )
-
+    
     model
   }

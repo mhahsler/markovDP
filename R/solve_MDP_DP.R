@@ -3,7 +3,7 @@
 #' @rdname solve_MDP
 #' @param U a vector with initial utilities used for each state. If
 #'   `NULL`, then the default of a vector of all 0s is used.
-#' @param N_max maximum number of iterations allowed to converge. If the
+#' @param iter_max maximum number of iterations allowed to converge. If the
 #'   maximum is reached then the non-converged solution is returned with a
 #'   warning.
 #' @param error value iteration: maximum error allowed in the utility of any state
@@ -16,7 +16,7 @@ solve_MDP_DP <- function(model,
                          method = "value_iteration",
                          horizon = NULL,
                          discount = NULL,
-                         N_max = 1000,
+                         iter_max = 1000,
                          error = 0.01,
                          k_backups = 10,
                          U = NULL,
@@ -57,7 +57,7 @@ solve_MDP_DP <- function(model,
       if (is.infinite(model$horizon)) {
         MDP_value_iteration_inf_horizon(model,
           error,
-          N_max,
+          iter_max,
           U = U,
           progress = progress,
           verbose = verbose
@@ -74,7 +74,7 @@ solve_MDP_DP <- function(model,
     policy_iteration = {
       if (is.infinite(model$horizon)) {
         MDP_policy_iteration_inf_horizon(model,
-          N_max,
+          iter_max,
           k_backups,
           U = U,
           progress = progress,
@@ -88,7 +88,7 @@ solve_MDP_DP <- function(model,
       if (is.infinite(model$horizon)) {
         MDP_PS_inf_horizon(model,
           error = error, 
-          N_max = N_max,
+          N_max = iter_max,
           U = U,
           progress = progress,
           verbose = verbose
@@ -307,11 +307,21 @@ MDP_PS_inf_horizon <-
 
     if (is.null(U)) {
       U <- rep(0, times = length(S))
+      # random policy
+      pi <- sample(seq_along(A), size = length(S), replace = TRUE)
+      H <- rep(.reward_range(model)[2] *.1, times = length(S))
+    } else {
+      pi <- model$solution$policy$action
+      if (is.null(pi))
+        pi <- sample(seq_along(A), size = length(S), replace = TRUE)
+      
+      H <- model$solution$H
+      if (is.null(H))
+        H <- rep(.reward_range(model)[2] *.1, times = length(S))
+      
+      
     }
     names(U) <- S
-
-    # random policy
-    pi <- sample(seq_along(A), size = length(S), replace = TRUE)
 
     ## State priorities. Set all priorities to error so we randomly pick one first.
     # chosen at least once.
@@ -346,7 +356,7 @@ MDP_PS_inf_horizon <-
       return(model)
     })
     
-    H <- rep(.reward_range(model)[2] *.9, times = length(S))
+    
     err <- sum(H)
     converged <- FALSE
     for (i in seq_len(N_max)) {
@@ -354,7 +364,6 @@ MDP_PS_inf_horizon <-
         pb$tick(tokens = list(error = paste0(signif(err, 3), "/", 
                                              signif(error, 3))))
 
-      
       # FIXME: Maybe we need a sweep first or it will just randomly try states
       #        till it finds one with a different reward (if step cost is 0).
       # update state with highest error
@@ -364,8 +373,9 @@ MDP_PS_inf_horizon <-
       m <- which.max.random(Qs)
       pi[s] <- m
 
-      if(any(is.na(pi)) || any(pi >4) || any(pi < 1))
-        stop(pi)
+      # check for issues in pi
+      if(any(is.na(pi)) || any(pi > 4) || any(pi < 1))
+        stop("Problem with policy vector : ", pi)
       
       delta <- abs(Qs[m] - U[s])
       U[s] <- Qs[m]

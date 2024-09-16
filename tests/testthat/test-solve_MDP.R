@@ -53,7 +53,7 @@ for (model in models) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, N = 10))
+    t <- system.time(sol <- solve_MDP(model, method = m, n = 10))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
@@ -73,7 +73,7 @@ for (model in models) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, N = 10, horizon = 100))
+    t <- system.time(sol <- solve_MDP(model, method = m, n = 10, horizon = 100))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")

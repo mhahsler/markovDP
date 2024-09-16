@@ -130,15 +130,17 @@ sample_MDP <-
       horizon <- model$horizon
     }
     if (is.null(horizon) || is.infinite(horizon)) {
-      if (is.null(model$discount) || !(model$discount < 1)) {
-        stop("Simulation needs a finite simulation horizon.")
+      if (!is.null(model$discount) && model$discount < 1) {
+        # find a horizon that approximates the reward using
+        # discount^horizon * max_abs_R <= 0.001
+        max_abs_R <- max(abs(.reward_range(model)))
+        horizon <-
+          ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
+      } else { 
+        warning("Simulation for undiscounted problems need a finite simulation horizon.\n",
+                "Using 10000.")
+        horizon <- 10000
       }
-      
-      # find a horizon that approximates the reward using
-      # discount^horizon * max_abs_R <= 0.001
-      max_abs_R <- max(abs(.reward_range(model)))
-      horizon <-
-        ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
     }
     horizon <- as.integer(horizon)
     
