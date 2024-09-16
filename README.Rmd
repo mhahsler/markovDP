@@ -71,7 +71,7 @@ Solving the simple maze from [@Russell2020].
 library("markovDP")
 data("Maze")
 Maze
-gridworld_plot(Maze)
+gridworld_plot(Maze, state = TRUE)
 ```
 
 ```{r solve}

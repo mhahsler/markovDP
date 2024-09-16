@@ -104,7 +104,7 @@ Maze
     ##     'unreachable_states'
 
 ``` r
-gridworld_plot(Maze)
+gridworld_plot(Maze, state = TRUE)
 ```
 
 ![](inst/README_files/problem-1.png)<!-- -->
