@@ -23,6 +23,7 @@ transition_matrix <- function(model,
                               end.state = NULL,
                               ...,
                               sparse = NULL,
+                              simplify = FALSE,
                               trans_keyword = TRUE) {
   UseMethod("transition_matrix")
 }
@@ -35,6 +36,7 @@ transition_matrix.MDP <-
            end.state = NULL,
            ...,
            sparse = NULL,
+           simplify = FALSE,
            trans_keyword = TRUE) {
     value_matrix(
       model,
@@ -43,6 +45,7 @@ transition_matrix.MDP <-
       start.state,
       end.state,
       sparse,
+      simplify,
       trans_keyword
     )
   }

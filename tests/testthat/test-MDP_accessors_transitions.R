@@ -68,3 +68,40 @@ expect_equal(tr_sparse, correct)
 expect_equal(tr_dense, correct)
 expect_equal(tr_function2, correct)
 expect_equal(tr_function3, correct)
+
+# simplify (when action is missing)
+for (m in models) {
+  (tr <- transition_matrix(m, NULL, 1, 1))
+  expect_true(inherits(tr, "list"))
+  (tr <- transition_matrix(m, NULL, 1:2, 1))
+  expect_true(inherits(tr, "list"))
+  (tr <- transition_matrix(m, NULL, 1, 1:2))
+  expect_true(inherits(tr, "list"))
+  (tr <- transition_matrix(m, NULL, 1, 1:2))
+  expect_true(inherits(tr, "list"))
+  (tr <- transition_matrix(m, NULL, 1:2, 1:2))
+  expect_true(inherits(tr, "list"))
+}
+
+res <- transition_matrix(models[[1]], NULL, 1, 1, simplify = TRUE)
+expect_true(inherits(res, "numeric"))
+for (m in models)
+  expect_identical(transition_matrix(m, NULL, 1, 1, simplify = TRUE), res)
+  
+res <- transition_matrix(models[[1]], NULL, 1:2, 1, simplify = TRUE)
+expect_true(inherits(res, "matrix"))
+for (m in models)
+  expect_identical(transition_matrix(m, NULL, 1:2, 1, simplify = TRUE), res)
+  
+res <- transition_matrix(models[[1]], NULL, 1, 1:2, simplify = TRUE)
+expect_true(inherits(res, "matrix"))
+for (m in models)
+  expect_identical(transition_matrix(m, NULL, 1, 1:2, simplify = TRUE), res)
+  
+res <- transition_matrix(models[[1]], NULL, 1:2, 1:2, simplify = TRUE)
+expect_true(inherits(res, "list"))
+for (m in models)
+  expect_identical(transition_matrix(m, NULL, 1:2, 1:2, simplify = TRUE, 
+                                     sparse = FALSE), res)
+
+

@@ -16,7 +16,8 @@ reward_matrix(
   start.state = NULL,
   end.state = NULL,
   ...,
-  sparse = NULL
+  sparse = NULL,
+  simplify = FALSE
 )
 
 transition_matrix(
@@ -26,6 +27,7 @@ transition_matrix(
   end.state = NULL,
   ...,
   sparse = NULL,
+  simplify = FALSE,
   trans_keyword = TRUE
 )
 }
@@ -36,13 +38,16 @@ transition_matrix(
 start vector is created using the start stored in the model.}
 
 \item{sparse}{logical; use sparse representation. \code{NULL} returns the
-representation stored in the problem description which saves the time for conversion.}
+representation stored in the problem description which saves the time
+for conversion.}
 
 \item{action}{name or index of an action.}
 
 \item{start.state, end.state}{name or index of the state.}
 
 \item{...}{further arguments are passed on.}
+
+\item{simplify}{logical; try to simplify action lists into a vector or matrix?}
 
 \item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
 }

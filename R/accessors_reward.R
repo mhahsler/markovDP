@@ -18,7 +18,8 @@ reward_matrix <- function(model,
                           start.state = NULL,
                           end.state = NULL,
                           ...,
-                          sparse = NULL) {
+                          sparse = NULL,
+                          simplify = FALSE) {
   UseMethod("reward_matrix")
 }
 
@@ -30,14 +31,16 @@ reward_matrix.MDP <-
            end.state = NULL,
            ...,
            state_matrix = TRUE,
-           sparse = NULL) {
+           sparse = NULL,
+           simplify = FALSE) {
     value_matrix(
       model,
       "reward",
       action,
       start.state,
       end.state,
-      sparse = sparse,
+      sparse,
+      simplify,
       trans_keyword = FALSE
     )
   }
