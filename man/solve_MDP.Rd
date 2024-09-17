@@ -17,7 +17,7 @@ solve_MDP_DP(
   method = "value_iteration",
   horizon = NULL,
   discount = NULL,
-  N_max = 1000,
+  iter_max = 1000,
   error = 0.01,
   k_backups = 10,
   U = NULL,
@@ -40,7 +40,7 @@ solve_MDP_MC(
   method = "MC_exploring_starts",
   horizon = NULL,
   discount = NULL,
-  N = 100,
+  n = 100,
   ...,
   Q = NULL,
   epsilon = 0.1,
@@ -57,7 +57,7 @@ solve_MDP_TD(
   discount = NULL,
   alpha = 0.5,
   epsilon = 0.1,
-  N = 100,
+  n = 100,
   Q = NULL,
   continue = FALSE,
   progress = TRUE,
@@ -70,8 +70,9 @@ solve_MDP_sampling(
   horizon = NULL,
   discount = NULL,
   alpha = 0.5,
-  N = 10000,
-  U = NULL,
+  n = 1000,
+  Q = NULL,
+  continue = FALSE,
   progress = TRUE,
   verbose = FALSE
 )
@@ -100,7 +101,7 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
-\item{N_max}{maximum number of iterations allowed to converge. If the
+\item{iter_max}{maximum number of iterations allowed to converge. If the
 maximum is reached then the non-converged solution is returned with a
 warning.}
 
@@ -120,7 +121,7 @@ used by the policy iteration method.}
 \item{verbose}{logical, if set to \code{TRUE}, the function provides the
 output of the solver in the R console.}
 
-\item{N}{number of episodes used for learning.}
+\item{n}{number of episodes used for learning.}
 
 \item{Q}{a action value matrix.}
 

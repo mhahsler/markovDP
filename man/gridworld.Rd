@@ -4,6 +4,7 @@
 \alias{gridworld}
 \alias{gridworld_init}
 \alias{gridworld_maze_MDP}
+\alias{gridworld_random_maze}
 \alias{gridworld_path}
 \alias{gridworld_matrix}
 \alias{gridworld_plot}
@@ -42,6 +43,8 @@ gridworld_maze_MDP(
   normalize = TRUE,
   name = NA
 )
+
+gridworld_random_maze(n, m = n, wall_prob = 0.2, normalize = TRUE)
 
 gridworld_path(model, start = NULL, goal = NULL, horizon = NULL)
 
@@ -130,6 +133,10 @@ faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
 \item{name}{a string to identify the MDP problem.}
 
+\item{n, m}{size of of the random maze.}
+
+\item{wall_prob}{probability to make a tile a wall.}
+
 \item{model, x}{a solved gridworld MDP.}
 
 \item{epoch}{epoch for unconverged finite-horizon solutions.}
@@ -171,8 +178,6 @@ graph does not fit inside the plotting area.}
 
 \item{method}{an MDP solution method for \code{\link[=solve_MDP]{solve_MDP()}}.}
 
-\item{n}{number of iterations to animate.}
-
 \item{zlim}{limits for visualizing the state value.}
 
 \item{file}{filename for a maze text file.}
@@ -184,6 +189,8 @@ state in the gridworld matrix. A matrix with one state per row can be also
 supplied.}
 
 \item{action, start.state, end.state}{parameters for the transition function.}
+
+\item{n}{number of iterations to animate.}
 }
 \value{
 \code{gridworld_maze_MDP()} returns an MDP object.

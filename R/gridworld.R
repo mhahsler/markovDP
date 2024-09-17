@@ -146,6 +146,10 @@
 #'
 #' gridworld_plot(sol)
 #' gridworld_path(sol)
+#' 
+#' # Create a small random maze
+#' rand_maze <- gridworld_random_maze(n= 5)
+#' gridworld_plot(rand_maze)
 #' @param dim vector of length two with the x and y extent of the gridworld.
 #' @param actions vector with four action labels that move the agent up, right, down,
 #'   and left.
@@ -377,6 +381,20 @@ gridworld_maze_MDP <- function(dim,
   model
 }
 
+
+#' @rdname gridworld
+#' @param n,m size of of the random maze.
+#' @param wall_prob probability to make a tile a wall.
+#' @export
+gridworld_random_maze <- function(n, m = n, wall_prob = .2, normalize = TRUE) {
+  gridworld_maze_MDP(dim = c(n, m), 
+                     start = 1, 
+                     goal = n * m,
+                     walls = sort(sample(seq(2, (n * m) - 1L), size = n * m * wall_prob)),
+                     normalize = normalize,
+                     name = "Random Maze"
+  )
+}
 
 #' @rdname gridworld
 #' @details `gridworld_path()` checks if a solved gridworld has a policy that 
