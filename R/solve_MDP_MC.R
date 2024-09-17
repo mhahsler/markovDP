@@ -105,7 +105,7 @@ MC_on_policy <- function(model,
                 nrow = length(S),
                 ncol = length(A),
                 dimnames = list(S, A))
-    pi <- random_policy(model)
+    pi <- random_policy(model, only_available_actions = TRUE)
   } else {
     pi <- greedy_policy(Q)
   }
@@ -337,7 +337,7 @@ MC_off_policy <- function(model,
         break
       
       # update the weight using b(A_t|S_t)
-      # Note, we could used actions(model, s_t), but that is expensive 
+      # Note, we could used available_actions(model, s_t), but that is expensive 
       if (a_t == b$action[s_t]) 
         b_at_st <- 1 - epsilon + epsilon / length(A)
       else

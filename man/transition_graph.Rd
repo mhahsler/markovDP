@@ -93,7 +93,7 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}()},
+\code{\link{actions}},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

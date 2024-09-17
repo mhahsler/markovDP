@@ -347,12 +347,22 @@ value_matrix <-
       
       else if (length(row) == 1) {
         action_labels <- names(m)
+        
+        # FIXME Matrix: need to manually convert sparseVector to sparseMatrix
+         if(is(m[[1]], "sparseVector"))
+          m <- lapply(m, FUN = function(x) t(as(x, "sparseMatrix")))
+        
         m <- do.call(rbind, m)
         rownames(m) <- action_labels
       }
       
       else if (length(col) == 1) {
         action_labels <- names(m)
+        
+        # FIXME Matrix: need to manually convert sparseVector to sparseMatrix
+         if(is(m[[1]], "sparseVector"))
+          m <- lapply(m, FUN = function(x) as(x, "sparseMatrix"))
+        
         m <- do.call(cbind, m)
         colnames(m) <- action_labels
       }

@@ -23,7 +23,8 @@ solve_MDP_DP(
   U = NULL,
   continue = FALSE,
   progress = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 solve_MDP_LP(
@@ -171,7 +172,7 @@ between two iterations).
 an arbitrary value function (by default all 0s) and iteratively
 updates the value function for each state using the Bellman equation.
 The iterations
-are terminated either after \code{N_max} iterations or when the solution converges.
+are terminated either after \code{iter_max} iterations or when the solution converges.
 Approximate convergence is achieved
 for discounted problems (with \eqn{\gamma < 1})
 when the maximal value function change for any state \eqn{\delta} is
@@ -186,12 +187,12 @@ policy iteration with truncated policy evaluation.
 \item \strong{Prioritized Sweeping} (Moore and Atkeson, 1993) approximate the optimal value
 function by iteratively adjusting always only the state value of the state
 with the largest Bellman error. This leads to faster convergence compared
-to value iteration which always updates the value function for all states.
-This implementation stops iteration when the sum of the priority values
-for all states is less than the specified \code{error}.
+to value iteration which updates the value function for all states in each iteration.
+This implementation stops iteration when the the largest priority values
+over all states is less than the specified \code{error}.
 }
 
-Note that the policy converges earlier than the value function.
+Note that policies converge earlier than value functions.
 }
 
 \subsection{Linear Programming}{
@@ -217,7 +218,7 @@ Note:
 \code{\link[lpSolve:lp]{lpSolve::lp()}} which requires all decision variables (state values) to be non-negative.
 To ensure this, for negative rewards, all rewards as shifted so the
 smallest reward is
-0. This does not change the optimal policy.
+0. This transformation does not change the optimal policy.
 }
 }
 
@@ -229,8 +230,8 @@ Implemented are the following temporal difference control methods
 described in Sutton and Barto (2020).
 \itemize{
 \item \strong{Monte Carlo Control with exploring Starts} uses the same greedy policy for
-behavior and target. To make sure all states/action pairs are explored, it
-used exploring starts meaning that new episodes are started at a randomly
+behavior and target (on-policy). To make sure all states/action pairs are
+explored, it uses exploring starts meaning that new episodes are started at a randomly
 chosen state using a randomly chooses action.
 \item \strong{On-policy Monte Carlo Control} uses for behavior and as the target policy
 an epsilon-greedy policy.
@@ -242,19 +243,20 @@ importance sampling.
 
 \subsection{Temporal Difference Control}{
 
-Implemented are the following temporal difference control methods
+Implemented are several temporal difference control methods
 described in Sutton and Barto (2020).
-Note that the MDP transition and reward models are only used to simulate
-the environment for these reinforcement learning methods.
+Note that the MDP transition and reward models are used
+for these reinforcement learning methods only to sample from
+the environment.
 The algorithms use a step size parameter \eqn{\alpha} (learning rate) for the
 updates and the exploration parameter \eqn{\epsilon} for
-the \eqn{\epsilon}-greedy policy.
+the \eqn{\epsilon}-greedy behavior policy.
 
 If the model has absorbing states to terminate episodes, then no maximal episode length
 (\code{horizon}) needs to
 be specified. To make sure that the algorithm does finish in a reasonable amount of time,
-episodes are stopped after 10,000 actions with a warning. For models without absorbing states,
-a episode length has to be specified via \code{horizon}.
+episodes are stopped after 1000 actions (with a warning). For models without absorbing states,
+the episode length has to be specified via \code{horizon}.
 \itemize{
 \item \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
@@ -264,20 +266,20 @@ an \eqn{\epsilon}-greedy policy. The final \eqn{\epsilon}-greedy policy
 is converted into a greedy policy.
 \item \strong{Expected Sarsa} (R. S. Sutton and Barto 2018). We implement an on-policy version that uses
 the expected value under the current policy for the update.
-It moves deterministically in the same direction as Sarsa
-moves in expectation. Because it uses the expectation, we can
-set the step size \eqn{\alpha} to large values and even 1.
+It moves deterministically in the same direction as Sarsa would
+move in expectation. Because it uses the expectation, we can
+set the step size \eqn{\alpha} to large values and 1 is common.
 }
 }
 
 \subsection{Planning by Sampling}{
 
-A simple planning method proposed by Sutton and Barto (2020) in Chapter 8.
+A simple, not very effective, planning method proposed by Sutton and Barto (2020) in Chapter 8.
 \itemize{
 \item \strong{Random-sample one-step tabular Q-planning} randomly selects a
 state/action pair and samples the resulting reward and next state from
 the model. This
-information is used to update the Q table (link in Q-learning).
+information is used to update a single Q-table value.
 }
 }
 }
@@ -317,7 +319,7 @@ gridworld_plot(maze_solved, epoch = 3)
 Maze_discounted <- Maze
 Maze_discounted$discount <- .9
 pi <- random_policy(Maze_discounted,
-  prob = c(n = .7, e = .1, s = .1, w = 0.1)
+                    prob = c(n = .7, e = .1, s = .1, w = 0.1)
 )
 pi
 
@@ -332,7 +334,7 @@ policy_evaluation(Maze, policy(maze_solved), k_backup = 100)
 policy(maze_solved)
 
 # Learn a Policy using Q-Learning
-maze_learned <- solve_MDP(Maze, method = "q_learning", N = 100)
+maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100)
 maze_learned
 
 maze_learned$solution
@@ -366,7 +368,7 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}()},
+\code{\link{actions}},
 \code{\link{add_policy}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

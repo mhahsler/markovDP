@@ -35,7 +35,7 @@
 #' gridworld_plot(sol)
 #'
 #' ## create a random policy
-#' pi_random <- random_policy(Maze)
+#' pi_random <- random_policy(Maze, estimate_U = TRUE)
 #' pi_random
 #'
 #' gridworld_plot(add_policy(Maze, pi_random))
@@ -63,28 +63,37 @@ policy <- function(model, epoch = NULL, drop = TRUE) {
 #' @export
 policy.MDP <- function(model, epoch = NULL, drop = TRUE) {
   is_solved_MDP(model, stop = TRUE)
-
+  
   policy <- model$solution$policy
-
+  
   if (!is.null(epoch)) {
     return(policy[[.get_pol_index(model, epoch)]])
   }
-
+  
   if (drop && length(policy) == 1) {
     policy <- policy[[1]]
   }
-
+  
   policy
 }
 
-
 #' @rdname policy
+#' 
 #' @param prob probability vector for random actions for `random_policy()`.
 #'   a logical indicating if action probabilities should be returned for
 #'   `greedy_action()`.
+#' @param estimate_U logical; estimate the value function
+#'    using [policy_evaluation()]?
+#' @param only_available_actions logical; only sample from available actions?
+#'   (see [available_actions()] for details)
+#' @param ... is passed on to [available_actions()].
 #' @export
 random_policy <-
-  function(model, prob = NULL, U = FALSE) {
+  function(model,
+           prob = NULL,
+           estimate_U = FALSE,
+           only_available_actions = FALSE,
+           ...) {
     if (!inherits(model, "MDP")) {
       stop("'model' needs to be of class 'MDP'.")
     }
@@ -92,22 +101,47 @@ random_policy <-
     A <- model$actions
     S <- model$states
     
-    pol <- data.frame(
-      state = S,
-      U = NA_real_,
-      action = factor(
-        sample(
-          seq_along(A),
-          size = length(S),
-          replace = TRUE,
-          prob = prob
-        ),
-        levels = seq_along(A),
-        labels = A
+    if (only_available_actions) {
+      if (is.null(prob))
+        prob <- rep(1/length(A), times = length(A))
+      
+      pol <- data.frame(
+        state = S,
+        U = NA_real_,
+        action = factor(
+          sapply(S, function(s) {
+            avail_a <- available_actions(model, s, ...)
+            if (length(avail_a) == 0L)
+              avail_a <- seq_along(A)
+            if (length(avail_a) == 1L)
+              avail_a
+            else 
+              sample(as.integer(avail_a), size = 1L, prob = prob[avail_a]/sum(prob[avail_a]))
+          }),
+          levels = seq_along(A),
+          labels = A
+        ), row.names = NULL
       )
-    )
+      
+      
+    } else {
+      pol <- data.frame(
+        state = S,
+        U = NA_real_,
+        action = factor(
+          sample(
+            seq_along(A),
+            size = length(S),
+            replace = TRUE,
+            prob = prob
+          ),
+          levels = seq_along(A),
+          labels = A
+        ), row.names = NULL
+      )
+    }
     
-    if (U) {
+    if (estimate_U) {
       pol$U <- policy_evaluation(model, pol)
     }
     
@@ -122,18 +156,15 @@ random_policy <-
 #'    the it is estimated using `policy_evaluation()`.
 #' @export
 manual_policy <-
-  function(model, actions, U = NULL) {
+  function(model, actions, U = NULL, estimate_U = FALSE) {
     if (!inherits(model, "MDP")) {
       stop("'model' needs to be of class 'MDP'.")
     }
     
-    estimate_U <- FALSE
-    if (is.null(U))
+    if (is.null(U)) {
       U <- NA_real_
-    else if (is.logical(U)) {
-      if(U) 
-        estimate_U <- TRUE
-      U <- NA_real_  
+    } else {
+      estimate_U <- FALSE
     }
     
     A <- model$actions
@@ -146,13 +177,12 @@ manual_policy <-
     actions <- factor(actions, levels = A)
     
     
-    pol <- data.frame(
-      state = S,
-      U = U,
-      action = actions
-    )
+    pol <- data.frame(state = S,
+                      U = U,
+                      action = actions, 
+                      row.names = NULL)
     
-    if (all(is.na(U)) && estimate_U) {
+    if (estimate_U) {
       pol$U <- policy_evaluation(model, pol)
     }
     

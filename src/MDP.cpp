@@ -36,6 +36,7 @@ CharacterVector get_states(const List& model) {
   return as<CharacterVector>(model["states"]);
 }  
 
+// TODO: reimplement in C++
 LogicalVector absorbing_states(const List& model) {
   return R_absorbing_states(model);
 }
@@ -43,6 +44,8 @@ LogicalVector absorbing_states(const List& model) {
 CharacterVector get_actions(const List& model) {
   return as<CharacterVector>(model["actions"]);
 }  
+
+// TODO: Add available_actions()
 
 double get_discount(const List& model) {
   return model["discount"];
@@ -306,22 +309,4 @@ IntegerVector get_policy_MDP(const List& model) {
   return as<IntegerVector>(as<List>(as<List>(as<List>(model["solution"])["policy"])[0])["action"]) - 1;
 }
 
-
-// List
-
-// get pg and alpha epochs (in case of non converged policies)
-// epochs start with 0
-int get_pg_index_cpp(const List& model, int epoch) {
-  List pg = as<List>(as<List>(model["solution"])["alpha"]);
-  
-  // (converged) infinite horizon Lists. We ignore epoch.
-  if (pg.length() == 1)
-    return 0;
-  
-  // regular epoch for finite/infinite horizon case
-  if (epoch < 0 || epoch >= pg.length())
-    stop("Epoch not available! List model has only solutions for ", pg.length(), " epochs!");
-  
-  return epoch;
-}
 

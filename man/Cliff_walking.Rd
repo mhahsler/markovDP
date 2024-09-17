@@ -44,17 +44,18 @@ sol
 policy(sol)
 gridworld_plot(sol)
 
-sol <- solve_MDP(Cliff_walking, method = "q_learning", N = 100)
+sol <- solve_MDP(Cliff_walking, method = "q_learning", n = 100)
 sol
 policy(sol)
 gridworld_plot(sol)
 
-sol <- solve_MDP(Cliff_walking, method = "sarsa", N = 100)
+sol <- solve_MDP(Cliff_walking, method = "sarsa", n = 100)
 sol
 policy(sol)
 gridworld_plot(sol)
 
-sol <- solve_MDP(Cliff_walking, method = "expected_sarsa", N = 100, alpha = 1)
+sol <- solve_MDP(Cliff_walking, method = "expected_sarsa", n = 100, 
+                  alpha = 1)
 policy(sol)
 gridworld_plot(sol)
 }

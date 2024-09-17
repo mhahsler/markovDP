@@ -36,7 +36,7 @@ action.MDP <-
     if (epsilon == 0)
       return(a)
     
-    available_A <- actions(model, state) 
+    available_A <- available_actions(model, state) 
       
     if (length(available_A) > 1L && runif(1) < epsilon) {
       a <- sample(available_A, size = 1L)

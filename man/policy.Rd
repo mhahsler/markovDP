@@ -8,9 +8,15 @@
 \usage{
 policy(model, epoch = NULL, drop = TRUE)
 
-random_policy(model, prob = NULL, U = FALSE)
+random_policy(
+  model,
+  prob = NULL,
+  estimate_U = FALSE,
+  only_available_actions = FALSE,
+  ...
+)
 
-manual_policy(model, actions, U = NULL)
+manual_policy(model, actions, U = NULL, estimate_U = FALSE)
 }
 \arguments{
 \item{model}{A solved \link{MDP} object.}
@@ -24,11 +30,19 @@ with elements for each epoch.}
 a logical indicating if action probabilities should be returned for
 \code{greedy_action()}.}
 
-\item{U}{a vector with the value function for the policy. If \code{TRUE}, then
-the it is estimated using \code{policy_evaluation()}.}
+\item{estimate_U}{logical; estimate the value function
+using \code{\link[=policy_evaluation]{policy_evaluation()}}?}
+
+\item{only_available_actions}{logical; only sample from available actions?
+(see \code{\link[=available_actions]{available_actions()}} for details)}
+
+\item{...}{is passed on to \code{\link[=available_actions]{available_actions()}}.}
 
 \item{actions}{a vector with the action (either the action label or the
 numeric id) for each state.}
+
+\item{U}{a vector with the value function for the policy. If \code{TRUE}, then
+the it is estimated using \code{policy_evaluation()}.}
 }
 \value{
 A data.frame containing the policy. If \code{drop = FALSE} then the policy is returned
@@ -62,7 +76,7 @@ plot_value_function(sol)
 gridworld_plot(sol)
 
 ## create a random policy
-pi_random <- random_policy(Maze)
+pi_random <- random_policy(Maze, estimate_U = TRUE)
 pi_random
 
 gridworld_plot(add_policy(Maze, pi_random))

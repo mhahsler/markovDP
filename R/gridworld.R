@@ -115,7 +115,7 @@
 #' gridworld_plot_transition_graph(DynaMaze)
 #' # Note that the problems resets if the goal state would be reached.
 #'
-#' sol <- solve_MDP(DynaMaze)
+#' sol <- solve_MDP(DynaMaze, method = "lp")
 #'
 #' gridworld_matrix(sol, what = "values")
 #' gridworld_matrix(sol, what = "actions")
@@ -124,9 +124,6 @@
 #'
 #' # check if we found a solution
 #' gridworld_path(sol)
-#'
-#' # visualize the first 3 iterations of value iteration
-#' gridworld_animate(DynaMaze, method = "value", n = 3)
 #'
 #' # Read a maze from a text file
 #' #   (X are walls, S is the start and G is the goal)
@@ -148,7 +145,7 @@
 #' gridworld_path(sol)
 #' 
 #' # Create a small random maze
-#' rand_maze <- gridworld_random_maze(n= 5)
+#' rand_maze <- gridworld_random_maze(dim = c(5, 5))
 #' gridworld_plot(rand_maze)
 #' @param dim vector of length two with the x and y extent of the gridworld.
 #' @param actions vector with four action labels that move the agent up, right, down,
@@ -383,18 +380,40 @@ gridworld_maze_MDP <- function(dim,
 
 
 #' @rdname gridworld
-#' @param n,m size of of the random maze.
 #' @param wall_prob probability to make a tile a wall.
 #' @export
-gridworld_random_maze <- function(n, m = n, wall_prob = .2, normalize = TRUE) {
-  gridworld_maze_MDP(dim = c(n, m), 
-                     start = 1, 
-                     goal = n * m,
-                     walls = sort(sample(seq(2, (n * m) - 1L), size = n * m * wall_prob)),
-                     normalize = normalize,
-                     name = "Random Maze"
+gridworld_random_maze <- function(dim,
+                                  wall_prob = .2,
+                                  start = NULL,
+                                  goal = NULL,
+                                  normalize = TRUE) {
+  if (is.null(start))
+    start <- 1
+  else if(is.character(start))
+    start <- sapply(start, FUN = function(s) { rc <- gridworld_s2rc(s); (rc[2] - 1) * m + (rc[1] - 1) + 1 })
+  
+  n <- dim[1]
+  m <- dim[2]
+  if (is.na(m))
+    m <- n
+  
+  if (is.null(goal))
+    goal <- m * n
+  else if(is.character(goal))
+    goal <- sapply(goal, FUN = function(s) { rc <- gridworld_s2rc(s); (rc[2] - 1) * m + (rc[1] - 1) + 1 })
+  
+  gridworld_maze_MDP(
+    dim = c(n, m),
+    start = start,
+    goal = goal,
+    walls = sort(sample(
+      setdiff(seq(n * m), union(start, goal)) , size = n * m * wall_prob
+    )),
+    normalize = normalize,
+    name = "Random Maze"
   )
 }
+
 
 #' @rdname gridworld
 #' @details `gridworld_path()` checks if a solved gridworld has a policy that 
@@ -449,7 +468,7 @@ gridworld_path <- function(model, start = NULL, goal = NULL, horizon = NULL) {
 #'  (state names, values, actions, etc.) as a matrix.
 #' 
 #' @param what What should be returned in the matrix. Options are:
-#'  `"states"`, `"labels"`, `"values"`, `"actions"`, `"absorbing"`, and
+#'  `"states"`, `"index"`, `"labels"`, `"values"`, `"actions"`, `"absorbing"`, and
 #'  `"unreachable"`.
 #' @export
 gridworld_matrix <- function(model, epoch = 1L, what = "states") {
@@ -460,6 +479,7 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
   what <- match.arg(what,
                     c(
                       "states",
+                      "index",
                       "labels",
                       "values",
                       "actions",
@@ -481,6 +501,11 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
     states = {
       l <- structure(rep(NA_character_, length(all_states)), names = all_states)
       l[model$states] <- model$states
+      l
+    },
+    index = {
+      l <- structure(rep(NA_integer_, length(all_states)), names = all_states)
+      l[model$states] <- seq_along(model$states)
       l
     },
     labels = {
@@ -530,6 +555,7 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
 #'  simple `"character"`, `"unicode"` arrows (needs to be supported by the used font),
 #'  `"label"` of the action, and  `"none"` to suppress showing the action.
 #' @param states logical; show state names.
+#' @param index logical; show the state indices.
 #' @param labels logical; show state labels.
 #' @param impossible_actions logical; show the value and the action for absorbing or unreachable states.
 #' @param main logical; main title.
@@ -549,6 +575,7 @@ gridworld_plot <-
            epoch = 1L,
            actions = "character",
            states = FALSE,
+           index = FALSE,
            labels = TRUE,
            impossible_actions = FALSE,
            main = NULL,
@@ -637,14 +664,6 @@ gridworld_plot <-
       g$x <- 0
     }
     
-    g$state <-
-      as.vector(gridworld_matrix(model, what = "states"))
-    g$labels <-
-      as.vector(gridworld_matrix(model, what = "labels"))
-    
-    # hide X from drawing
-    g$labels[g$labels == 'X'] <- ''
-    
     # actions
     if (actions != "none") {
       g$actions <-
@@ -672,8 +691,20 @@ gridworld_plot <-
       
       text(g$x, g$y, g$actions, cex = cex)
     }
+      
+    if (states && !index) {
+      g$state <-
+        as.vector(gridworld_matrix(model, what = "states"))
+    } else if (index && !states) {
+      g$state <-
+        as.vector(gridworld_matrix(model, what = "index"))
+    } else {
+      g$state <- paste0(as.vector(gridworld_matrix(model, what = "index")), 
+                        ": ", 
+                        as.vector(gridworld_matrix(model, what = "states")))
+    }      
     
-    if (states) {
+    if (states || index) {
       text(
         g$x,
         g$y,
@@ -686,6 +717,10 @@ gridworld_plot <-
     # text(g$x, g$y, g$state, pos = 3, cex = .8)
     
     if (labels) {
+      g$labels <-
+        as.vector(gridworld_matrix(model, what = "labels"))
+      # hide X from drawing
+      g$labels[g$labels == 'X'] <- ''
       text(
         g$x,
         g$y,
@@ -785,7 +820,7 @@ gridworld_animate <- function(model, method, n, zlim = NULL, ...) {
   for (i in seq(n)) {
     sol <- suppressWarnings(solve_MDP(
       sol,
-      N = 1,
+      n = 1,
       method = method,
       continue = i != 1,
       ...

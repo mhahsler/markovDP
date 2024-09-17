@@ -44,7 +44,13 @@ gridworld_maze_MDP(
   name = NA
 )
 
-gridworld_random_maze(n, m = n, wall_prob = 0.2, normalize = TRUE)
+gridworld_random_maze(
+  dim,
+  wall_prob = 0.2,
+  start = NULL,
+  goal = NULL,
+  normalize = TRUE
+)
 
 gridworld_path(model, start = NULL, goal = NULL, horizon = NULL)
 
@@ -55,6 +61,7 @@ gridworld_plot(
   epoch = 1L,
   actions = "character",
   states = FALSE,
+  index = FALSE,
   labels = TRUE,
   impossible_actions = FALSE,
   main = NULL,
@@ -133,8 +140,6 @@ faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
 \item{name}{a string to identify the MDP problem.}
 
-\item{n, m}{size of of the random maze.}
-
 \item{wall_prob}{probability to make a tile a wall.}
 
 \item{model, x}{a solved gridworld MDP.}
@@ -142,10 +147,12 @@ faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 \item{epoch}{epoch for unconverged finite-horizon solutions.}
 
 \item{what}{What should be returned in the matrix. Options are:
-\code{"states"}, \code{"labels"}, \code{"values"}, \code{"actions"}, \code{"absorbing"}, and
+\code{"states"}, \code{"index"}, \code{"labels"}, \code{"values"}, \code{"actions"}, \code{"absorbing"}, and
 \code{"unreachable"}.}
 
 \item{states}{logical; show state names.}
+
+\item{index}{logical; show the state indices.}
 
 \item{labels}{logical; show state labels.}
 
@@ -178,6 +185,8 @@ graph does not fit inside the plotting area.}
 
 \item{method}{an MDP solution method for \code{\link[=solve_MDP]{solve_MDP()}}.}
 
+\item{n}{number of iterations to animate.}
+
 \item{zlim}{limits for visualizing the state value.}
 
 \item{file}{filename for a maze text file.}
@@ -189,8 +198,6 @@ state in the gridworld matrix. A matrix with one state per row can be also
 supplied.}
 
 \item{action, start.state, end.state}{parameters for the transition function.}
-
-\item{n}{number of iterations to animate.}
 }
 \value{
 \code{gridworld_maze_MDP()} returns an MDP object.
@@ -373,6 +380,10 @@ sol
 
 gridworld_plot(sol)
 gridworld_path(sol)
+
+# Create a small random maze
+rand_maze <- gridworld_random_maze(dim = c(5, 5))
+gridworld_plot(rand_maze)
 }
 \seealso{
 Other gridworld: 
@@ -385,7 +396,7 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}()},
+\code{\link{actions}},
 \code{\link{add_policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

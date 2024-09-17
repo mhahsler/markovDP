@@ -22,11 +22,17 @@ solve_MDP_DP <- function(model,
                          U = NULL,
                          continue = FALSE,
                          progress = TRUE,
-                         verbose = FALSE) {
+                         verbose = FALSE,
+                         ...) {
   if (!inherits(model, "MDP")) {
     stop("'model' needs to be of class 'MDP'.")
   }
 
+  dots <- list(...)
+  if (!is.null(dots$n)) 
+    iter_max <- dots$n
+  
+  
   methods <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
   method <- match.arg(method, methods)
 
