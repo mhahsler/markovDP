@@ -9,7 +9,7 @@
 \usage{
 unreachable_states(model, direct = FALSE, sparse = FALSE, ...)
 
-absorbing_states(model, sparse = FALSE, ...)
+absorbing_states(model, state = NULL, sparse = FALSE, ...)
 
 remove_unreachable_states(model, direct = FALSE)
 }

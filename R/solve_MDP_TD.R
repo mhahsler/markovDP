@@ -42,11 +42,15 @@ solve_MDP_TD <-
     }
     gamma <- discount
     model$discount <- discount
-
+    
+    if (progress) {
+      pb <- my_progress_bar(n, name = "solve_MDP")
+      pb$tick(0)
+    }
+      
     S <- model$states
-    S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
+    #S_absorbing <- S[which(absorbing_states(model))]
     start <- start_vector(model, sparse = FALSE)
 
 
@@ -84,8 +88,6 @@ solve_MDP_TD <-
       return(model)
     })
     
-    if (progress)
-      pb <- my_progress_bar(n, name = "solve_MDP")
     
     # loop episodes
     for (e in seq(n)) {
@@ -98,7 +100,8 @@ solve_MDP_TD <-
       # loop steps in episode
       i <- 1L
       while (TRUE) {
-        s_prime <- sample(S, 1L, prob = P[[a]][s, ])
+        #s_prime <- sample(S, 1L, prob = P[[a]][s, ])
+        s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
         r <- reward_matrix(model, a, s, s_prime)
         a_prime <- greedy_action(Q, s_prime, epsilon)
 
@@ -143,7 +146,8 @@ solve_MDP_TD <-
         s <- s_prime
         a <- a_prime
 
-        if (s %in% S_absorbing) {
+        #if (s %in% S_absorbing) {
+        if (absorbing_states(model, state = s)) {
           break
         }
 

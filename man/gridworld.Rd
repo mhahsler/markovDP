@@ -349,7 +349,7 @@ gridworld_matrix(DynaMaze, what = "labels")
 gridworld_plot_transition_graph(DynaMaze)
 # Note that the problems resets if the goal state would be reached.
 
-sol <- solve_MDP(DynaMaze)
+sol <- solve_MDP(DynaMaze, method = "lp")
 
 gridworld_matrix(sol, what = "values")
 gridworld_matrix(sol, what = "actions")
@@ -358,9 +358,6 @@ gridworld_plot(sol, states = TRUE)
 
 # check if we found a solution
 gridworld_path(sol)
-
-# visualize the first 3 iterations of value iteration
-gridworld_animate(DynaMaze, method = "value", n = 3)
 
 # Read a maze from a text file
 #   (X are walls, S is the start and G is the goal)

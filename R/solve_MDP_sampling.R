@@ -27,7 +27,6 @@ solve_MDP_sampling <-
     model$discount <- discount
     
     S <- model$states
-    S_absorbing <- S[which(absorbing_states(model))]
     A <- model$actions
     start <- start_vector(model, sparse = FALSE)
     

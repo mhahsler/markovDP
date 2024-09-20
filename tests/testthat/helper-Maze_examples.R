@@ -53,6 +53,7 @@ T <- function(model, action, start.state, end.state) {
   P <- add_prob(P, rc, action, .8)
   P <- add_prob(P, rc, error_direction[1], .1)
   P <- add_prob(P, rc, error_direction[2], .1)
+  
   P[rbind(gridworld_s2rc(end.state))]
 }
 

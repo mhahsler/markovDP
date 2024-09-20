@@ -17,6 +17,8 @@
 #' @family MDP
 #'
 #' @param model a [MDP] object.
+#' @param state logical; check a single state. This can be much faster if
+#'   the model contains a transition model implemented as a function.
 #' @param sparse logical; return a sparse logical vector.
 #' @param ... further arguments are passed on.
 #'
@@ -40,13 +42,16 @@
 NULL
 
 #' @rdname unreachable_and_absorbing
-#' @param direct logical; only consider if a state is reachable from 
-#'   a different state (not necessarily from a start state). This is 
+#' @param direct logical; only consider if a state is reachable from
+#'   a different state (not necessarily from a start state). This is
 #'  much faster and useful for gridworlds.
 #' @returns  `unreachable_states()` returns a
 #'  logical vector indicating the unreachable states.
 #' @export
-unreachable_states <- function(model, direct = FALSE, sparse = FALSE, ...) {
+unreachable_states <- function(model,
+                               direct = FALSE,
+                               sparse = FALSE,
+                               ...) {
   UseMethod("unreachable_states")
 }
 
@@ -59,18 +64,23 @@ unreachable_states.MDP <- function(model,
                                    direct = FALSE,
                                    sparse = FALSE,
                                    ...) {
-  
   if (!is.null(model$unreachable_states)) {
-    return(.sparsify_vector(model$unreachable_states, 
-                            sparse = sparse, 
-                            names = model$states))
+    return(
+      .sparsify_vector(
+        model$unreachable_states,
+        sparse = sparse,
+        names = model$states
+      )
+    )
   }
   
   
-  all_reachable <- function(model, sparse = FALSE) 
-    .sparsify_vector(new("lsparseVector", length = length(model$states)), 
-                     sparse = sparse, 
-                     names = model$states)
+  all_reachable <- function(model, sparse = FALSE)
+    .sparsify_vector(
+      new("lsparseVector", length = length(model$states)),
+      sparse = sparse,
+      names = model$states
+    )
   
   # all states are reachable from the start state
   if (all(start_vector(model) > 0))
@@ -103,7 +113,7 @@ unreachable_states.MDP <- function(model,
   
   if (is(r, "sparseMatrix"))
     r <- colSums(r, sparseResult = TRUE) > 0
-  else  
+  else
     r <- colSums(r) > 0
   
   # start states are also reachable
@@ -116,21 +126,42 @@ unreachable_states.MDP <- function(model,
 #' @returns  `absorbing_states()` returns a logical vector indicating
 #'    if the states are absorbing (terminal).
 #' @export
-absorbing_states <- function(model, sparse = FALSE, ...) {
+absorbing_states <- function(model,
+                             state = NULL,
+                             sparse = FALSE,
+                             ...) {
   UseMethod("absorbing_states")
 }
 
 #' @export
-absorbing_states.MDP <- function(model, sparse = FALSE, ...) {
-  if (!is.null(model$absorbing_states)) {
-    return(.sparsify_vector(model$absorbing_states, 
-                           sparse = sparse, 
-                           names = model$states))
+absorbing_states.MDP <- function(model,
+                                 state = NULL,
+                                 sparse = FALSE,
+                                 ...) {
+  if (!is.null(state) &&
+      length(state) == 1L &&
+      is.null(model$absorbing_states)) {
+    return(all(
+      transition_matrix(
+        model,
+        start.state = state,
+        end.state = state,
+        simplify = TRUE
+      ) == 1
+    ))
   }
   
-  absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
+  if (!is.null(model$absorbing_states)) {
+    absorbing <- .sparsify_vector(model$absorbing_states, sparse = sparse, names = model$states)
+  } else {
+    absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
+    absorbing <- .sparsify_vector(absorbing, sparse, names = model$states)
+  }
   
-  .sparsify_vector(absorbing, sparse, names = model$states)
+  if (!is.null(state))
+    absorbing <- absorbing[state]
+  
+  absorbing
 }
 
 #' @rdname unreachable_and_absorbing
@@ -207,9 +238,9 @@ remove_unreachable_states <- function(model, direct = FALSE) {
   }
   
   # update reachable and unreachable
-  if(!is.null(model$absorbing_states)) 
+  if (!is.null(model$absorbing_states))
     model$absorbing_states <- model$absorbing_states[reachable]
-  if(!is.null(model$reachable_states)) 
+  if (!is.null(model$reachable_states))
     model$reachable_states <- model$reachable_states[reachable]
   
   # just check

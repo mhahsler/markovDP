@@ -17,7 +17,7 @@ end states unavailable?}
 
 \item{stay_in_place}{logical; consider an action that results in the same state
 with a probability of 1 as unavailable. Note that this will mean that
-absorbing states have not available action!}
+absorbing states have no available action!}
 }
 \value{
 a character vector with the available actions.

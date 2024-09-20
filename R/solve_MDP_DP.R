@@ -178,6 +178,7 @@ MDP_value_iteration_inf_horizon <-
            U = NULL,
            progress = TRUE,
            verbose = FALSE) {
+    
     S <- model$states
     A <- model$actions
     P <- transition_matrix(model, sparse = TRUE)
