@@ -23,12 +23,13 @@ the optimal (or at least a good) policy
 that guides the agent's actions. 
 
 The `markovDP` package provides the infrastructure to work with MDPs in R.
-The focus is on convenience in formulating MDPs in multiple ways, the support of
-sparse representations 
-(using sparse matrices, lists and data.frames) and visualization of results. 
+The focus is on convenience in formulating MDPs with small to medium sized 
+state spaces in multiple ways, the support of
+sparse representations (using sparse matrices, lists and data.frames) and 
+visualization of results. 
 Some key components are implemented in
 C++ to speed up computation.
-It also provides to the following popular solving procedures:
+The package provides to the following popular tabular methods:
 
 * __Dynamic Programming__
   - Value Iteration [@Bellman1957]

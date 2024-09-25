@@ -58,9 +58,6 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
     cat("creating constraints ...\n")
   }
 
-  # TODO: This could be sparse!
-  model <- normalize_MDP(model, sparse = FALSE)
-
   # objective is sum_s V(s)
   obj <- rep(1, n_s)
 
@@ -74,7 +71,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   i <- 1L
   for (a in seq(n_a)) {
     for (s in seq(n_s)) {
-      T[i, ] <- transition_matrix(model, action = a, start.state = s)
+      T[i, ] <- transition_matrix(model, action = a, start.state = s, sparse = FALSE)
       i <- i + 1L
     }
   }

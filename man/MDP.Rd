@@ -126,7 +126,7 @@ For the specification as data.frames below, \code{NA} can be used to mean
 any  \code{start.state}, \code{end.state} or \code{action}.
 }
 
-\subsection{Specification of transition probabilities: \eqn{T(s' | s, a)}}{
+\subsection{Specification of transition model: \eqn{T(s' | s, a)}}{
 
 Transition probability to transition to state \eqn{s'} from given state \eqn{s}
 and action \eqn{a}. The transition probabilities can be
@@ -139,8 +139,18 @@ appears last in the data.frame will take affect.
 \item A named list of matrices, one for each action. Each matrix is square with
 rows representing start states \eqn{s} and columns representing end states \eqn{s'}.
 Instead of a matrix, also the strings \code{'identity'} or \code{'uniform'} can be specified.
-\item A function with the same arguments are \code{T_()}, but no default values
-that returns the transition probability.
+\item One of the following functions:
+\itemize{
+\item A function with the argument list \code{model}, \code{action}, \code{start.state}, \code{end.state}
+which returns a single transition probability.
+\item A function with the argument list \code{model}, \code{action}, \code{start.state}
+which returns a transition probability vector for all end states. This vector can
+be dense, a \link[Matrix:sparseVector]{Matrix::sparseVector} or a named vector only containing
+the non-zero probabilities named by the corresponding end state.
+}
+
+The arguments \code{action}, \code{start.state}, and \code{end.state} will be called with the
+state name as a string.
 }
 }
 
@@ -157,8 +167,7 @@ appears last in the data.frame will take affect.
 \item A list of state x state matrices.
 The list elements are for \code{'action'}. The matrix rows are \code{start.state} and the
 columns are \code{end.state}.
-\item A function with the same arguments are \code{R_()}, but no default values
-that returns the reward.
+\item A function following the same rules as for transition probabilities.
 }
 
 To avoid overflow problems with rewards, reward values should stay well within the

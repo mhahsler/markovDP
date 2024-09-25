@@ -131,13 +131,29 @@ Maze_function2$transition_prob <- function(model, action, start.state) {
   P
 }
 
+Maze_function2_sparse <- Maze_function2
+Maze_function2_sparse$transition_prob <- function(model, action, start.state) {
+  .sparsify_vector(Maze_function2$transition_prob(model, action, start.state))
+}
+
+Maze_function2_named <- Maze_function2
+Maze_function2_named$transition_prob <- function(model, action, start.state) {
+  v <- Maze_function2$transition_prob(model, action, start.state)
+  v[v>0]
+}
+
 Maze_function3 <- Maze_orig
 
-models <- list(Maze_orig,
-               Maze_dense,
+models <- list(Maze_dense,
                Maze_sparse,
                Maze_function2,
+               Maze_function2_sparse,
+               Maze_function2_named,
                Maze_function3)
+
+models_solve <- list(Maze_dense,
+                    Maze_sparse,
+                    Maze_function2)
 
 name_models <- function(models)
   lapply(
@@ -177,3 +193,4 @@ name_models <- function(models)
   )
 
 models <- name_models(models)
+models_solve <- name_models(models_solve)

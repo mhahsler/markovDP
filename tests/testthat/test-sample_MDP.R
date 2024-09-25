@@ -19,7 +19,7 @@ models_solved <- list(Maze_sparse_sol,
 
 models_solved <- name_models(models_solved)
 
-for (m in c(models, models_solved)) {
+for (m in c(models_solve, models_solved)) {
   if (verbose)
     cat("\n\nSampling w/R from: ", m$name, " \n")
   

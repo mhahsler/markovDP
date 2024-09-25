@@ -25,7 +25,7 @@ times <- data.frame(model = character(0), method = character(0),
                     elapsed = numeric(0))
 
 
-for (model in models) {
+for (model in models_solve) {
   for (m in methods) {
     if (verbose)
       cat("Solving w/", m, ":", model$name, "\n")
@@ -48,7 +48,7 @@ for (model in models) {
 
 ### these methods are slow and need restrictions
 
-for (model in models) {
+for (model in models_solve) {
   for (m in methods_sampling) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")
@@ -68,7 +68,7 @@ for (model in models) {
   }
 }
 
-for (model in models) {
+for (model in models_solve) {
   for (m in methods_MC) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")

@@ -30,7 +30,7 @@
 #' For the specification as data.frames below, `NA` can be used to mean
 #' any  `start.state`, `end.state` or `action`.
 #'
-#' ## Specification of transition probabilities: \eqn{T(s' | s, a)}
+#' ## Specification of transition model: \eqn{T(s' | s, a)}
 #'
 #' Transition probability to transition to state \eqn{s'} from given state \eqn{s}
 #' and action \eqn{a}. The transition probabilities can be
@@ -45,8 +45,16 @@
 #'   rows representing start states \eqn{s} and columns representing end states \eqn{s'}.
 #'   Instead of a matrix, also the strings `'identity'` or `'uniform'` can be specified.
 #'
-#' * A function with the same arguments are `T_()`, but no default values
-#'   that returns the transition probability.
+#' * One of the following functions:
+#'    - A function with the argument list `model`, `action`, `start.state`, `end.state` 
+#'      which returns a single transition probability.
+#'    - A function with the argument list `model`, `action`, `start.state` 
+#'      which returns a transition probability vector for all end states. This vector can
+#'      be dense, a [Matrix::sparseVector] or a named vector only containing 
+#'      the non-zero probabilities named by the corresponding end state.
+#'    
+#'    The arguments `action`, `start.state`, and `end.state` will be called with the 
+#'    state name as a string.
 #'
 #' ## Specification of the reward function: \eqn{R(a, s, s')}
 #'
@@ -63,8 +71,7 @@
 #'   The list elements are for `'action'`. The matrix rows are `start.state` and the 
 #'   columns are `end.state`. 
 #'
-#' * A function with the same arguments are `R_()`, but no default values
-#'   that returns the reward.
+#' * A function following the same rules as for transition probabilities.
 #'
 #' To avoid overflow problems with rewards, reward values should stay well within the
 #' range of

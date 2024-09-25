@@ -28,10 +28,10 @@ solve_MDP_DP <- function(model,
     stop("'model' needs to be of class 'MDP'.")
   }
 
+  # Note: This is used by gridworld_animate()
   dots <- list(...)
   if (!is.null(dots$n)) 
     iter_max <- dots$n
-  
   
   methods <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
   method <- match.arg(method, methods)
@@ -48,7 +48,7 @@ solve_MDP_DP <- function(model,
     model$discount <- discount
   }
   if (is.null(model$discount)) {
-    message("No discount rate specified. Using .9!")
+    message("No discount rate specified. Using .9 for the infinite horizon problem!")
     model$discount <- .9
   }
 
@@ -121,12 +121,23 @@ MDP_value_iteration_finite_horizon <-
       stop("'model' needs to be of class 'MDP'.")
     }
 
+    if (progress) {
+      pb <- my_progress_bar(horizon, name = "solve_MDP") 
+      pb$tick(0)
+    }
+    
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
-    R <- reward_matrix(model, sparse = TRUE)
+    
+    R <- reward_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0)
+    
+    P <- transition_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0)
+    
     GAMMA <- model$discount
-
     horizon <- as.integer(horizon)
 
     if (is.null(U)) {
@@ -135,19 +146,13 @@ MDP_value_iteration_finite_horizon <-
     names(U) <- S
 
     policy <- vector(mode = "list", length = horizon)
-
-    if (progress) {
-      pb <- my_progress_bar(horizon, name = "solve_MDP") 
-      pb$tick(0)
-    }
       
     for (t in seq(horizon, 1)) {
       if (progress)
         pb$tick()
       
-      
       if (verbose) {
-        cat("Iteration for t = ", t)
+        cat("Iteration for t = ", t, "\n")
       }
 
       Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
@@ -163,6 +168,9 @@ MDP_value_iteration_finite_horizon <-
         row.names = NULL
       )
     }
+      
+    if (progress)
+      pb$terminate()
 
     model$solution <- list(
       policy = policy,
@@ -179,10 +187,24 @@ MDP_value_iteration_inf_horizon <-
            progress = TRUE,
            verbose = FALSE) {
     
+    if (progress) {
+      pb <- my_progress_spinner(name = "solve_MDP", 
+                                format_extra = " | max delta U: :delta | press esc/CTRL-C to terminate early")
+      pb$tick(0, token = list(delta = "-"))
+    }
+    
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
-    R <- reward_matrix(model, sparse = TRUE)
+    
+    R <- reward_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0, token = list(delta = "-"))
+    
+    P <- transition_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0, token = list(delta = "-"))
+    
+    
     GAMMA <- model$discount
     if (GAMMA < 1) {
       convergence_factor <- (1 - GAMMA) / GAMMA
@@ -197,10 +219,6 @@ MDP_value_iteration_inf_horizon <-
     }
     names(U) <- S
 
-    if (progress)
-      pb <- my_progress_spinner(name = "solve_MDP", 
-                                format_extra = " | max delta U: :delta | press esc/CTRL-C to terminate early")
-    
     # return unconverged result when interrupted
     on.exit({ 
       warning("MDP solver did not converge (manual interrupt).")
@@ -299,6 +317,9 @@ MDP_value_iteration_inf_horizon <-
 ##    converges to the optimal value function. Technical report DCSTR-631,
 ##    Department of Computer Science, Rutgers University, May 2008
 ## https://www.academia.edu/15223291/Prioritized_Sweeping_Converges_to_the_Optimal_Value_Function
+##
+## We initialize H(s) using the states reward so we start with the biggest 
+## reward states and probagate the reward backwards.
 MDP_PS_inf_horizon <-
   function(model,
            error,
@@ -306,37 +327,48 @@ MDP_PS_inf_horizon <-
            U = NULL,
            progress = TRUE,
            verbose = FALSE) {
+    if (progress) {
+      pb <- my_progress_spinner(name = "solve_MDP", ticks = "state updates",
+                                format_extra = " | max priority: :error | press esc/CTRL-C to terminate early")
+      pb$tick(0, token = list(error = "-"))
+    }
+    
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
-    R <- reward_matrix(model, sparse = TRUE)
+    
+    R <- reward_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0, token = list(error = "-"))
+    
+    P <- transition_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0, token = list(error = "-"))
+    
     GAMMA <- model$discount
 
+    H <- NULL
     if (is.null(U)) {
       U <- rep(0, times = length(S))
       # random policy
-      pi <- sample(seq_along(A), size = length(S), replace = TRUE)
-      H <- rep(.reward_range(model)[2] *.1, times = length(S))
+      pi <- as.integer(random_policy(model)$action)
     } else {
-      pi <- model$solution$policy$action
+      pi <- as.integer(model$solution$policy$action)
       if (is.null(pi))
-        pi <- sample(seq_along(A), size = length(S), replace = TRUE)
+        pi <- random_policy(model)$action 
       
       H <- model$solution$H
-      if (is.null(H))
-        H <- rep(.reward_range(model)[2] *.1, times = length(S))
-      
-      
     }
+    
+    if (is.null(H))
+      H <- abs(apply(
+        sapply(reward_matrix(model), colSums),
+        MARGIN = 1,
+        max,
+        na.rm = TRUE
+      ))
+    
     names(U) <- S
 
-    ## State priorities. Set all priorities to error so we randomly pick one first.
-    # chosen at least once.
-
-    if (progress)
-      pb <- my_progress_spinner(name = "solve_MDP", ticks = "state updates",
-                                format_extra = " | max priority: :error | press esc/CTRL-C to terminate early")
-    
     # return unconverged result when interrupted
     on.exit({ 
       warning("MDP solver did not converge (manual interrupt).")
@@ -348,7 +380,7 @@ MDP_PS_inf_horizon <-
       pi <- factor(pi, levels = seq_along(A), labels = A)
       
       model$solution <- list(
-        method = "value iteration (prioritized sweeping)",
+        method = "prioritized sweeping",
         policy = list(data.frame(
           state = S,
           U = U,
@@ -363,8 +395,8 @@ MDP_PS_inf_horizon <-
       return(model)
     })
     
-    
     err <- sum(H)
+    delta <- Inf
     converged <- FALSE
     for (i in seq_len(N_max)) {
       if (progress)
@@ -376,25 +408,39 @@ MDP_PS_inf_horizon <-
       # update state with highest error
       s <- which.max.random(H)
 
+      if (verbose)
+        cat("Updating state", s, "(", S[s],") from action", pi[s], " -> ")
+      
       Qs <- .QV_vec(s, A, P, R, GAMMA, U)
       m <- which.max.random(Qs)
       pi[s] <- m
-
+      delta <- abs(Qs[m] - U[s])
+      
+      if (verbose)
+        cat(pi[s], "with U ", signif(U[s], 3), "->", Qs[m],"\n")
+      
+      U[s] <- Qs[m]
+      
       # check for issues in pi
-      if(any(is.na(pi)) || any(pi > 4) || any(pi < 1))
+      if(any(is.na(pi)) || any(pi > length(A)) || any(pi < 1))
         stop("Problem with policy vector : ", pi)
       
-      delta <- abs(Qs[m] - U[s])
-      U[s] <- Qs[m]
-
-      # update priority for all states
-      for (ss in seq_along(S)) {
-        if (ss == s) {
-          H[ss] <- delta * max(sapply(A, FUN = function(a) P[[a]][s, ss]))
-        } else {
-          H[ss] <- max(H[ss], delta * max(sapply(A, FUN = function(a) P[[a]][s, ss])))
-        }
-      }
+      # update priority for all states that can reach the just updated state
+      H[s] <- -Inf
+      H <- pmax(H, delta * apply(
+        transition_matrix(model, end.state = s, simplify = TRUE),
+        MARGIN = 1,
+        max
+      ))
+      
+      # for (ss in seq_along(S)) {
+      #   if (ss == s) {
+      #     H[ss] <- delta * max(sapply(A, FUN = function(a) P[[a]][s, ss]))
+      #   } else {
+      #     H[ss] <- max(H[ss], delta * max(sapply(A, FUN = function(a) P[[a]][s, ss])))
+      # 
+      #   }
+      # }
 
 
       # pi <- factor(m, levels = seq_along(A), labels = A)
@@ -419,7 +465,6 @@ MDP_PS_inf_horizon <-
         )
       }
       
-      ### FIXME
       if (err < error) {
         converged <- TRUE
         break
@@ -475,10 +520,26 @@ MDP_policy_iteration_inf_horizon <-
            U = NULL,
            progress = TRUE,
            verbose = FALSE) {
+    if (progress) {
+      pb <- my_progress_spinner(name = "solve_MDP", 
+                                format_extra = paste0(" | changed actions: :changed_actions/",
+                                                      length(model$states),
+                                                      " | press esc/CTRL-C to terminate early"))
+      pb$tick(0, token = list(changed_actions = "-"))
+    }
+      
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
-    R <- reward_matrix(model, sparse = TRUE)
+    
+    
+    R <- reward_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0, token = list(changed_actions = "-"))
+    
+    P <- transition_matrix(model, sparse = NULL)
+    if (progress) 
+      pb$tick(0, token = list(changed_actions = "-"))
+    
     GAMMA <- model$discount
 
     if (is.null(U)) {
@@ -494,8 +555,8 @@ MDP_policy_iteration_inf_horizon <-
     names(U) <- S
     names(pi) <- S
     
-    if (progress)
-      pb <- my_progress_spinner(name = "solve_MDP", format_extra = " | changed actions: :changed_actions | press esc/CTRL-C to terminate early")
+    if (progress) 
+      pb$tick(0, token = list(changed_actions = "-"))
     
     # return unconverged result when interrupted
     on.exit({ 
@@ -530,9 +591,15 @@ MDP_policy_iteration_inf_horizon <-
       U <-
         policy_evaluation(model, pi, U, k_backups = k_backups)
 
+      if (progress)
+        pb$tick(0, token = list(changed_actions = changed_actions))
+      
       # get greedy policy for U
       Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
 
+      if (progress)
+        pb$tick(0, token = list(changed_actions = changed_actions))
+      
       # non-randomizes
       m <- apply(Qs, MARGIN = 1, which.max.random)
       pi_prime <- factor(m, levels = seq_along(A), labels = A)

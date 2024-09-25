@@ -186,8 +186,14 @@ is calculated from the final value function. Value iteration can be seen as
 policy iteration with truncated policy evaluation.
 \item \strong{Prioritized Sweeping} (Moore and Atkeson, 1993) approximate the optimal value
 function by iteratively adjusting always only the state value of the state
-with the largest Bellman error. This leads to faster convergence compared
-to value iteration which updates the value function for all states in each iteration.
+with the largest Bellman error. That is, if a state is updated, all states leading
+to this states will have their priority increased by the update difference.
+This update order leads to faster convergence compared
+to sweeping the whole state state in regular value iteration.
+
+We initialize the priority \eqn{H(s)} with the absolute value of the
+largest reward of going to the state. This leads the algorithm to start
+sweeping backwards from the high reward states.
 This implementation stops iteration when the the largest priority values
 over all states is less than the specified \code{error}.
 }
@@ -303,8 +309,8 @@ maze_solved <- solve_MDP(Maze, method = "lp")
 maze_solved
 policy(maze_solved)
 
-# use modified policy iteration
-maze_solved <- solve_MDP(Maze, method = "policy_iteration")
+# use prioritized sweeping (which is known to be fast for mazes)
+maze_solved <- solve_MDP(Maze, method = "prioritized_sweeping")
 policy(maze_solved)
 
 # finite horizon

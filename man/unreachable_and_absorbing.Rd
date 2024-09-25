@@ -23,6 +23,9 @@ much faster and useful for gridworlds.}
 \item{sparse}{logical; return a sparse logical vector.}
 
 \item{...}{further arguments are passed on.}
+
+\item{state}{logical; check a single state. This can be much faster if
+the model contains a transition model implemented as a function.}
 }
 \value{
 \code{unreachable_states()} returns a
