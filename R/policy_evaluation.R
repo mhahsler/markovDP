@@ -2,14 +2,14 @@
 #'
 #' Estimate the value function for a policy applied to a 
 #' model by repeatedly applying the Bellman operator.
-#'
+#' 
 #' The Bellman operator updates a value function given the model defining
 #' \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy
-#' \eqn{\pi} by applying the Bellman equation as  an update rule for each state:
+#' \eqn{\pi} by applying the Bellman equation as an update rule for each state:
 #'
 #' \deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
 #'
-#' A policy can be evaluated by applying the Bellman update till convergence.
+#' A policy can be evaluated by applying the Bellman operator till convergence.
 #' In each iteration, all states are updated. In this implementation updating is
 #' stopped after`k_backups` iterations or after the
 #' largest update
@@ -31,6 +31,13 @@
 #'    \eqn{\theta} as the stopping criterion.
 #' @param theta stop when the largest change in a state value is less
 #'    than \eqn{\theta}.
+#' @param matrix logical; if `TRUE` then matrices for the transition model and 
+#'    the reward function are taken from the model first. This can be slow if functions 
+#'    need to be converted or not fit into memory if the models are large. If these
+#'    components are already matrices, then this is very fast. For `FALSE`, the
+#'    transition probabilities and the reward is extracted when needed. This is slower, 
+#'    but removes the time to calculate the matrices and it saves memory.
+#' @param progress logical; show a progress bar with estimated time for completion.
 #' @param verbose logical; should progress and approximation errors be printed.
 #' @return a vector with (approximate)
 #'    state values (U).
@@ -83,15 +90,38 @@ policy_evaluation <-
            U = NULL,
            k_backups = 1000,
            theta = 1e-3,
+           matrix = TRUE,
+           progress = TRUE,
            verbose = FALSE) {
     if (!inherits(model, "MDP")) {
       stop("'model' needs to be of class 'MDP'.")
     }
 
+    if (progress) {
+      pb <- my_progress_spinner(name = "policy_evaluation")
+      pb$tick(0)
+    }
+    
     S <- model$states
     A <- model$actions
-    P <- transition_matrix(model, sparse = TRUE)
-    R <- reward_matrix(model, sparse = FALSE)
+    
+    # note for the many iterations, it is better to get the complete matrices
+    if (matrix) {
+      if (verbose)
+        cat("Extracting matrices for R and T ...")
+      
+      R <- reward_matrix(model, sparse = NULL)
+      if (progress) 
+        pb$tick(0)
+      
+      P <- transition_matrix(model, sparse = NULL)
+      if (progress) 
+        pb$tick(0)
+      
+      if (verbose)
+        cat("done\n")
+    }
+    
     GAMMA <- model$discount
 
     if (is.data.frame(pi)) {
@@ -103,15 +133,26 @@ policy_evaluation <-
     if (is.null(U)) {
       U <- rep(0, times = length(S))
     }
-
+    names(U) <- S
+    
     # we cannot count more than integer.max
     if (k_backups > .Machine$integer.max) {
       k_backups <- .Machine$integer.max
+      warning("Using the maximum number of backups of", k_backups)
     }
 
     for (i in seq_len(k_backups)) {
+      if (progress)
+        pb$tick()
+      
       v <- U
-      U <- .QV_vec(S, pi, P, R, GAMMA, U)
+      
+      # apply the Bellman operator
+      if (matrix)
+        U <- .QV_vec(S, pi, P, R, GAMMA, U)
+      else
+        U <- .QV_func_vec(S, pi, model, GAMMA, U)
+      
       delta <- max(abs(v - U), na.rm = TRUE)
 
       if (verbose) {
@@ -123,17 +164,67 @@ policy_evaluation <-
       }
     }
 
+    if (progress)
+      pb$terminate()
+    
     U
   }
 
+### this is used if we already have a matrix
+.policy_evaluation_int <-
+  function(S,
+           A,
+           P,
+           R,
+           pi,
+           GAMMA = 1,
+           U = NULL,
+           k_backups = 1000,
+           theta = 1e-3,
+           verbose = FALSE 
+           ) {
+   
+    
+    if (is.data.frame(pi)) {
+      pi <- pi$action
+    }
+    names(pi) <- S
+    
+    # start with all 0s if no previous U is given
+    if (is.null(U)) {
+      U <- rep(0, times = length(S))
+    }
+    names(U) <- S
+    
+    # we cannot count more than integer.max
+    if (k_backups > .Machine$integer.max) {
+      k_backups <- .Machine$integer.max
+      warning("Using the maximum number of backups of", k_backups)
+    }
+    
+    for (i in seq_len(k_backups)) {
+      v <- U
+      
+      # apply the Bellman operator
+      U <- .QV_vec(S, pi, P, R, GAMMA, U)
+      delta <- max(abs(v - U), na.rm = TRUE)
+      
+      if (verbose) {
+        cat("Backup step", i, ": delta =", delta, "\n")
+      }
+      
+      if (delta < theta) {
+        break
+      }
+    }
+    
+    U
+  }
+
+
 #' @rdname policy_evaluation
 #' @export
-bellman_operator <- function(model, pi, U) {
-  policy_evaluation(
-    model,
-    pi,
-    U = U,
-    k_backups = 1L,
-    theta = Inf
-  )
-}
+bellman_operator <- function(model, pi, U)
+  .QV_func_vec(model$states, pi$action, model, model$discount %||% 1, U)
+
+

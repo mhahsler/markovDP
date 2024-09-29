@@ -20,17 +20,19 @@ the MDP means finding the optimal (or at least a good) policy that
 guides the agent’s actions.
 
 The `markovDP` package provides the infrastructure to work with MDPs in
-R. The focus is on convenience in formulating MDPs in multiple ways, the
-support of sparse representations (using sparse matrices, lists and
-data.frames) and visualization of results. Some key components are
-implemented in C++ to speed up computation. It also provides to the
-following popular solving procedures:
+R. The focus is on convenience in formulating MDPs with small to medium
+sized state spaces in multiple ways, the support of sparse
+representations (using sparse matrices, lists and data.frames) and
+visualization of results. Some key components are implemented in C++ to
+speed up computation. The package provides to the following popular
+tabular methods:
 
 - **Dynamic Programming**
   - Value Iteration ([Bellman 1957](#ref-Bellman1957))
   - Modified Policy Iteration ([Howard 1960](#ref-Howard1960); [Puterman
     and Shin 1978](#ref-Puterman1978))
-  - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993))
+  - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993); [Li
+    and Littman 2008](#ref-Li2008))
 - **Linear Programming**
   - Primal Formulation ([Manne 1960](#ref-Manne1960))
 - **Monte Carlo Control**
@@ -172,6 +174,14 @@ Markov Decision Processes (POMDP)*.
 
 Howard, R. A. 1960. *Dynamic Programming and Markov Processes*.
 Cambridge, MA: MIT Press.
+
+</div>
+
+<div id="ref-Li2008" class="csl-entry">
+
+Li, Lihong, and Michael Littman. 2008. “Prioritized Sweeping Converges
+to the Optimal Value Function.” DCS-TR-631. Rutgers University.
+<https://doi.org/10.7282/T3TX3JSX>.
 
 </div>
 

@@ -21,6 +21,7 @@ solve_MDP_DP(
   error = 0.01,
   k_backups = 10,
   U = NULL,
+  matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
   verbose = FALSE,
@@ -58,7 +59,7 @@ solve_MDP_TD(
   discount = NULL,
   alpha = 0.5,
   epsilon = 0.1,
-  n = 100,
+  n = 1000,
   Q = NULL,
   continue = FALSE,
   progress = TRUE,
@@ -114,6 +115,13 @@ used by the policy iteration method.}
 
 \item{U}{a vector with initial utilities used for each state. If
 \code{NULL}, then the default of a vector of all 0s is used.}
+
+\item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
+the reward function are taken from the model first. This can be slow if functions
+need to be converted or not fit into memory if the models are large. If these
+components are already matrices, then this is very fast. For \code{FALSE}, the
+transition probabilities and the reward is extracted when needed. This is slower,
+but removes the time to calculate the matrices and it saves memory.}
 
 \item{continue}{logical; Continue with an unconverged solution specified in \code{model}.}
 
@@ -376,6 +384,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

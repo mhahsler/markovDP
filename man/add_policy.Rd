@@ -55,6 +55,7 @@ Other MDP:
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{actions}},
+\code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
@@ -67,6 +68,7 @@ Other MDP:
 
 Other policy: 
 \code{\link{action}()},
+\code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

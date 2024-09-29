@@ -7,7 +7,10 @@
 verbose <- FALSE
 #verbose <- TRUE
 
-for (m in models_solve) {
+models_solve_no_chaching <- models_solve
+for (m in models_solve_no_chaching) {
+  # force recomputation
+  m$absorbing_states <- NULL
   if (verbose)
     cat(m$name, "\n")
   tr <- absorbing_states(m)
@@ -17,9 +20,12 @@ for (m in models_solve) {
 }
   
 # unreachable states
-s_unreach <- character(0)
+(s_unreach <- character(0))
 
-for (m in models_solve) {
+
+for (m in models_solve_no_chaching) {
+  # force recomputation
+  m$unreachable_states <- NULL
   if (verbose)
     cat(m$name, "\n")
   tr <- unreachable_states(m)

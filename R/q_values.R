@@ -67,8 +67,16 @@ NULL
     sum(P[[a]][s, ] * (R[[a]][s, ] + GAMMA * U), 
         na.rm = TRUE)
   }
+
 .QV_vec <- Vectorize(.QV, vectorize.args = c("s", "a"))
 
+.QV_func <-
+  function(s, a, model, GAMMA, U) {
+    sum(transition_matrix(model, a, s) * (reward_matrix(model, a, s) + GAMMA * U),
+        na.rm = TRUE)
+  }
+
+.QV_func_vec <- Vectorize(.QV_func, vectorize.args = c("s", "a"))
 
 #' @rdname q_values
 #' @return `q_values()` returns a state by action matrix specifying the Q-function,

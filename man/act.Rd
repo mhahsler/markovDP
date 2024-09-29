@@ -43,6 +43,7 @@ Other MDP:
 \code{\link{accessors}},
 \code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

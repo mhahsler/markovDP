@@ -13,7 +13,7 @@ solve_MDP_TD <-
            discount = NULL,
            alpha = 0.5,
            epsilon = 0.1,
-           n = 100,
+           n = 1000,
            Q = NULL,
            continue = FALSE,
            progress = TRUE,
@@ -21,17 +21,12 @@ solve_MDP_TD <-
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
     
-    ### default is infinite horizon, but we use 10000 to guarantee termination
-    warn_horizon <- FALSE
-    if (is.null(horizon)) {
+    if (is.null(horizon))
       horizon <- model$horizon
-    }
-    if (is.null(horizon)) {
-      if (!any(absorbing_states(model))) {
-        stop("The model has no absorbing states. Specify the horizon.")
-      }
-      warn_horizon <- TRUE
-      horizon <- 10000
+    
+    if (is.null(horizon) || !is.finite(horizon)) {
+      horizon <- 100
+      warning("Finite horizon needed, using ", horizon, immediate. = TRUE)
     }
     
     if (is.null(discount)) {
@@ -57,6 +52,7 @@ solve_MDP_TD <-
     # Initialize Q
     if (continue) {
       if (is.null(model$solution$Q))
+    
         stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
     } else if (is.null(Q)) {
@@ -90,7 +86,7 @@ solve_MDP_TD <-
     
     
     # loop episodes
-    for (e in seq(n)) {
+    for (e in seq_len(n)) {
       if (progress)
         pb$tick()
       
@@ -100,6 +96,8 @@ solve_MDP_TD <-
       # loop steps in episode
       i <- 1L
       while (TRUE) {
+        if ((i %% 100 == 0) && !pb$finished && progress)
+          pb$tick(0)
         #s_prime <- sample(S, 1L, prob = P[[a]][s, ])
         s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
         r <- reward_matrix(model, a, s, s_prime)
@@ -109,8 +107,8 @@ solve_MDP_TD <-
           if (i == 1L) {
             cat("\n*** Episode", e, "***\n")
           }
-          cat(sprintf("Step %i - s:%s a:%i r:%.2f s':%s a':%i\n", 
-                      i, s, a, r, s_prime, a_prime))
+          cat(sprintf("Ep %i step %i - s:%s a:%i r:%.2f s':%s a':%i\n", 
+                      e, i, s, a, r, s_prime, a_prime))
           #print(Q)
         }
 
@@ -146,25 +144,18 @@ solve_MDP_TD <-
         s <- s_prime
         a <- a_prime
 
-        #if (s %in% S_absorbing) {
-        if (absorbing_states(model, state = s)) {
+        if (absorbing_states(model, state = s))
           break
-        }
 
-        if (i >= horizon) {
-          if (warn_horizon) {
-            warning(
-              "Max episode length of ",
-              i,
-              " reached without reaching an absorbing state! Terminating episode."
-            )
-          }
+        if (i >= horizon)
           break
-        }
 
         i <- i + 1L
       }
     }
+    
+    if (progress)
+      pb$terminate()
 
     on.exit()
     

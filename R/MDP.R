@@ -214,6 +214,10 @@ MDP <- function(states,
   class(x) <- list("MDP", "list")
   x <- check_and_fix_MDP(x)
     
+  # this takes a while
+  #x$absorbing_states <- absorbing_states(x)
+  #x$unreachable_states <- unreachable_states(x)
+  
   x
 }
 

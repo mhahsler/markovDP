@@ -30,7 +30,8 @@ for (model in models_solve) {
     if (verbose)
       cat("Solving w/", m, ":", model$name, "\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m))
+    # TD warn about inf horizon
+    t <- system.time(suppressWarnings((sol <- solve_MDP(model, method = m))))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")

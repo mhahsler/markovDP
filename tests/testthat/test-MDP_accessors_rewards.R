@@ -22,13 +22,13 @@ expect_equal(tr_dense, correct)
 expect_equal(tr_sparse, correct)
 
 ### action/row (we use sparse = NULL)
-(tr <- reward_matrix(Maze_orig, "up", 1))   ## should be df -> sparse
-(tr_dense <- reward_matrix(Maze_dense, "up", 1))
-(tr_sparse <- reward_matrix(Maze_sparse, "up", 1))
+(tr <- reward_matrix(Maze_orig, "up", 1, sparse = FALSE))   ## should be df -> sparse
+(tr_dense <- reward_matrix(Maze_dense, "up", 1, sparse = FALSE))
+(tr_sparse <- reward_matrix(Maze_sparse, "up", 1, sparse = FALSE))
 
-correct <- as(tr, "sparseVector") ## make sure it is sparse
-expect_equal(tr, correct)
-expect_equal(as(tr_dense, "sparseVector") , correct)
+correct <- tr
+#expect_equal(tr, correct)
+expect_equal(tr_dense, correct)
 expect_equal(tr_sparse, correct)
 
 ### action/row/col

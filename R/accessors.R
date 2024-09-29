@@ -257,16 +257,14 @@ NULL
 
 # TODO: sparseVector currently does not have names
 .sparsify_vector <- function(x, sparse = TRUE, names = NULL) {
+  if (is.matrix(x))
+    x <- drop(x)
+  if (is(x, "sparseMatrix"))
+    x <- as(x, "sparseVector")
+  
   # NULL means as is but we make sure it is a vector
-  if (is.null(sparse)) {
-    if (is.vector(x))
+  if (is.null(sparse))
       return(x)
-    if (is.matrix(x))
-      return(drop(x))
-    
-    # otherwise
-    return(as(x, "sparseVector"))
-  }
   
   if (is.logical(sparse)) {
     if (sparse)
@@ -625,12 +623,12 @@ matrix2value <-
       return(.sparsify(m, sparse = sparse))
     }
     
-    # some columns
+    # one column
     if (is.null(row) && length(col) == 1L) {
       return(.sparsify_vector(t(m[, col, drop = FALSE]), sparse, names = model$states))
     }
     
-    # some rows
+    # one rows
     if (is.null(col) && length(row) == 1L) {
       return(.sparsify_vector(m[row, , drop = FALSE], sparse, names = model$states))
     }

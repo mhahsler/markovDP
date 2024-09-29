@@ -64,6 +64,7 @@ gridworld_plot(sol, epoch = 3)
 Other policy: 
 \code{\link{action}()},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},
@@ -75,6 +76,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

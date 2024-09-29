@@ -193,7 +193,7 @@ gridworld_init <-
       S <- setdiff(S, unreachable_states)
     
     # Build reward data.frame to make unavailable action a reward of -Inf
-    R <- NULL
+    R <- R_(value = 0)
     
     if (!remove_unreachable_states) {
       # add restrictions to R for unreachable states
@@ -367,12 +367,14 @@ gridworld_maze_MDP <- function(dim,
   if (normalize) {
     model <- normalize_MDP(model, 
                            keep_reward_df = step_cost != 0,
-                           cache_absorbing_unreachable = FALSE,
+                           cache_absorbing_unreachable = TRUE,
                            sparse = TRUE)
-    model$absorbing_states <- absorbing_states(model, sparse = TRUE)
-    #model$unreachable_states <- unreachable_states(model, sparse = TRUE, direct = TRUE)
-    model <- remove_unreachable_states(model, direct = TRUE)
-    model$unreachable_states <- unreachable_states(model, sparse = TRUE, direct = TRUE)
+    #model$absorbing_states <- absorbing_states(model, sparse = TRUE)
+    #model$unreachable_states <- unreachable_states(model, sparse = TRUE)
+    #model <- remove_unreachable_states(model)
+    #model$unreachable_states <- sparseVector(x = numeric(0), 
+    #                                         i = integer(0), 
+    #                                         length = length(model$states))
   }
   
   model

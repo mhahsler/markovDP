@@ -64,6 +64,7 @@ gw <- gridworld_init(dim = c(3, 4),
             "s(1,4)" = "Goal: +1")
 )
 gridworld_matrix(gw)
+gridworld_matrix(gw, what = "index")
 gridworld_matrix(gw, what = "labels")
 
 # gridworld_init has created the following information

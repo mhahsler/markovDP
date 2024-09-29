@@ -3,7 +3,6 @@
 #' @rdname solve_MDP
 #' @param first_visit if `TRUE` then only the first visit of a state/action pair
 #'   in an episode is used to update Q, otherwise, every-visit update is used. 
-#' @param progress logical; show a progress bar with estimated time for completion.
 #' @export
 solve_MDP_MC <-
   function(model,

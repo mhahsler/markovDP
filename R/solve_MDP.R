@@ -161,6 +161,7 @@
 #'   `NULL`, then the horizon specified in `model` will be used.
 #' @param discount discount factor in range \eqn{(0, 1]}. If `NULL`, then the
 #'   discount factor specified in `model` will be used.
+#' @param progress logical; show a progress bar with estimated time for completion.
 #' @param verbose logical, if set to `TRUE`, the function provides the
 #'   output of the solver in the R console.
 #' @param ... further parameters are passed on to the solver function.

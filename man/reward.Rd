@@ -57,6 +57,7 @@ reward(sol, start = "uniform")
 Other policy: 
 \code{\link{action}()},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

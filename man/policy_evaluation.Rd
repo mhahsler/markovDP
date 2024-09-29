@@ -11,6 +11,8 @@ policy_evaluation(
   U = NULL,
   k_backups = 1000,
   theta = 0.001,
+  matrix = TRUE,
+  progress = TRUE,
   verbose = FALSE
 )
 
@@ -33,6 +35,15 @@ used by the policy iteration method. Set k_backups to \code{Inf} to only use
 \item{theta}{stop when the largest change in a state value is less
 than \eqn{\theta}.}
 
+\item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
+the reward function are taken from the model first. This can be slow if functions
+need to be converted or not fit into memory if the models are large. If these
+components are already matrices, then this is very fast. For \code{FALSE}, the
+transition probabilities and the reward is extracted when needed. This is slower,
+but removes the time to calculate the matrices and it saves memory.}
+
+\item{progress}{logical; show a progress bar with estimated time for completion.}
+
 \item{verbose}{logical; should progress and approximation errors be printed.}
 }
 \value{
@@ -46,11 +57,11 @@ model by repeatedly applying the Bellman operator.
 \details{
 The Bellman operator updates a value function given the model defining
 \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy
-\eqn{\pi} by applying the Bellman equation as  an update rule for each state:
+\eqn{\pi} by applying the Bellman equation as an update rule for each state:
 
 \deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
 
-A policy can be evaluated by applying the Bellman update till convergence.
+A policy can be evaluated by applying the Bellman operator till convergence.
 In each iteration, all states are updated. In this implementation updating is
 stopped after\code{k_backups} iterations or after the
 largest update
@@ -106,6 +117,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{q_values}()},
 \code{\link{regret}()},
@@ -118,6 +130,7 @@ Other MDP:
 Other policy: 
 \code{\link{action}()},
 \code{\link{add_policy}()},
+\code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{q_values}()},
 \code{\link{reward}()},
