@@ -25,6 +25,10 @@ times <- data.frame(model = character(0), method = character(0),
                     elapsed = numeric(0))
 
 
+timing <- data.frame(model = character(0), 
+                     method = character(0),
+                     time = numeric(0))
+
 for (model in models_solve) {
   for (m in methods) {
     if (verbose)
@@ -32,13 +36,11 @@ for (model in models_solve) {
     
     # TD warn about inf horizon
     t <- system.time(suppressWarnings((sol <- solve_MDP(model, method = m))))
-    
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = m, 
+                                       time = t[3]))
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
-    
-    times <- rbind(times, data.frame(model = model$name, method = m, 
-                                     user = t[1], system = t[2],
-                                     elapsed = t[3]))
     
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
@@ -46,6 +48,9 @@ for (model in models_solve) {
     # check_and_fix_MDP(sol)
   }
 }
+
+rownames(timing) <- NULL
+timing
 
 ### these methods are slow and need restrictions
 

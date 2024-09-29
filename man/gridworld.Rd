@@ -295,7 +295,7 @@ trans_black_hole <- function(model,
     if (end.state == "s(4,4)") {
       return(.5)
     } else {
-      return(gridworld_transition_prob3(model, action, start.state, 
+      return(gridworld_transition_prob3(model, action, start.state,
                                         end.state) * .5)
     }
   }

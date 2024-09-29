@@ -61,7 +61,7 @@
 #'     if (end.state == "s(4,4)") {
 #'       return(.5)
 #'     } else {
-#'       return(gridworld_transition_prob3(model, action, start.state, 
+#'       return(gridworld_transition_prob3(model, action, start.state,
 #'                                         end.state) * .5)
 #'     }
 #'   }
@@ -143,7 +143,7 @@
 #'
 #' gridworld_plot(sol)
 #' gridworld_path(sol)
-#' 
+#'
 #' # Create a small random maze
 #' rand_maze <- gridworld_random_maze(dim = c(5, 5))
 #' gridworld_plot(rand_maze)
@@ -154,7 +154,7 @@
 #'     These states will be excluded.
 #' @param absorbing_states a vector with state labels for absorbing states.
 #' @param labels a list with labels for states.
-#' @param remove_unreachable_states logical; remove unreachable states from the 
+#' @param remove_unreachable_states logical; remove unreachable states from the
 #'     state space?
 #' @param state_labels a list with labels for states. The element names need
 #'   to be state names.
@@ -189,9 +189,11 @@ gridworld_init <-
     if (!is.null(start))
       start <- S[Matrix::which(.translate_distribution(start, S) > 0)]
     
-    if (remove_unreachable_states)
-      S <- setdiff(S, unreachable_states)
     
+    
+    if (remove_unreachable_states)
+      S <- setdiff(S, setdiff(unreachable_states, c(start, goal)))
+     
     # Build reward data.frame to make unavailable action a reward of -Inf
     R <- R_(value = 0)
     
@@ -212,8 +214,8 @@ gridworld_init <-
         }
       }
     }
-      
-    # Add inf reward to cross boundaries 
+    
+    # Add inf reward to cross boundaries
     #   # boundaries
     #   # actions = c("up", "right", "down", "left")
     #   R <- rbind(
@@ -256,7 +258,7 @@ gridworld_init <-
         dim = dim,
         start = start,
         goal = goal,
-        unreachable_states = unreachable_states,
+        unreachable_states = if (remove_unreachable_states) character(0) else unreachable_states,
         absorbing_states = absorbing_states,
         state_labels = state_labels
       )
@@ -270,7 +272,7 @@ gridworld_init <-
 #' agent restarts the problem at the start state every time it reaches the goal
 #' and receives the reward. Note that this implies that the goal state itself
 #' becomes unreachable.
-#' 
+#'
 #' @param start,goal labels for the start state and the goal state.
 #' @param walls a vector with state labels for walls. Walls will
 #'              become unreachable states.
@@ -284,7 +286,7 @@ gridworld_init <-
 #' @param name a string to identify the MDP problem.
 #' @param normalize logical; should the description be normalized for
 #'      faster access using [normalize_MDP()].
-#'      
+#'
 #' @returns `gridworld_maze_MDP()` returns an MDP object.
 #' @export
 gridworld_maze_MDP <- function(dim,
@@ -300,6 +302,7 @@ gridworld_maze_MDP <- function(dim,
                                info = NULL,
                                normalize = TRUE,
                                name = NA) {
+  
   gw <-
     gridworld_init(
       dim,
@@ -318,7 +321,7 @@ gridworld_maze_MDP <- function(dim,
         reward = rbind(
           R_(value = -step_cost),
           R_(end.state = gw$info$goal, value = goal_reward),
-          R_(start.state = gw$info$goal, value = 0) # staying in the goal is 0 
+          R_(start.state = gw$info$goal, value = 0) # staying in the goal is 0
         ),
         discount = discount,
         horizon = horizon,
@@ -329,9 +332,7 @@ gridworld_maze_MDP <- function(dim,
     
   } else {
     # all actions in the goal redirect to a start state
-    trans_restart <- function(model,
-                              action,
-                              start.state) {
+    trans_restart <- function(model, action, start.state) {
       P <- structure(numeric(length(model$states)), names = model$states)
       
       if (start.state %in% model$info$goal) {
@@ -361,19 +362,25 @@ gridworld_maze_MDP <- function(dim,
       name = name
     )
   }
- 
+  
   # full unreachable_states is to expensive
   
   if (normalize) {
-    model <- normalize_MDP(model, 
-                           keep_reward_df = step_cost != 0,
-                           cache_absorbing_unreachable = TRUE,
-                           sparse = TRUE)
+    model <- normalize_MDP(
+      model,
+      keep_reward_df = step_cost != 0,
+      cache_absorbing_unreachable = FALSE,
+      sparse = TRUE
+    )
     #model$absorbing_states <- absorbing_states(model, sparse = TRUE)
+    model$absorbing_states <- .translate_logical(gw$info$goal, state_labels = gw$states, sparse = TRUE)
     #model$unreachable_states <- unreachable_states(model, sparse = TRUE)
     #model <- remove_unreachable_states(model)
-    #model$unreachable_states <- sparseVector(x = numeric(0), 
-    #                                         i = integer(0), 
+    model$unreachable_states <- .translate_logical(character(0),
+                                                   state_labels = gw$states,
+                                                   sparse = TRUE)
+    #model$unreachable_states <- sparseVector(x = numeric(0),
+    #                                         i = integer(0),
     #                                         length = length(model$states))
   }
   
@@ -391,8 +398,14 @@ gridworld_random_maze <- function(dim,
                                   normalize = TRUE) {
   if (is.null(start))
     start <- 1
-  else if(is.character(start))
-    start <- sapply(start, FUN = function(s) { rc <- gridworld_s2rc(s); (rc[2] - 1) * m + (rc[1] - 1) + 1 })
+  else if (is.character(start))
+    start <- sapply(
+      start,
+      FUN = function(s) {
+        rc <- gridworld_s2rc(s)
+        (rc[2] - 1) * m + (rc[1] - 1) + 1
+      }
+    )
   
   n <- dim[1]
   m <- dim[2]
@@ -400,17 +413,26 @@ gridworld_random_maze <- function(dim,
     m <- n
   
   if (is.null(goal))
-    goal <- m * n
-  else if(is.character(goal))
-    goal <- sapply(goal, FUN = function(s) { rc <- gridworld_s2rc(s); (rc[2] - 1) * m + (rc[1] - 1) + 1 })
+    goal <- n * m
+  else if (is.character(goal))
+    goal <- sapply(
+      goal,
+      FUN = function(s) {
+        rc <- gridworld_s2rc(s)
+        (rc[2] - 1) * m + (rc[1] - 1) + 1
+      }
+    )
+  
+  
+  walls <- sort(sample(
+    setdiff(seq(n * m), union(start, goal)) , size = n * m * wall_prob
+  ))
   
   gridworld_maze_MDP(
     dim = c(n, m),
     start = start,
     goal = goal,
-    walls = sort(sample(
-      setdiff(seq(n * m), union(start, goal)) , size = n * m * wall_prob
-    )),
+    walls = walls,
     normalize = normalize,
     name = "Random Maze"
   )
@@ -418,17 +440,20 @@ gridworld_random_maze <- function(dim,
 
 
 #' @rdname gridworld
-#' @details `gridworld_path()` checks if a solved gridworld has a policy that 
+#' @details `gridworld_path()` checks if a solved gridworld has a policy that
 #' leads from the start to the goal. Note this function currently samples only a single path which is
 #' an issue with stochastic transitions!
-#' 
+#'
 #' @param start,goal start and goal states. If `NULL` then the states specified
 #' in the model are used.
-#' 
+#'
 #' @return `gridworld_path()` returns a list with the elements `"path"`,
 #' `"reward"` and `"solved"`.
 #' @export
-gridworld_path <- function(model, start = NULL, goal = NULL, horizon = NULL) {
+gridworld_path <- function(model,
+                           start = NULL,
+                           goal = NULL,
+                           horizon = NULL) {
   ### TODO: stochastic transitions!
   
   if (is.null(goal))
@@ -461,14 +486,16 @@ gridworld_path <- function(model, start = NULL, goal = NULL, horizon = NULL) {
     path <- NULL
   }
   
-  list(path = path, reward = reward, solved = solved)
+  list(path = path,
+       reward = reward,
+       solved = solved)
 }
 
 #' @rdname gridworld
-#' 
-#' @details `gridworld_matrix()` returns different information 
+#'
+#' @details `gridworld_matrix()` returns different information
 #'  (state names, values, actions, etc.) as a matrix.
-#' 
+#'
 #' @param what What should be returned in the matrix. Options are:
 #'  `"states"`, `"index"`, `"labels"`, `"values"`, `"actions"`, `"absorbing"`, and
 #'  `"unreachable"`.
@@ -478,16 +505,18 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
     stop("'model' does not seem to be a gridworld!")
   }
   
-  what <- match.arg(what,
-                    c(
-                      "states",
-                      "index",
-                      "labels",
-                      "values",
-                      "actions",
-                      "absorbing",
-                      "unreachable"
-                    ))
+  what <- match.arg(
+    what,
+    c(
+      "states",
+      "index",
+      "labels",
+      "values",
+      "actions",
+      "absorbing",
+      "unreachable"
+    )
+  )
   
   # for lists from gridworld_init()
   if (!inherits(model, "MDP")) {
@@ -549,9 +578,9 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
 }
 
 #' @rdname gridworld
-#' 
+#'
 #' @details `gridworld_plot()` plots a gridworld.
-#' 
+#'
 #' @param epoch epoch for unconverged finite-horizon solutions.
 #' @param actions how to show actions. Options are:
 #'  simple `"character"`, `"unicode"` arrows (needs to be supported by the used font),
@@ -568,7 +597,7 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
 #' @param unreachable_col a color used for unreachable states. Use `NA` for no
 #'   color.
 #' @param ... further arguments are passed on to [graphics::image()].
-#' 
+#'
 #' @importFrom graphics image text box abline
 #' @importFrom grDevices hcl.colors
 #' @export
@@ -625,7 +654,7 @@ gridworld_plot <-
     
     # reorder for image plot
     m <- t(m)[, rev(seq_len(nrow(m))), drop = FALSE]
-   
+    
     m_plot <- m
     m_plot[m_plot == 0] <- NA
     
@@ -693,7 +722,7 @@ gridworld_plot <-
       
       text(g$x, g$y, g$actions, cex = cex)
     }
-      
+    
     if (states && !index) {
       g$state <-
         as.vector(gridworld_matrix(model, what = "states"))
@@ -701,10 +730,10 @@ gridworld_plot <-
       g$state <-
         as.vector(gridworld_matrix(model, what = "index"))
     } else {
-      g$state <- paste0(as.vector(gridworld_matrix(model, what = "index")), 
-                        ": ", 
+      g$state <- paste0(as.vector(gridworld_matrix(model, what = "index")),
+                        ": ",
                         as.vector(gridworld_matrix(model, what = "states")))
-    }      
+    }
     
     if (states || index) {
       text(
@@ -735,10 +764,10 @@ gridworld_plot <-
   }
 
 #' @rdname gridworld
-#' 
+#'
 #' @details `gridworld_plot_transition_graph()` plots the transition graph
 #'   using the gridworld matrix as the layout.
-#' 
+#'
 #' @param hide_unreachable_states logical; do not show unreachable states.
 #' @param remove.loops logical; do not show transitions from a state back to itself.
 #' @param vertex.color,vertex.shape,vertex.size,vertex.label,edge.arrow.size
@@ -803,11 +832,11 @@ gridworld_plot_transition_graph <-
   }
 
 #' @rdname gridworld
-#' 
+#'
 #' @details `gridworld_animate()` applies algorithms from [solve_MDP()] iteration
 #' by iteration and visualized the state utilities. This helps to understand
 #' how the algorithms work.
-#' 
+#'
 #' @param n number of iterations to animate.
 #' @param method an MDP solution method for [solve_MDP()].
 #' @param zlim limits for visualizing the state value.
@@ -837,10 +866,10 @@ gridworld_animate <- function(model, method, n, zlim = NULL, ...) {
 }
 
 #' @rdname gridworld
-#' 
+#'
 #' @details `gridworld_read_maze()` reads a maze in text format from a file
 #' and converts it into a gridworld MDP.
-#' 
+#'
 #' @param file filename for a maze text file.
 #' @export
 gridworld_read_maze <- function(file,
@@ -879,10 +908,10 @@ gridworld_read_maze <- function(file,
 }
 
 #' @rdname gridworld
-#' 
+#'
 #' @details `gridworld_s2rc()` and `gridworld_rc2s` help with converting from
 #' state names to xy-coordinates and vice versa.
-#' 
+#'
 #' @param model,x a solved gridworld MDP.
 #' @param s a state label or a vector of labels.
 #' @param rc a vector of length two with the row and column coordinate of a
@@ -912,10 +941,10 @@ gridworld_rc2s <- function(rc) {
 }
 
 #' @rdname gridworld
-#' 
+#'
 #' @details `gridworld_transition_prob()` and `gridworld_transition_prob3()`
 #' provide the standard transition functions for a gridworld.
-#' 
+#'
 #' @export
 gridworld_transition_prob <- function(model, action, start.state) {
   P <- structure(numeric(length(model$states)), names = model$states)
@@ -953,10 +982,7 @@ gridworld_transition_prob <- function(model, action, start.state) {
 #' @rdname gridworld
 #' @param action,start.state,end.state parameters for the transition function.
 #' @export
-gridworld_transition_prob3 <- function(model,
-                                      action,
-                                      start.state,
-                                      end.state) {
+gridworld_transition_prob3 <- function(model, action, start.state, end.state) {
   ai <- match(action, model$actions)
   
   # stay in place for unknown actions
@@ -982,4 +1008,3 @@ gridworld_transition_prob3 <- function(model,
   }
   as.integer(es == end.state)
 }
-

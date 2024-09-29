@@ -84,7 +84,7 @@ NULL
 
 
 # Translate a probability distribution like the start distribution in MDPs
-.translate_distribution <- function(prob, state_labels, sparse = NULL) {
+.translate_distribution <- function(prob, state_labels, sparse = NULL, check = TRUE) {
   if (is.null(prob))
     stop("No probabilities provided (NULL)!")
   
@@ -144,7 +144,7 @@ NULL
   # start include: 1 3
   # start: first-state
   # start include: first-state third state
-  else if (is.character(prob) && prob[1] != "-" ||
+  else if (is.character(prob) && (prob[1] != "-" || length(prob) == 0L) ||
            is.numeric(prob) && all(prob > 0)) {
     if (is.character(prob))
       prob <- match(prob, state_labels)
@@ -171,7 +171,7 @@ NULL
       )
     
     prob <- sparseVector(
-      x = 1 / length(i),
+      x = rep.int(1 / length(i), length(i)),
       i = i,
       length = length(state_labels)
     )
@@ -211,7 +211,7 @@ NULL
   
   v <- .sparsify_vector(prob, sparse, names = state_labels)
   
-  if (!is.character(v)) {
+  if (!is.character(v) && check) {
     if (!sum1(v))
       stop(
         "Illegal probability format.\n",
@@ -228,6 +228,9 @@ NULL
   return(v)
 }
 
+.translate_logical <- function(x, state_labels, sparse = NULL) {
+  as(.translate_distribution(x, state_labels, sparse, check = FALSE), "lsparseVector")
+}
 
 # make a matrix sparse if it has low density
 .sparsify <- function(x, sparse = TRUE) {
@@ -253,7 +256,6 @@ NULL
   
   x
 }
-
 
 # TODO: sparseVector currently does not have names
 .sparsify_vector <- function(x, sparse = TRUE, names = NULL) {
