@@ -72,24 +72,23 @@ str(gw)
 
 # the transition function is stochastic so we cannot use the standard
 # gridworld gw$transition_prob() function and have to replace it
-T <- function(model, action, start.state, end.state) {
+T <- function(model, action, start.state) {
   action <- match.arg(action, choices = model$actions)
-
+  
+  P <- structure(numeric(length(model$states)), names = model$states)
+  
   # absorbing states
   if (start.state \%in\% model$info$absorbing_states) {
-    if (start.state == end.state) {
-      return(1)
-    } else {
-      return(0)
-    }
+    P[start.state] <- 1
+    return(P)
   }
-
+  
   if (action \%in\% c("up", "down")) {
     error_direction <- c("right", "left")
   } else {
     error_direction <- c("up", "down")
   }
-
+  
   rc <- gridworld_s2rc(start.state)
   delta <- list(
     up = c(-1, 0),
@@ -97,25 +96,33 @@ T <- function(model, action, start.state, end.state) {
     right = c(0, +1),
     left = c(0, -1)
   )
-  P <- matrix(0, nrow = 3, ncol = 4)
+  
+  # there are 3 directions. For blocked directions, stay in place
+  # 1) action works .8
+  rc_new <- gridworld_rc2s(rc + delta[[action]])
+  if (rc_new \%in\% model$states)
+    P[rc_new] <- .8
+  else
+    P[start.state] <- .8
+  
+  # 2) off to the right .1
+  rc_new <- gridworld_rc2s(rc + delta[[error_direction[1]]])
+  if (rc_new \%in\% model$states)
+    P[rc_new] <- .1
+  else
+    P[start.state] <-  P[start.state] + .1
+  
+  # 3) off to the left .1
+  rc_new <- gridworld_rc2s(rc + delta[[error_direction[2]]])
+  if (rc_new \%in\% model$states)
+    P[rc_new] <- .1
+  else
+    P[start.state] <-  P[start.state] + .1
+  
+  P
+  } 
 
-  add_prob <- function(P, rc, a, value) {
-    new_rc <- rc + delta[[a]]
-    # stay in place for moved to a non-existing state
-    if (!(gridworld_rc2s(new_rc) \%in\% model$states)) {
-      new_rc <- rc
-    }
-    P[new_rc[1], new_rc[2]] <- P[new_rc[1], new_rc[2]] + value
-    P
-  }
-
-  P <- add_prob(P, rc, action, .8)
-  P <- add_prob(P, rc, error_direction[1], .1)
-  P <- add_prob(P, rc, error_direction[2], .1)
-  P[rbind(gridworld_s2rc(end.state))]
-}
-
-T(gw, "up", "s(3,1)", "s(2,1)")
+T(gw, "up", "s(3,1)")
 
 R <- rbind(
   R_(                         value = -0.04),
@@ -147,7 +154,7 @@ gridworld_matrix(Maze, what = "labels")
 gridworld_plot(Maze)
 
 # find absorbing (terminal) states
-which(absorbing_states(Maze))
+absorbing_states(Maze)
 
 maze_solved <- solve_MDP(Maze)
 policy(maze_solved)

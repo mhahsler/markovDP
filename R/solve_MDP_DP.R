@@ -408,6 +408,7 @@ MDP_PS_inf_horizon <-
       pi <- as.integer(random_policy(model)$action)
       H <- NULL
     }
+    names(U) <- S
     
     # initialize with the maximum reward. This is a single value iteration pass.
     init_H <- match.arg(init_H, c("value_iteration", "random"))
@@ -416,8 +417,7 @@ MDP_PS_inf_horizon <-
       if (init_H == "value_iteration") {
         if (verbose)
           cat("initializing priority H using the Belmann error.\n\n")
-        U <- bellman_update(model, U = U)
-        H <- abs(U) + error + 1e-6
+        H <- abs(bellman_update(model, U = U)) + error + 1e-6
       } else { ### random
         if (verbose)
           cat("initializing priority H randomly greater than error.\n\n")
@@ -428,7 +428,9 @@ MDP_PS_inf_horizon <-
     }
     # may not find the optimal value if some priorities are 0 (See paper)
 
-    names(U) <- S
+    # absorbing states get 0 priority
+    H[absorbing_states(model)] <- 0
+    
     
     # return unconverged result when interrupted
     on.exit({ 
@@ -503,10 +505,16 @@ MDP_PS_inf_horizon <-
       for (ancestor_id in ancestor_ids) 
         H[ancestor_id] <- max(H[ancestor_id], delta * max(ancestor_prob[ancestor_id, ]))
       
+      # this makes sure absorbing states don't get updated in an infinite loop
+      H[s] <- 0
+      
       err <- max(H)
       
       if (verbose) {
-        cat("    updating H for states:", paste(ancestor_ids, sQuote(S[ancestor_ids]) , collapse = ", "),"\n")
+        cat("    updating H for states:", paste(ancestor_ids, 
+                                                sQuote(S[ancestor_ids]), 
+                                                collapse = ", "),"\n")
+        cat("    max priority (error):", err, ">=", error, "\n")
       }
         
       

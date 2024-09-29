@@ -300,7 +300,7 @@ gridworld_maze_MDP <- function(dim,
                                discount = 1,
                                horizon = Inf,
                                info = NULL,
-                               normalize = TRUE,
+                               normalize = FALSE,
                                name = NA) {
   
   gw <-
@@ -369,20 +369,17 @@ gridworld_maze_MDP <- function(dim,
     model <- normalize_MDP(
       model,
       keep_reward_df = step_cost != 0,
-      cache_absorbing_unreachable = FALSE,
+      precompute_absorbing_unreachable = FALSE,
       sparse = TRUE
     )
-    #model$absorbing_states <- absorbing_states(model, sparse = TRUE)
-    model$absorbing_states <- .translate_logical(gw$info$goal, state_labels = gw$states, sparse = TRUE)
-    #model$unreachable_states <- unreachable_states(model, sparse = TRUE)
-    #model <- remove_unreachable_states(model)
-    model$unreachable_states <- .translate_logical(character(0),
-                                                   state_labels = gw$states,
-                                                   sparse = TRUE)
-    #model$unreachable_states <- sparseVector(x = numeric(0),
-    #                                         i = integer(0),
-    #                                         length = length(model$states))
   }
+  
+  #model$absorbing_states <- absorbing_states(model, sparse = TRUE)
+  model$absorbing_states <- .translate_logical(gw$info$goal, state_labels = gw$states, sparse = TRUE)
+  #model$unreachable_states <- unreachable_states(model, sparse = TRUE)
+  model$unreachable_states <- .translate_logical(character(0),
+                                                 state_labels = gw$states,
+                                                 sparse = TRUE)
   
   model
 }
@@ -395,7 +392,7 @@ gridworld_random_maze <- function(dim,
                                   wall_prob = .2,
                                   start = NULL,
                                   goal = NULL,
-                                  normalize = TRUE) {
+                                  normalize = FALSE) {
   if (is.null(start))
     start <- 1
   else if (is.character(start))

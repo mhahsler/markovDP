@@ -26,6 +26,7 @@
 #' @param horizon only states that can be reached within the 
 #'    horizon are reachable.
 #' @param sparse logical; return a sparse logical vector?
+#' @param use_precomputed logical; should precomputed values in the MDP be used?
 #' @param progress logical; show a progress bar?
 #' @param ... further arguments are passed on.
 #'
@@ -38,13 +39,13 @@
 #'
 #' # -1 and +1 are absorbing states
 #' absorbing_states(Maze)
-#' absorbing_states(Maze, sparse = TRUE)
-#' which(absorbing_states(Maze))
+#' absorbing_states(Maze, sparse = FALSE)
+#' absorbing_states(Maze, sparse = "states")
 #'
 #' # all states in the model are reachable
 #' unreachable_states(Maze)
-#' unreachable_states(Maze, sparse = TRUE)
-#' which(unreachable_states(Maze))
+#' unreachable_states(Maze, sparse = FALSE)
+#' unreachable_states(Maze, sparse = "states")
 #' @importFrom Matrix colSums
 NULL
 
@@ -54,7 +55,8 @@ NULL
 #' @export
 unreachable_states <- function(model,
                                horizon = Inf,
-                               sparse = FALSE,
+                               sparse = NULL,
+                               use_precomputed = TRUE,
                                progress = TRUE,
                                ...) {
   UseMethod("unreachable_states")
@@ -63,10 +65,11 @@ unreachable_states <- function(model,
 #' @export
 unreachable_states.MDP <- function(model,
                                    horizon = Inf,
-                                   sparse = FALSE,
+                                   sparse = NULL,
+                                   use_precomputed = TRUE,
                                    progress = TRUE,
                                    ...) {
-  if (!is.null(model$unreachable_states) && !is.finite(horizon)) {
+  if (use_precomputed && !is.null(model$unreachable_states) && !is.finite(horizon)) {
     return(
       .sparsify_vector(
         model$unreachable_states,
@@ -75,6 +78,9 @@ unreachable_states.MDP <- function(model,
       )
     )
   }
+  
+  if (is.null(sparse))
+    sparse <- TRUE
 
  .sparsify_vector(!.reachable_states(model, 
                                      horizon = horizon, 
@@ -130,7 +136,8 @@ unreachable_states.MDP <- function(model,
 #' @export
 absorbing_states <- function(model,
                              state = NULL,
-                             sparse = FALSE,
+                             sparse = NULL,
+                             use_precomputed = TRUE,
                              ...) {
   UseMethod("absorbing_states")
 }
@@ -138,13 +145,14 @@ absorbing_states <- function(model,
 #' @export
 absorbing_states.MDP <- function(model,
                                  state = NULL,
-                                 sparse = FALSE,
+                                 sparse = NULL,
+                                 use_precomputed = TRUE,
                                  ...) {
   
   # do it faster to check a single state
   if (!is.null(state) &&
       length(state) == 1L) { 
-    if (!is.null(model$absorbing_states)) {
+    if (use_precomputed && !is.null(model$absorbing_states)) {
       if (is.character(state))
         state <- match(state, model$states)
       return(as(model$absorbing_states[state], "vector"))
@@ -162,6 +170,9 @@ absorbing_states.MDP <- function(model,
   if (!is.null(model$absorbing_states)) {
     absorbing <- .sparsify_vector(model$absorbing_states, sparse = sparse, names = model$states)
   } else {
+    if (is.null(sparse))
+      sparse <- TRUE
+    
     absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
     absorbing <- .sparsify_vector(absorbing, sparse, names = model$states)
   }
@@ -180,8 +191,8 @@ absorbing_states.MDP <- function(model,
 #'  unreachable states removed.
 #' @export
 remove_unreachable_states <- function(model, ...) {
-  reachable <- !unreachable_states(model, ...)
-  if (all(reachable)) {
+  keep <- !unreachable_states(model, sparse = FALSE)
+  if (all(keep)) {
     return(model)
   }
   
@@ -219,7 +230,7 @@ remove_unreachable_states <- function(model, ...) {
   if (is.numeric(model$start) || is(model$start, "sparseVector")) {
     if (length(model$start) == length(model$states)) {
       ### prob vector
-      model$start <- model$start[reachable]
+      model$start <- model$start[keep]
       if (!sum1(model$start)) {
         stop(
           "Probabilities for reachable states do not sum up to one! An unreachable state had a non-zero probability."
@@ -234,25 +245,22 @@ remove_unreachable_states <- function(model, ...) {
     if (model$start == "uniform") {
       # do nothing
     } else {
-      model$start <- intersect(model$start, model$states[reachable])
+      model$start <- intersect(model$start, model$states[keep])
     }
     if (length(model$start) == 0L) {
       stop("Start state is not reachable.")
     }
   }
   
-  model$states <- model$states[reachable]
-  model$transition_prob <- keep_states(model$transition_prob, reachable)
-  model$reward <- keep_states(model$reward, reachable)
-  if (!is.null(model$observations)) {
-    model$observations <- keep_states(model$observations, reachable)
-  }
+  model$states <- model$states[keep]
+  model$transition_prob <- keep_states(model$transition_prob, keep)
+  model$reward <- keep_states(model$reward, keep)
   
   # update reachable and unreachable
   if (!is.null(model$absorbing_states))
-    model$absorbing_states <- model$absorbing_states[reachable]
-  if (!is.null(model$reachable_states))
-    model$reachable_states <- model$reachable_states[reachable]
+    model$absorbing_states <- model$absorbing_states[keep]
+  if (!is.null(model$unreachable_states))
+    model$unreachable_states <- model$unreachable_states[keep]
   
   # just check
   check_and_fix_MDP(model)

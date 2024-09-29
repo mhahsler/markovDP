@@ -410,7 +410,7 @@ epoch_to_episode.MDP <- function(x, epoch) {
 #' @param trans_keyword logical; convert distribution keywords (uniform and identity)
 #'  in `transition_prob` matrices?
 #' @param keep_reward_df logical; if reward is a data.frame, then keep it.
-#' @param cache_absorbing_unreachable logical; should absorbing and unreachable states be precalculated?
+#' @param precompute_absorbing_unreachable logical; should absorbing and unreachable states be precalculated?
 #' @param progress logical; show a progress bar with estimated time for completion.
 #' @export
 normalize_MDP <- function(model,
@@ -418,7 +418,7 @@ normalize_MDP <- function(model,
                           trans_keyword = TRUE,
                           trans_function = TRUE,
                           keep_reward_df = FALSE,
-                          cache_absorbing_unreachable = TRUE,
+                          precompute_absorbing_unreachable = TRUE,
                           progress = TRUE
                           ) {
   if (!inherits(model, "MDP")) {
@@ -484,7 +484,7 @@ normalize_MDP <- function(model,
   # remember recalculated absorbing/unreachable states
   model$absorbing_states <- NULL
   model$unreachable_states <- NULL
-  if (cache_absorbing_unreachable) {
+  if (precompute_absorbing_unreachable) {
     model$absorbing_states <- absorbing_states(model, sparse = TRUE)
     model$unreachable_states <- unreachable_states(model, sparse = TRUE)
   }

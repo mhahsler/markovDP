@@ -35,7 +35,7 @@ normalize_MDP(
   trans_keyword = TRUE,
   trans_function = TRUE,
   keep_reward_df = FALSE,
-  cache_absorbing_unreachable = TRUE,
+  precompute_absorbing_unreachable = TRUE,
   progress = TRUE
 )
 }
@@ -84,7 +84,7 @@ in \code{transition_prob} matrices?}
 
 \item{keep_reward_df}{logical; if reward is a data.frame, then keep it.}
 
-\item{cache_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
+\item{precompute_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
 
 \item{progress}{logical; show a progress bar with estimated time for completion.}
 }

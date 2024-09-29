@@ -7,9 +7,22 @@
 \alias{remove_unreachable_states}
 \title{Unreachable and Absorbing States}
 \usage{
-unreachable_states(model, horizon = Inf, sparse = FALSE, progress = TRUE, ...)
+unreachable_states(
+  model,
+  horizon = Inf,
+  sparse = NULL,
+  use_precomputed = TRUE,
+  progress = TRUE,
+  ...
+)
 
-absorbing_states(model, state = NULL, sparse = FALSE, ...)
+absorbing_states(
+  model,
+  state = NULL,
+  sparse = FALSE,
+  use_precomputed = TRUE,
+  ...
+)
 
 remove_unreachable_states(model, ...)
 }
@@ -20,6 +33,8 @@ remove_unreachable_states(model, ...)
 horizon are reachable.}
 
 \item{sparse}{logical; return a sparse logical vector?}
+
+\item{use_precomputed}{logical; should precomputed values in the MDP be used?}
 
 \item{progress}{logical; show a progress bar?}
 
@@ -64,13 +79,13 @@ gridworld_matrix(Maze, what = "labels")
 
 # -1 and +1 are absorbing states
 absorbing_states(Maze)
-absorbing_states(Maze, sparse = TRUE)
-which(absorbing_states(Maze))
+absorbing_states(Maze, sparse = FALSE)
+absorbing_states(Maze, sparse = "states")
 
 # all states in the model are reachable
 unreachable_states(Maze)
-unreachable_states(Maze, sparse = TRUE)
-which(unreachable_states(Maze))
+unreachable_states(Maze, sparse = FALSE)
+unreachable_states(Maze, sparse = "states")
 }
 \seealso{
 Other MDP: 

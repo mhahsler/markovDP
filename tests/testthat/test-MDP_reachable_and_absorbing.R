@@ -13,7 +13,7 @@ for (m in models_solve_no_chaching) {
   m$absorbing_states <- NULL
   if (verbose)
     cat(m$name, "\n")
-  tr <- absorbing_states(m)
+  tr <- absorbing_states(m, use_precomputed = FALSE)
   if (verbose)
     print(tr)
   expect_equal(names(which(tr)), s_abs)
@@ -28,7 +28,7 @@ for (m in models_solve_no_chaching) {
   m$unreachable_states <- NULL
   if (verbose)
     cat(m$name, "\n")
-  tr <- unreachable_states(m)
+  tr <- unreachable_states(m, sparse = FALSE, use_precomputed = FALSE)
   if (verbose)
     print(tr)
   expect_equal(names(which(tr)), s_unreach)
@@ -58,7 +58,7 @@ s_abs <- "s1"
 for (m in ms) {
   if (verbose)
     cat(m$name, "\n")
-  tr <- absorbing_states(m)
+  tr <- absorbing_states(m, use_precomputed = FALSE)
   if (verbose)
     print(tr)
   expect_equal(names(which(tr)), s_abs)
@@ -71,19 +71,7 @@ s_unreach <- "s2"
 for (m in ms) {
   if (verbose)
     cat(m$name, "\n")
-  tr <- unreachable_states(m)
-  if (verbose)
-    print(tr)
-  expect_equal(names(which(tr)), s_unreach)
-}
-  
-# unreachable with direct 
-s_unreach <- "s2"
-
-for (m in ms) {
-  if (verbose)
-    cat(m$name, "\n")
-  tr <- unreachable_states(m, direct = TRUE)
+  tr <- unreachable_states(m, sparse = FALSE, use_precomputed = FALSE)
   if (verbose)
     print(tr)
   expect_equal(names(which(tr)), s_unreach)

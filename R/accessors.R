@@ -392,7 +392,11 @@ function2value <- function(model,
                            action = NULL,
                            row = NULL,
                            col = NULL,
-                           sparse = FALSE) {
+                           sparse = NULL) {
+  # we default to sparse
+  if (is.null(sparse))
+    sparse <- TRUE
+  
   if (is.null(action))
     action <- model$actions
   
@@ -656,6 +660,10 @@ df2value <-
            row = NULL,
            col = NULL,
            sparse = NULL) {
+    # we default to sparse
+    if (is.null(sparse))
+      sparse <- TRUE
+    
     ## we use int indices for action here
     if (is.null(action))
       action <- model$actions
@@ -732,10 +740,7 @@ df2value <-
         v[c] <- value[i]
       }
       
-      # we default to sparse
-      if (is.null(sparse))
-        sparse <- TRUE
-      
+
       return(.sparsify_vector(v, sparse, names = model$states))
     }
     

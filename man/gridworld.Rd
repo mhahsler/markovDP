@@ -40,7 +40,7 @@ gridworld_maze_MDP(
   discount = 1,
   horizon = Inf,
   info = NULL,
-  normalize = TRUE,
+  normalize = FALSE,
   name = NA
 )
 
@@ -49,7 +49,7 @@ gridworld_random_maze(
   wall_prob = 0.2,
   start = NULL,
   goal = NULL,
-  normalize = TRUE
+  normalize = FALSE
 )
 
 gridworld_path(model, start = NULL, goal = NULL, horizon = NULL)
