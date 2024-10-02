@@ -362,7 +362,7 @@ MDP_PS_inf_horizon <-
            error,
            iter_max = 10000,
            U = NULL,
-           init_H = "value_iteration",
+           init_H = "reward",
            matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
@@ -411,10 +411,10 @@ MDP_PS_inf_horizon <-
     names(U) <- S
     
     # initialize with the maximum reward. This is a single value iteration pass.
-    init_H <- match.arg(init_H, c("value_iteration", "random"))
+    init_H <- match.arg(init_H, c("reward", "random"))
      
     if (is.null(H)) {
-      if (init_H == "value_iteration") {
+      if (init_H == "reward") {
         if (verbose)
           cat("initializing priority H using the Belmann error.\n\n")
         H <- abs(bellman_update(model, U = U)) + error + 1e-6
@@ -429,7 +429,7 @@ MDP_PS_inf_horizon <-
     # may not find the optimal value if some priorities are 0 (See paper)
 
     # absorbing states get 0 priority
-    H[absorbing_states(model)] <- 0
+    H[absorbing_states(model, sparse = "states")] <- 0
     
     
     # return unconverged result when interrupted

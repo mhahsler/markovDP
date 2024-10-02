@@ -199,10 +199,16 @@ to this states will have their priority increased by the update difference.
 This update order leads to faster convergence compared
 to sweeping the whole state state in regular value iteration.
 
-We initialize the priority \eqn{H(s)} with the absolute value of the
-largest reward of going to the state. This leads the algorithm to start
+The additional parameter \code{init_H} can be used to define how to initialize
+the priority \eqn{H(s)}. The default is \code{init_H = "reward"} which uses the
+absolute value of the largest reward of going to the state.
+Since the value function \eqn{U} is initialized with all zeros, this represents
+the error and leads the algorithm to start
 sweeping backwards from the high reward states.
-This implementation stops iteration when the the largest priority values
+\code{init_H = "random"} initializes the priorities randomly with a value larger than
+\code{error} + a small value to make sure each state is tries at least once.
+
+This implementation stops updating when the largest priority values
 over all states is less than the specified \code{error}.
 }
 

@@ -14,7 +14,7 @@
 \alias{gridworld_s2rc}
 \alias{gridworld_rc2s}
 \alias{gridworld_transition_prob}
-\alias{gridworld_transition_prob3}
+\alias{gridworld_transition_prob_end_state}
 \title{Helper Functions for Gridworld MDPs}
 \usage{
 gridworld_init(
@@ -97,7 +97,7 @@ gridworld_rc2s(rc)
 
 gridworld_transition_prob(model, action, start.state)
 
-gridworld_transition_prob3(model, action, start.state, end.state)
+gridworld_transition_prob_end_state(model, action, start.state, end.state)
 }
 \arguments{
 \item{dim}{vector of length two with the x and y extent of the gridworld.}
@@ -235,7 +235,9 @@ leads from the start to the goal. Note this function currently samples only a si
 an issue with stochastic transitions!
 
 \code{gridworld_matrix()} returns different information
-(state names, values, actions, etc.) as a matrix.
+(state names, values, actions, etc.) as a matrix. Note that some gridworlds
+have unreachable states removed. These states will be represented in the
+matrix as  \code{NA}.
 
 \code{gridworld_plot()} plots a gridworld.
 
@@ -266,14 +268,16 @@ gw <- gridworld_init(
 
 str(gw)
 
-# display the state labels in the gridworld
+# display the state labels in the gridworld (states not represented in the 
+# model are shown as NA)
 gridworld_matrix(gw)
 gridworld_matrix(gw, what = "label")
 gridworld_matrix(gw, what = "absorbing")
 gridworld_matrix(gw, what = "unreachable")
 
 # a transition function for regular moves in the gridworld is provided
-gw$transition_prob(gw, "right", "s(1,1)")
+gridworld_transition_prob(gw, "right", "s(1,1)")
+gridworld_transition_prob_end_state(gw, "right", "s(1,1)", "s(1,2)")
 
 # convert between state names and row/column indices
 gridworld_s2rc("s(1,1)")
@@ -295,13 +299,13 @@ trans_black_hole <- function(model,
     if (end.state == "s(4,4)") {
       return(.5)
     } else {
-      return(gridworld_transition_prob3(model, action, start.state,
+      return(gridworld_transition_prob_end_state(model, action, start.state,
                                         end.state) * .5)
     }
   }
 
   # use the standard gridworld movement
-  gridworld_transition_prob3(model, action, start.state, end.state)
+  gridworld_transition_prob_end_state(model, action, start.state, end.state)
 }
 
 black_hole <- MDP(
@@ -317,6 +321,7 @@ black_hole <- MDP(
 )
 
 black_hole
+black_hole <- normalize_MDP(black_hole)
 
 gridworld_plot_transition_graph(black_hole)
 
@@ -353,7 +358,6 @@ sol <- solve_MDP(DynaMaze, method = "lp")
 
 gridworld_matrix(sol, what = "values")
 gridworld_matrix(sol, what = "actions")
-gridworld_plot(sol)
 gridworld_plot(sol, states = TRUE)
 
 # check if we found a solution

@@ -24,7 +24,7 @@ bool is_converged(const List& model);
 // More accessors
 NumericVector start_vector(const List& model);
 CharacterVector get_states(const List& model);
-LogicalVector absorbing_states(const List& model);
+IntegerVector absorbing_states(const List& model);
 CharacterVector get_obs(const List& model);
 CharacterVector get_actions(const List& model);
 double get_discount(const List& model);

@@ -230,7 +230,7 @@ sample_MDP <-
     
     states <- as.character(model$states)
     n_states <- length(states)
-    states_absorbing <- which(absorbing_states(model))
+    states_absorbing <- absorbing_states(model, sparse = "index")
     actions <- as.character(model$actions)
     
     # for easier access

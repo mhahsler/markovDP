@@ -33,7 +33,7 @@ gridworld_matrix(Cliff_walking)
 gridworld_matrix(Cliff_walking, what = "labels")
 
 # The Goal is an absorbing state
-which(absorbing_states(Cliff_walking))
+absorbing_states(Cliff_walking, sparse = "states")
 
 # visualize the transition graph
 gridworld_plot_transition_graph(Cliff_walking)
@@ -41,21 +41,6 @@ gridworld_plot_transition_graph(Cliff_walking)
 # solve using different methods
 sol <- solve_MDP(Cliff_walking)
 sol
-policy(sol)
-gridworld_plot(sol)
-
-sol <- solve_MDP(Cliff_walking, method = "q_learning", n = 100)
-sol
-policy(sol)
-gridworld_plot(sol)
-
-sol <- solve_MDP(Cliff_walking, method = "sarsa", n = 100)
-sol
-policy(sol)
-gridworld_plot(sol)
-
-sol <- solve_MDP(Cliff_walking, method = "expected_sarsa", n = 100, 
-                  alpha = 1)
 policy(sol)
 gridworld_plot(sol)
 }

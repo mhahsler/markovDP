@@ -32,14 +32,16 @@
 #'
 #' str(gw)
 #'
-#' # display the state labels in the gridworld
+#' # display the state labels in the gridworld (states not represented in the 
+#' # model are shown as NA)
 #' gridworld_matrix(gw)
 #' gridworld_matrix(gw, what = "label")
 #' gridworld_matrix(gw, what = "absorbing")
 #' gridworld_matrix(gw, what = "unreachable")
 #'
 #' # a transition function for regular moves in the gridworld is provided
-#' gw$transition_prob(gw, "right", "s(1,1)")
+#' gridworld_transition_prob(gw, "right", "s(1,1)")
+#' gridworld_transition_prob_end_state(gw, "right", "s(1,1)", "s(1,2)")
 #'
 #' # convert between state names and row/column indices
 #' gridworld_s2rc("s(1,1)")
@@ -61,13 +63,13 @@
 #'     if (end.state == "s(4,4)") {
 #'       return(.5)
 #'     } else {
-#'       return(gridworld_transition_prob3(model, action, start.state,
+#'       return(gridworld_transition_prob_end_state(model, action, start.state,
 #'                                         end.state) * .5)
 #'     }
 #'   }
 #'
 #'   # use the standard gridworld movement
-#'   gridworld_transition_prob3(model, action, start.state, end.state)
+#'   gridworld_transition_prob_end_state(model, action, start.state, end.state)
 #' }
 #'
 #' black_hole <- MDP(
@@ -83,6 +85,7 @@
 #' )
 #'
 #' black_hole
+#' black_hole <- normalize_MDP(black_hole)
 #'
 #' gridworld_plot_transition_graph(black_hole)
 #'
@@ -119,7 +122,6 @@
 #'
 #' gridworld_matrix(sol, what = "values")
 #' gridworld_matrix(sol, what = "actions")
-#' gridworld_plot(sol)
 #' gridworld_plot(sol, states = TRUE)
 #'
 #' # check if we found a solution
@@ -467,18 +469,20 @@ gridworld_path <- function(model,
   )
   
   path <- s$trajectories
-  reward <- s$reward
-  solved <- s$trajectories[nrow(path), "s_prime"]  %in% goal
+
   
-  # Handle non-absorbing goal states (restart = TRUE)
-  if (!all(absorbing_states(model)[model$info$goal])) {
-    first <- match(goal, path$s_prime)
-    solved <- !is.na(first)
-    path <- path[seq(first), , drop = FALSE]
-    reward <- sum(path$r * model$discount ^ seq(first, 1))
-  }
+  # Goal state may be non-absorbing (restart = TRUE)
+  found <- match(goal, path$s_prime)
+  solved <- !is.na(found)
   
-  if (!solved) {
+  if (solved) { 
+    if (found == nrow(path)) {
+      reward <- s$reward
+    } else {
+      path <- path[seq(found), , drop = FALSE]
+      reward <- sum(path$r * model$discount ^ seq(found, 1))
+    } 
+  } else {
     reward <- NA_real_
     path <- NULL
   }
@@ -491,7 +495,9 @@ gridworld_path <- function(model,
 #' @rdname gridworld
 #'
 #' @details `gridworld_matrix()` returns different information
-#'  (state names, values, actions, etc.) as a matrix.
+#'  (state names, values, actions, etc.) as a matrix. Note that some gridworlds
+#'  have unreachable states removed. These states will be represented in the 
+#'  matrix as  `NA`.
 #'
 #' @param what What should be returned in the matrix. Options are:
 #'  `"states"`, `"index"`, `"labels"`, `"values"`, `"actions"`, `"absorbing"`, and
@@ -565,7 +571,7 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
       l
     },
     unreachable = {
-      l <- structure(rep(TRUE, length(all_states)), names = all_states)
+      l <- structure(rep(NA, length(all_states)), names = all_states)
       l[model$states] <- unreachable_states(model, sparse = FALSE)
       l
     }
@@ -645,7 +651,9 @@ gridworld_plot <-
     
     absorbing <- gridworld_matrix(model, what = "absorbing")
     unreachable <- gridworld_matrix(model, what = "unreachable")
+    unreachable[is.na(unreachable)] <- TRUE
     
+     
     # hide unreachable values for unreachable states
     m[unreachable] <- NA
     
@@ -940,7 +948,7 @@ gridworld_rc2s <- function(rc) {
 #' @rdname gridworld
 #'
 #' @details `gridworld_transition_prob()` and `gridworld_transition_prob3()`
-#' provide the standard transition functions for a gridworld.
+#' provide the standard transition functions for a gridworld. 
 #'
 #' @export
 gridworld_transition_prob <- function(model, action, start.state) {
@@ -979,7 +987,7 @@ gridworld_transition_prob <- function(model, action, start.state) {
 #' @rdname gridworld
 #' @param action,start.state,end.state parameters for the transition function.
 #' @export
-gridworld_transition_prob3 <- function(model, action, start.state, end.state) {
+gridworld_transition_prob_end_state <- function(model, action, start.state, end.state) {
   ai <- match(action, model$actions)
   
   # stay in place for unknown actions

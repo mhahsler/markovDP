@@ -29,10 +29,7 @@ List sample_MDP_cpp(const List& model,
   const int nactions = get_actions(model).size();
   
   // absorbing states?
-  LogicalVector absorbing = absorbing_states(model);
-  // this is which (starting with 0)
-  IntegerVector abs_states = seq_along(absorbing) - 1;
-  abs_states = abs_states[absorbing];
+  IntegerVector abs_states = absorbing_states(model);
    
   // define current state s, action a (everything is 0-based!)
   int s, s_prev, a;
@@ -124,7 +121,7 @@ List sample_MDP_cpp(const List& model,
        tr_s_prime.push_back(s + 1);
       }
       
-      if (contains(abs_states, s))
+      if (contains(abs_states, s + 1))
         break;
       }
   }

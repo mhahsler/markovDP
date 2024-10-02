@@ -39,7 +39,8 @@ start vector is created using the start stored in the model.}
 
 \item{sparse}{logical; use sparse representation. \code{NULL} returns the
 representation stored in the problem description which saves the time
-for conversion.}
+for conversion. For vectors, additional options are \code{"states"} to return a vector of state names, and \code{"index"}
+to return an index vector of values that are \code{TRUE} or greater than 0.}
 
 \item{action}{name or index of an action.}
 

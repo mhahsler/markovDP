@@ -1,5 +1,3 @@
-# TODO: deal with available actions for states available_actions(model, s)
-
 #' Solve an MDP Problem
 #'
 #' Implementation of value iteration, modified policy iteration and other
@@ -48,10 +46,16 @@
 #'   This update order leads to faster convergence compared
 #'   to sweeping the whole state state in regular value iteration.
 #'   
-#'   We initialize the priority \eqn{H(s)} with the absolute value of the 
-#'   largest reward of going to the state. This leads the algorithm to start
+#'   The additional parameter `init_H` can be used to define how to initialize 
+#'   the priority \eqn{H(s)}. The default is `init_H = "reward"` which uses the 
+#'   absolute value of the largest reward of going to the state. 
+#'   Since the value function \eqn{U} is initialized with all zeros, this represents
+#'   the error and leads the algorithm to start
 #'   sweeping backwards from the high reward states.
-#'   This implementation stops iteration when the the largest priority values
+#'   `init_H = "random"` initializes the priorities randomly with a value larger than 
+#'   `error` + a small value to make sure each state is tries at least once.
+#'   
+#'   This implementation stops updating when the largest priority values
 #'   over all states is less than the specified `error`.
 #'
 #' Note that policies converge earlier than value functions.

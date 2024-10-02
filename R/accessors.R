@@ -44,7 +44,8 @@
 #' @param start.state,end.state name or index of the state.
 #' @param sparse logical; use sparse representation. `NULL` returns the
 #'   representation stored in the problem description which saves the time
-#'   for conversion.
+#'   for conversion. For vectors, additional options are `"states"` to return a vector of state names, and `"index"`
+#'   to return an index vector of values that are `TRUE` or greater than 0.
 #' @param simplify logical; try to simplify action lists into a vector or matrix?
 #' @param ... further arguments are passed on.
 #'
@@ -275,14 +276,19 @@ NULL
       return(structure(as(x, "vector"), names = names))
   }
   
-  # state labels
-  if (is.character(sparse) && !is.na(pmatch(sparse, "states"))) {
-    if (is(x, "sparseVector")) {
-      if (is.null(names))
-        stop("state names needed to return states.")
-      return(names[Matrix::which(x > 0)])
-    } else
-      return(names(x)[x > 0])
+  # state labels or indices
+  if (is.character(sparse)) {
+    sparse <- match.arg(sparse, c("states", "index"))
+    if (sparse == "states") { 
+      if (is(x, "sparseVector")) {
+        if (is.null(names))
+          stop("state names needed to return states.")
+        return(names[Matrix::which(x > 0)])
+      } else
+        return(names(x)[x > 0])
+    } else { ### index
+      return(Matrix::which(x > 0))
+    }
   }
   
   stop("Unknown setting for sparse.")
@@ -783,16 +789,18 @@ df2value <-
     rs <- as.integer(df[[2L]])
     cs <- as.integer(df[[3L]])
     
-    m <- new(
-      "dgTMatrix",
-      i = integer(0),
-      j = integer(0),
-      x = numeric(0),
-      Dim = c(length(rows), length(cols))
-    )
-    
     ## FIXME: Matrix has an issue with subsetting dgTMatrix so I use a dgCMatrix
-    m <- as(m, "CsparseMatrix")
+    ## TODO: Make this sparse
+    m <- matrix(0, nrow = length(rows), ncol = length(cols))
+    
+    # m <- new(
+    #   "dgTMatrix",
+    #   i = integer(0),
+    #   j = integer(0),
+    #   x = numeric(0),
+    #   Dim = c(length(rows), length(cols))
+    # )
+    #m <- as(m, "CsparseMatrix")
     
     for (i in seq_len(nrow(df))) {
       r <- rs[i]

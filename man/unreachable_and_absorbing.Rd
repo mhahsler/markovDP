@@ -19,7 +19,7 @@ unreachable_states(
 absorbing_states(
   model,
   state = NULL,
-  sparse = FALSE,
+  sparse = NULL,
   use_precomputed = TRUE,
   ...
 )

@@ -13,10 +13,10 @@ for (m in models_solve_no_chaching) {
   m$absorbing_states <- NULL
   if (verbose)
     cat(m$name, "\n")
-  tr <- absorbing_states(m, use_precomputed = FALSE)
+  tr <- absorbing_states(m, use_precomputed = FALSE, sparse = "states")
   if (verbose)
     print(tr)
-  expect_equal(names(which(tr)), s_abs)
+  expect_equal(tr, s_abs)
 }
   
 # unreachable states
@@ -58,10 +58,10 @@ s_abs <- "s1"
 for (m in ms) {
   if (verbose)
     cat(m$name, "\n")
-  tr <- absorbing_states(m, use_precomputed = FALSE)
+  tr <- absorbing_states(m, use_precomputed = FALSE, sparse = "states")
   if (verbose)
     print(tr)
-  expect_equal(names(which(tr)), s_abs)
+  expect_equal(tr, s_abs)
 }
 
 

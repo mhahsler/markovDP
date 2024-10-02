@@ -37,8 +37,9 @@ CharacterVector get_states(const List& model) {
 }  
 
 // TODO: reimplement in C++
-LogicalVector absorbing_states(const List& model) {
-  return R_absorbing_states(model);
+IntegerVector absorbing_states(const List& model) {
+  //return R_absorbing_states(model);
+  return R_absorbing_states(model, _["sparse"] = CharacterVector::create("index"));
 }
 
 CharacterVector get_actions(const List& model) {

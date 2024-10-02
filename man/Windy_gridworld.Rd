@@ -36,7 +36,7 @@ gridworld_matrix(Windy_gridworld, what = "labels")
 gridworld_plot(Windy_gridworld)
 
 # The Goal is an absorbing state
-which(absorbing_states(Windy_gridworld))
+absorbing_states(Windy_gridworld, sparse = "states")
 
 # visualize the transition graph
 gridworld_plot_transition_graph(Windy_gridworld)

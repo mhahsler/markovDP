@@ -47,6 +47,7 @@
 #' unreachable_states(Maze, sparse = FALSE)
 #' unreachable_states(Maze, sparse = "states")
 #' @importFrom Matrix colSums
+#' @importFrom fastmap fastmap faststack
 NULL
 
 #' @rdname unreachable_and_absorbing
@@ -82,50 +83,59 @@ unreachable_states.MDP <- function(model,
   if (is.null(sparse))
     sparse <- TRUE
 
- .sparsify_vector(!.reachable_states(model, 
+ .sparsify_vector(as(!.reachable_states(model, 
                                      horizon = horizon, 
-                                     progress = progress), 
+                                     progress = progress), "sparseVector"), 
                   sparse = sparse, 
                   names = model$states)
 }
 
 
 .reachable_states <- function(model, horizon = Inf, progress = TRUE) {
-  states <- new.env(hash = TRUE)
+  reached <- fastmap()
+  frontier <- faststack()
+  
+  for (start_state in start_vector(model, sparse = "states")) {
+    frontier$push(start_state)
+    # key: state label; value: depth
+    reached$set(start_state, 0L)
+  }
   
   if (progress) {
-    pb <- my_progress_spinner(name = "unreachable_states")
+    pb <- my_progress_bar(N = length(model$states), name = "unreachable_states")
     pb$tick(0)
   }
   
-  move <- function(state, depth = 0) {
-    if (depth > horizon)
-      return()
+  while (frontier$size() > 0) {
+    state <- frontier$pop()
     
-    for (action in available_actions(model, state)){
+    if (progress) {
+      pb$tick()
+    }
+    
+    # available_actions is slow!
+    #for (action in available_actions(model, state)){
+    for (action in model$actions){
       next_states <- transition_matrix(model, action, state, sparse = "states")  
       
       for (next_state in next_states) {
-        if (exists(next_state, envir = states, inherits = FALSE))
+        if (reached$has(next_state))
           next()
         
-        if (progress)
-          pb$tick()
+        depth <- reached$get(state)
+        if (depth >= horizon)
+          next()
         
-        assign(next_state, TRUE, envir = states)
-        move(next_state, depth + 1L)
+        frontier$push(next_state)
+        reached$set(next_state, depth + 1L)
       }
     }
   }
   
-  for (start_state in start_vector(model, sparse = "states")) {
-    assign(start_state, TRUE, envir = states)
-    move(start_state)
-  }
+  if (progress)
+    pb$terminate()
   
-  Vectorize(exists, vectorize.args = "x")(model$states, 
-                                          envir = states, 
-                                          inherits = FALSE)
+  model$states %in% names(reached$as_list())
 }
 
 
