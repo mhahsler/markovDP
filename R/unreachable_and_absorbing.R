@@ -3,11 +3,11 @@
 #' Find unreachable and absorbing states using the transition model.
 #'
 #' The function `unreachable_states()` checks if states
-#' cannot be reached from any other state. It performs a depth-first 
-#' search which can be slow. 
+#' cannot be reached from any other state. It performs a depth-first
+#' search which can be slow.
 #' The search breaks cycles to avoid an infinite loop.
-#' The search depth can be restricted using 
-#' `horizon`. 
+#' The search depth can be restricted using
+#' `horizon`.
 #'
 #' The function `remove_unreachable_states()` simplifies a model by
 #' removing unreachable states from the model description.
@@ -23,7 +23,7 @@
 #' @param model a [MDP] object.
 #' @param state logical; check a single state. This can be much faster if
 #'   the model contains a transition model implemented as a function.
-#' @param horizon only states that can be reached within the 
+#' @param horizon only states that can be reached within the
 #'    horizon are reachable.
 #' @param sparse logical; return a sparse logical vector?
 #' @param use_precomputed logical; should precomputed values in the MDP be used?
@@ -70,28 +70,26 @@ unreachable_states.MDP <- function(model,
                                    use_precomputed = TRUE,
                                    progress = TRUE,
                                    ...) {
-  if (use_precomputed && !is.null(model$unreachable_states) && !is.finite(horizon)) {
-    return(
-      .sparsify_vector(
-        model$unreachable_states,
-        sparse = sparse,
-        names = model$states
-      )
-    )
+  if (use_precomputed &&
+      !is.null(model$unreachable_states) && !is.finite(horizon)) {
+    return(.translate_logical(model$unreachable_states, model$states, sparse = sparse))
   }
   
   if (is.null(sparse))
     sparse <- TRUE
-
- .sparsify_vector(as(!.reachable_states(model, 
-                                     horizon = horizon, 
-                                     progress = progress), "sparseVector"), 
-                  sparse = sparse, 
-                  names = model$states)
+  
+  .translate_logical(as(
+    !.reachable_states(model, horizon = horizon, progress = progress),
+    "sparseVector"
+  ),
+  model$states,
+  sparse = sparse)
 }
 
 
-.reachable_states <- function(model, horizon = Inf, progress = TRUE) {
+.reachable_states <- function(model,
+                              horizon = Inf,
+                              progress = TRUE) {
   reached <- fastmap()
   frontier <- faststack()
   
@@ -115,8 +113,8 @@ unreachable_states.MDP <- function(model,
     
     # available_actions is slow!
     #for (action in available_actions(model, state)){
-    for (action in model$actions){
-      next_states <- transition_matrix(model, action, state, sparse = "states")  
+    for (action in model$actions) {
+      next_states <- transition_matrix(model, action, state, sparse = "states")
       
       for (next_state in next_states) {
         if (reached$has(next_state))
@@ -158,11 +156,16 @@ absorbing_states.MDP <- function(model,
                                  sparse = NULL,
                                  use_precomputed = TRUE,
                                  ...) {
-  
   # do it faster to check a single state
   if (!is.null(state) &&
-      length(state) == 1L) { 
+      length(state) == 1L) {
     if (use_precomputed && !is.null(model$absorbing_states)) {
+      if (is.character(model$absorbing_states)) {
+        if (!is.character(state))
+          state <- model$states[state]
+        return(state %in% model$absorbing_states)
+      }
+      # must be a logical vector (for sparse we need a index)
       if (is.character(state))
         state <- match(state, model$states)
       return(as(model$absorbing_states[state], "vector"))
@@ -176,24 +179,31 @@ absorbing_states.MDP <- function(model,
         ) == 1
       ))
   }
-      
-  if (!is.null(model$absorbing_states)) {
-    absorbing <- .sparsify_vector(model$absorbing_states, sparse = sparse, names = model$states)
+  
+  # all states
+  if (is.null(state)) {
+    if (use_precomputed && !is.null(model$absorbing_states)) {
+      return(.translate_logical(model$absorbing_states, model$states, sparse))
+    } else {
+      absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
+      if (is.null(sparse))
+        sparse <- "states"
+      return(.translate_logical(absorbing, model$states, sparse))
+    }
+  }
+  
+  # some states
+  if (is.character(state))
+    state <- match(state, model$states)
+  
+  if (use_precomputed && !is.null(model$absorbing_states)) {
+    absorbing <- .translate_logical(model$absorbing_states, model$states, sparse = TRUE)
   } else {
-    if (is.null(sparse))
-      sparse <- TRUE
-    
     absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
-    absorbing <- .sparsify_vector(absorbing, sparse, names = model$states)
   }
   
-  if (!is.null(state)) {
-    if (is.character(state))
-      state <- match(state, model$states)
-    absorbing <- absorbing[state]
-  }
-  
-  absorbing
+  absorbing <- absorbing[state]
+  .translate_logical(absorbing, model$states[state], sparse)
 }
 
 #' @rdname unreachable_and_absorbing

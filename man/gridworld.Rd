@@ -326,7 +326,7 @@ black_hole <- normalize_MDP(black_hole)
 gridworld_plot_transition_graph(black_hole)
 
 # solve the problem
-sol <- solve_MDP(black_hole)
+sol <- solve_MDP(black_hole, error = 1)
 gridworld_matrix(sol, what = "values")
 gridworld_plot(sol)
 # the optimal policy is to fly around, but avoid the black hole.

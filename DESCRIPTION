@@ -74,6 +74,7 @@ Collate:
     'reward.R'
     'round_stochchastic.R'
     'sample_MDP.R'
+    'sample_sparse.R'
     'solve_MDP.R'
     'solve_MDP_DP.R'
     'solve_MDP_LP.R'

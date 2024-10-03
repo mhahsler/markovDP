@@ -13,10 +13,9 @@ Environment pkg = Environment::namespace_env("markovDP");
 Function R_start_vector = pkg["start_vector"];
 Function R_absorbing_states = pkg["absorbing_states"];
 
-// Currently unused because R function calls are too slow
-//
-// Function R_transition_matrix = pkg["transition_matrix"];
-// Function R_reward_matrix = pkg["reward_matrix"];
+// R function calls are very slow
+Function R_transition_matrix = pkg["transition_matrix"];
+Function R_reward_matrix = pkg["reward_matrix"];
 
 // Access model information
 bool is_solved(const List& model) { 
@@ -71,12 +70,11 @@ NumericMatrix transition_matrix(const List& model, int action, int episode) {
   else
     acts = model["transition_prob"];
 
-  /* too slow! 
   // function
   if (is<Function>(acts)) {
-    return as<NumericMatrix>(R_transition_matrix(model, action + 1));
+    return as<NumericMatrix>(R_transition_matrix(model, action + 1, 
+                                                 _["sparse"] = LogicalVector::create(0)));
   }
-  */
  
   // it is a list
   acts = as<List>(acts)[action];
@@ -117,12 +115,10 @@ double transition_prob(const List& model, int action, int start_state,
   else
     acts = model["transition_prob"];
   
-  /* too slow! 
   // function
   if (is<Function>(acts)) {
     return as<double>(R_transition_matrix(model, action + 1, start_state + 1, end_state + 1));
   }
-  */
   
   // it is a list
   acts = as<List>(acts)[action];
@@ -162,12 +158,11 @@ NumericVector transition_row(const List& model, int action, int start_state,
   else
     acts = model["transition_prob"];
   
-  /* too slow! 
   // function
   if (is<Function>(acts)) {      
-    return as<NumericVector>(R_transition_matrix(model, action + 1, start_state + 1));
+    return as<NumericVector>(R_transition_matrix(model, action + 1, start_state + 1,
+                                                 _["sparse"] = LogicalVector::create(0)));
   }
-  */
   
   // it is a list
   acts = as<List>(acts)[action];
@@ -206,11 +201,10 @@ NumericVector transition_row(const List& model, int action, int start_state,
 NumericMatrix reward_matrix_MDP(const List& model, int action) {
   RObject reward = model["reward"];
   
-  /* too slow! 
   if (is<Function>(reward)) {
-    return as<NumericMatrix>(R_reward_matrix(model, action + 1, start_state + 1));
+    return as<NumericMatrix>(R_reward_matrix(model, action + 1,
+                                             _["sparse"] = LogicalVector::create(0)));
   }
-  */
   
   if (is<DataFrame>(reward)) {
     DataFrame df = as<DataFrame>(reward);
@@ -256,12 +250,10 @@ double reward_val_MDP(const List& model, int action,
   if (episode >= 0)
     reward = as<List>(reward)[episode];
   
-  /* too slow! 
   if (is<Function>(reward)) {
     return as<double>(R_reward_matrix(model, action + 1, start_state + 1,
                                       end_state + 1));
   }
-  */
   
   if (is<DataFrame>(reward)) {
     // factors in the data.frame are 1-based!!!

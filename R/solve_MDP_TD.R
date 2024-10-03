@@ -100,6 +100,7 @@ solve_MDP_TD <-
           pb$tick(0)
         #s_prime <- sample(S, 1L, prob = P[[a]][s, ])
         s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
+        #s_prime <- sample_sparse(S, 1L, prob = transition_matrix(model, a, s, sparse = NULL))
         r <- reward_matrix(model, a, s, s_prime)
         a_prime <- greedy_action(Q, s_prime, epsilon)
 

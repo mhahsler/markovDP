@@ -90,7 +90,7 @@
 #' gridworld_plot_transition_graph(black_hole)
 #'
 #' # solve the problem
-#' sol <- solve_MDP(black_hole)
+#' sol <- solve_MDP(black_hole, error = 1)
 #' gridworld_matrix(sol, what = "values")
 #' gridworld_plot(sol)
 #' # the optimal policy is to fly around, but avoid the black hole.
@@ -377,11 +377,9 @@ gridworld_maze_MDP <- function(dim,
   }
   
   #model$absorbing_states <- absorbing_states(model, sparse = TRUE)
-  model$absorbing_states <- .translate_logical(gw$info$goal, state_labels = gw$states, sparse = TRUE)
+  model$absorbing_states <- gw$info$goal
   #model$unreachable_states <- unreachable_states(model, sparse = TRUE)
-  model$unreachable_states <- .translate_logical(character(0),
-                                                 state_labels = gw$states,
-                                                 sparse = TRUE)
+  model$unreachable_states <- character(0)
   
   model
 }
@@ -567,7 +565,7 @@ gridworld_matrix <- function(model, epoch = 1L, what = "states") {
     },
     absorbing = {
       l <- structure(rep(NA, length(all_states)), names = all_states)
-      l[model$states] <- absorbing_states(model)
+      l[model$states] <- absorbing_states(model, sparse = TRUE)
       l
     },
     unreachable = {
@@ -801,7 +799,7 @@ gridworld_plot_transition_graph <-
       cbind(rep(1, length(x$states)), -1)
     
     if (hide_unreachable_states) {
-      reachable <- !unreachable_states(x)
+      reachable <- !unreachable_states(x, sparse = FALSE)
       g <- induced_subgraph(g, V(g)[reachable])
       layout <- layout[reachable, , drop = FALSE]
     }
@@ -1012,4 +1010,42 @@ gridworld_transition_prob_end_state <- function(model, action, start.state, end.
     es <- start.state
   }
   as.integer(es == end.state)
+}
+
+
+# Creating sparse vectors is too expensive
+gridworld_transition_prob_sparse <- function(model, action, start.state) {
+  a_i <- match(action, model$actions)
+  start_i = match(start.state, model$states)
+  
+  # stay in place for unknown actions
+  if (is.na(a_i) || is.na(start_i)) {
+    warning("Unknown action", action, "or start state", start.state)
+    end_i <- start_i
+  }
+  
+  # absorbing states
+  else if (start.state %in% model$info$absorbing_states) {
+    end_i <- start_i
+  }
+  
+  else {
+    # move
+    rc <- gridworld_s2rc(start.state)
+    rc <- switch(a_i, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
+    
+    es <- gridworld_rc2s(rc)
+    end_i <- match(es, model$states)
+    
+    # stay in place if we would leave the gridworld
+    if (is.na(end_i)) {
+      end_i <- start_i
+    }
+  }
+  
+  return(sparseVector(
+    x = 1,
+    i = end_i,
+    length = length(model$states)
+  ))
 }

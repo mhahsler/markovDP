@@ -215,6 +215,9 @@ MDP_value_iteration_inf_horizon <-
            verbose = FALSE,
            ...) {
     
+    if (verbose)
+      progress <- FALSE
+    
     if (progress) {
       pb <- my_progress_spinner(name = "solve_MDP", 
                                 format_extra = " | max delta U: :delta | press esc/CTRL-C to terminate early")
@@ -659,8 +662,8 @@ MDP_policy_iteration_inf_horizon <-
         U <-
           policy_evaluation(model, pi, U, k_backups = k_backups, matrix = matrix, progress = FALSE)
         
-      if (progress)
-        pb$tick(0, token = list(changed_actions = changed_actions))
+      #if (progress)
+      #  pb$tick(0, token = list(changed_actions = changed_actions))
       
       # get greedy policy for U
       if (matrix)
@@ -668,8 +671,8 @@ MDP_policy_iteration_inf_horizon <-
       else
         Qs <- outer(S, A, .QV_func_vec, model, GAMMA, U)
 
-      if (progress)
-        pb$tick(0, token = list(changed_actions = changed_actions))
+      #if (progress)
+      #  pb$tick(0, token = list(changed_actions = changed_actions))
       
       # non-randomizes
       m <- apply(Qs, MARGIN = 1, which.max.random)
@@ -686,8 +689,8 @@ MDP_policy_iteration_inf_horizon <-
       pi <- pi_prime
     }
 
-    if (progress)
-      pb$tick(0, token = list(changed_actions = changed_actions))
+    #if (progress)
+    #  pb$tick(0, token = list(changed_actions = changed_actions))
     
     # deregister on.exit
     on.exit()

@@ -27,7 +27,8 @@
 #' @param epsilon the probability of random actions  for using an epsilon-greedy policy.
 #'  Default for solved models is 0 and for unsolved model 1.
 #' @param engine `'cpp'` or `'r'` to perform simulation using a faster C++
-#'  or a native R implementation.
+#'  or a native R implementation `NULL` uses the C++ implementation unless the transition model or
+#'  the reward are specified as R functions (which are slow in C++).
 #' @param return_trajectories logical; return the complete trajectories.
 #' @param delta_horizon precision used to determine the horizon for infinite-horizon problems.
 #' @param exploring_starts logical; randomly sample a start/action combination to
@@ -95,24 +96,21 @@ sample_MDP <-
            exploring_starts = FALSE,
            delta_horizon = 1e-3,
            return_trajectories = FALSE,
-           engine = "cpp",
+           engine = NULL,
            progress = TRUE,
            verbose = FALSE,
            ...) {
     .nodots(...)
     
-    engine <- match.arg(tolower(engine), c("cpp", "r"))
-    if (engine == "cpp" &&
-        (is.function(model$transition_prob) ||
-         is.function(model$reward))) {
-      engine <- "r"
-      
-      if (verbose)
-        message(
-          "Some elements of the MDP are defined as R functions. The CPP engine is very slow with R function calls.\n",
-          "Falling back to R. Normalize the model first to use engine 'cpp'.\n"
-        )
+    if (is.null(engine)) {
+      if (is.function(model$transition_prob) ||
+          is.function(model$reward))
+        engine <- "r"
+      else 
+        engine <- "cpp"
     }
+    
+    engine <- match.arg(tolower(engine), c("cpp", "r"))
     
     solved <- is_solved_MDP(model)
     n <- as.integer(n)

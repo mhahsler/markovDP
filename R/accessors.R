@@ -128,8 +128,8 @@ NULL
     }
   }
   
-  # sparse probability vector
-  else if (is(prob, "sparseVector")) {
+  # sparse or dense probability vector
+  else if (is(prob, "sparseVector") || is.logical(prob)) {
     # nothing to do
   }
   
@@ -229,8 +229,44 @@ NULL
   return(v)
 }
 
+# we could get a sparse/dense vector a set of state names, a set of state ids
 .translate_logical <- function(x, state_labels, sparse = NULL) {
-  as(.translate_distribution(x, state_labels, sparse, check = FALSE), "lsparseVector")
+  # state names
+  if (is.character(x)) {
+    if (is.null(sparse)) {
+      sparse <- "states"
+    }
+    
+    m <- pmatch(sparse, c("states", "index")) 
+    if(!is.na(m)) {
+      if (m == 2L)
+        x <- match(x, state_labels)
+      
+      return(x)
+    } else {
+      v <- structure(logical(length(state_labels)), names = state_labels)
+      v[x] <- TRUE
+      return (.sparsify_vector(v, sparse, state_labels))
+    }
+  }
+  
+  # dense/sparse vector
+  if (is.logical(x) || is(x, "lsparseVector"))
+    return(.sparsify_vector(x, sparse, state_labels))
+  
+  # index vector
+  .sparsify_vector(sparseVector(rep.int(TRUE, times = length(x)), 
+                                x, 
+                                length = length(state_labels)), sparse, state_labels)
+  
+  # x <- .translate_distribution(x, state_labels, sparse, check = FALSE)
+  # 
+  # if(is(x, "sparseVector"))
+  #   x <- as(x, "lsparseVector")
+  # else if(is.numeric(x) && !is.integer(x))
+  #   x <- as.logical(x)
+  # 
+  # x
 }
 
 # make a matrix sparse if it has low density
@@ -259,6 +295,7 @@ NULL
 }
 
 # TODO: sparseVector currently does not have names
+# accepts a sparse or dense vector
 .sparsify_vector <- function(x, sparse = TRUE, names = NULL) {
   if (is.matrix(x))
     x <- drop(x)
@@ -287,7 +324,7 @@ NULL
       } else
         return(names(x)[x > 0])
     } else { ### index
-      return(Matrix::which(x > 0))
+      return(unname(Matrix::which(x > 0)))
     }
   }
   
@@ -499,8 +536,10 @@ function2value <- function(model,
     # * a sparseVector
     # * a short named vector with only values > 0
     # Convert it appropriately
-    .f_wrapper <- function(f, model, actiopn, row) {
+    .f_wrapper <- function(f, model, action, row) {
       v <- f(model, action, row)
+      
+      # sparse or dense vector
       if(length(v) == length(model$states))
         return(v)
       

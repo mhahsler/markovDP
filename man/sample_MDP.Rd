@@ -13,7 +13,7 @@ sample_MDP(
   exploring_starts = FALSE,
   delta_horizon = 0.001,
   return_trajectories = FALSE,
-  engine = "cpp",
+  engine = NULL,
   progress = TRUE,
   verbose = FALSE,
   ...
@@ -42,7 +42,8 @@ start the episode from.}
 \item{return_trajectories}{logical; return the complete trajectories.}
 
 \item{engine}{\code{'cpp'} or \code{'r'} to perform simulation using a faster C++
-or a native R implementation.}
+or a native R implementation \code{NULL} uses the C++ implementation unless the transition model or
+the reward are specified as R functions (which are slow in C++).}
 
 \item{progress}{show a progress bar?}
 

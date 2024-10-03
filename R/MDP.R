@@ -485,8 +485,8 @@ normalize_MDP <- function(model,
   model$absorbing_states <- NULL
   model$unreachable_states <- NULL
   if (precompute_absorbing_unreachable) {
-    model$absorbing_states <- absorbing_states(model, sparse = TRUE)
-    model$unreachable_states <- unreachable_states(model, sparse = TRUE)
+    model$absorbing_states <- absorbing_states(model, sparse = "states")
+    model$unreachable_states <- unreachable_states(model, sparse = "states")
   }
   model
 }
