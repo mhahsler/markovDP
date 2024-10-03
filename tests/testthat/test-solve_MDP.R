@@ -3,8 +3,7 @@
 #data(Maze)
 #models <- list(Maze)
 
-verbose <- FALSE
-#verbose <- TRUE
+verbose <- interactive()
 
 methods_DP <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
 methods_LP <- c("lp")
@@ -49,9 +48,6 @@ for (model in models_solve) {
   }
 }
 
-rownames(timing) <- NULL
-timing
-
 ### these methods are slow and need restrictions
 
 for (model in models_solve) {
@@ -63,10 +59,9 @@ for (model in models_solve) {
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
-    times <- rbind(times, data.frame(model = model$name, method = m, 
-                                     user = t[1], system = t[2],
-                                     elapsed = t[3])) 
-    
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = m, 
+                                       time = t[3]))
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
     
@@ -83,9 +78,9 @@ for (model in models_solve) {
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
-    times <- rbind(times, data.frame(model = model$name, method = m, 
-                                     user = t[1], system = t[2],
-                                     elapsed = t[3]))
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = m, 
+                                       time = t[3]))
     
     
     pol <- policy(sol)
@@ -95,4 +90,14 @@ for (model in models_solve) {
   }
 }
 
-times[order(times$elapsed), ]
+
+rownames(timing) <- NULL
+
+if (verbose) {
+  library(tidyverse)
+  ggplot(timing, aes(reorder(method, time), 
+                     y = time, fill = abbreviate(model))) + 
+    geom_bar(stat = "identity")
+}
+
+timing[order(timing$time),]

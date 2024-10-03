@@ -436,9 +436,6 @@ function2value <- function(model,
                            row = NULL,
                            col = NULL,
                            sparse = NULL) {
-  # we default to sparse
-  if (is.null(sparse))
-    sparse <- TRUE
   
   if (is.null(action))
     action <- model$actions
@@ -525,6 +522,11 @@ function2value <- function(model,
     }
     
     dimnames(o) <- list(row, col)
+    
+    # we default to sparse here or the matrices may become to big
+    if (is.null(sparse))
+      sparse <- TRUE
+    
     o <- .sparsify(o, sparse)
   
     return(o)
@@ -575,7 +577,7 @@ function2value <- function(model,
     o <- .f_wrapper_vec(f, model, action, row)
     
     # TODO: Matrix::rbind currently does not work with sparse Vector!
-    # otherwise we could use sparsify = TRUE above
+    # otherwise we could use simplify = TRUE above
     if (is(o[[1]], "sparseVector"))
       o <- lapply(
         o,
@@ -604,10 +606,12 @@ function2value <- function(model,
         return(.sparsify_vector(o, sparse = sparse, names = row))
     }
     
-    if (!is.null(sparse)) {
-      o <- .sparsify(o, sparse = sparse)
-    }
-      
+    # we default to sparse here or the matrices may become to big
+    if (is.null(sparse))
+      sparse <- TRUE
+    
+    o <- .sparsify(o, sparse = sparse)
+    
       
     return(o)
   }
