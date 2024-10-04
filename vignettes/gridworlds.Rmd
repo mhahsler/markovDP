@@ -152,7 +152,7 @@ R markdown documents can use `{r, fig.show='animate'}` so create an animation us
 the individual frames.
 
 ```{r, fig.show='animate'}
-gridworld_animate(x, "value_iteration", n = 15, zlim = c(0, 2))
+gridworld_animate(x, "value_iteration", n = 20, zlim = c(0, 2))
 ```
 
 It is easy to see how value iteration propagates value from the goal to the start.
@@ -164,7 +164,7 @@ gridworld_animate(x, "policy_iteration", n = 15, zlim = c(0, 2))
 ```
 
 ```{r, fig.show='animate'}
-gridworld_animate(x, "q_learning", n = 15, zlim = c(0, 2), horizon = 100)
+gridworld_animate(x, "q_learning", n = 15, zlim = c(0, 2), horizon = 1000)
 ```
 
 # References

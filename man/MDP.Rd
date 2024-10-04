@@ -6,7 +6,6 @@
 \alias{T_}
 \alias{R_}
 \alias{epoch_to_episode}
-\alias{normalize_MDP}
 \title{Define an MDP Problem}
 \usage{
 MDP(
@@ -21,23 +20,13 @@ MDP(
   name = NA
 )
 
-is_solved_MDP(x, stop = FALSE)
+is_solved_MDP(model, stop = FALSE)
 
 T_(action = NA, start.state = NA, end.state = NA, probability)
 
 R_(action = NA, start.state = NA, end.state = NA, value)
 
-epoch_to_episode(x, epoch)
-
-normalize_MDP(
-  model,
-  sparse = TRUE,
-  trans_keyword = TRUE,
-  trans_function = TRUE,
-  keep_reward_df = FALSE,
-  precompute_absorbing_unreachable = TRUE,
-  progress = TRUE
-)
+epoch_to_episode(model, epoch)
 }
 \arguments{
 \item{states}{a character vector specifying the names of the states.}
@@ -61,6 +50,8 @@ horizon.}
 
 \item{name}{a string to identify the MDP problem.}
 
+\item{model}{an \code{MDP} object.}
+
 \item{stop}{logical; stop with an error.}
 
 \item{action}{action as a action label or integer. The value \code{NA} matches any action.}
@@ -71,22 +62,6 @@ horizon.}
 
 \item{epoch}{integer; an epoch that should be converted to the
 corresponding episode in a time-dependent MDP.}
-
-\item{model, x}{a \code{MDP} object.}
-
-\item{sparse}{logical; use sparse representation. matrices when the density is below 50\% and keeps data.frame representation
-for the reward field.}
-
-\item{trans_keyword}{logical; convert distribution keywords (uniform and identity)
-in \code{transition_prob} matrices?}
-
-\item{trans_function}{logical; convert functions into matrices?}
-
-\item{keep_reward_df}{logical; if reward is a data.frame, then keep it.}
-
-\item{precompute_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
-
-\item{progress}{logical; show a progress bar with estimated time for completion.}
 }
 \value{
 The function returns an object of class MDP which is list with
@@ -196,21 +171,9 @@ The default state state is a uniform
 distribution over all states.
 }
 
-\subsection{Normalizing MDP Descriptions}{
+\subsection{Accessing Elements of the MDP}{
 
-Different components can be specified in various ways. It is often
-necessary to convert each component into a specific form (e.g., a
-dense matrix) to save time during access.
-Convert the Complete MDP Description into a consistent form
-\code{normalize_MDP()} converts all components of the MDP description
-into a consistent form and
-returns a new MDP definition where \code{transition_prob},
-\code{reward}, and \code{start} are normalized. This includes the internal
-representation (dense, sparse, as a data.frame) and
-also, \code{states}, and \code{actions} are ordered as given in the problem
-definition to make safe access using numerical indices possible. Normalized
-MDP descriptions can be
-used in custom code that expects consistently a certain format.
+See \link{accessors}.
 }
 }
 \examples{
@@ -250,17 +213,14 @@ car
 str(car)
 
 # accessing elements
-transition_matrix(car, sparse = FALSE)
+start_vector(car, sparse = "states")
+transition_matrix(car)
 transition_matrix(car, sparse = TRUE)
-reward_matrix(car, sparse = FALSE)
+reward_matrix(car)
 reward_matrix(car, sparse = TRUE)
 
 sol <- solve_MDP(car)
 policy(sol)
-
-# normalize MDP: make everything dense (transition_prob, reward and start)
-car_dense <- normalize_MDP(car, sparse = FALSE)
-str(car_dense)
 }
 \seealso{
 Other MDP: 

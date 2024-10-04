@@ -43,13 +43,6 @@ solve_MDP_MC <-
       if (is.null(model$solution$Q))
         stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
-    } else if (is.null(Q)) {
-      Q <-
-        matrix(0,
-               nrow = length(model$states),
-               ncol = length(model$actions),
-               dimnames = list(model$states, model$actions)
-        )
     } 
     
     switch(
@@ -97,24 +90,27 @@ MC_on_policy <- function(model,
   gamma <- discount
   
   # Start with arbitrary policy, we make it soft by specifying epsilon 
-  # in the simulation
-  
+  # in the simulation.
+  # Instead of returns we use a more efficient running average where Q_N is
+  # the number of averaged values.
+   
   if (is.null(Q)) {
     Q <- matrix(0,
                 nrow = length(S),
                 ncol = length(A),
                 dimnames = list(S, A))
+    Q_N <- matrix(0L,
+                  nrow = length(S),
+                  ncol = length(A),
+                  dimnames = list(S, A))
+    
     pi <- random_policy(model, only_available_actions = TRUE)
   } else {
     pi <- greedy_policy(Q)
+    Q_N <- model$solution$Q_N
+    if (is.null(Q_N))
+      stop("Q_N missing in previouse solution. Cannot continue!")
   }
-  
-  # instead of returns we use a more efficient running average where Q_N is
-  # the number of averaged values.
-  Q_N <- matrix(0L,
-                nrow = length(S),
-                ncol = length(A),
-                dimnames = list(S, A))
   
   if (verbose) {
     cat("Initial policy:\n")
@@ -138,6 +134,7 @@ MC_on_policy <- function(model,
       method = method,
       n = n,
       Q = Q,
+      Q_N = Q_N,
       converged = NA,
       policy = list(greedy_policy(Q))
     )
@@ -226,6 +223,7 @@ MC_on_policy <- function(model,
     method = method,
     n = n,
     Q = Q,
+    Q_N = Q_N,
     converged = NA,
     policy = list(greedy_policy(Q))
   )

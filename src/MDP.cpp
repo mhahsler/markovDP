@@ -17,6 +17,10 @@ Function R_absorbing_states = pkg["absorbing_states"];
 Function R_transition_matrix = pkg["transition_matrix"];
 Function R_reward_matrix = pkg["reward_matrix"];
 
+// for R function calls
+LogicalVector R_FALSE = LogicalVector::create(0);
+LogicalVector R_TRUE = LogicalVector::create(1);
+
 // Access model information
 bool is_solved(const List& model) { 
   return model.containsElementNamed("solution");
@@ -28,7 +32,7 @@ bool is_converged(const List& model) {
 
 // More accessors
 NumericVector start_vector(const List& model) {
-  return as<NumericVector>(R_start_vector(model));
+  return as<NumericVector>(R_start_vector(model, _["sparse"] = R_FALSE));
 }  
 
 CharacterVector get_states(const List& model) {
@@ -73,7 +77,7 @@ NumericMatrix transition_matrix(const List& model, int action, int episode) {
   // function
   if (is<Function>(acts)) {
     return as<NumericMatrix>(R_transition_matrix(model, action + 1, 
-                                                 _["sparse"] = LogicalVector::create(0)));
+                                                 _["sparse"] = R_FALSE));
   }
  
   // it is a list
@@ -161,7 +165,7 @@ NumericVector transition_row(const List& model, int action, int start_state,
   // function
   if (is<Function>(acts)) {      
     return as<NumericVector>(R_transition_matrix(model, action + 1, start_state + 1,
-                                                 _["sparse"] = LogicalVector::create(0)));
+                                                 _["sparse"] = R_FALSE));
   }
   
   // it is a list
@@ -203,7 +207,7 @@ NumericMatrix reward_matrix_MDP(const List& model, int action) {
   
   if (is<Function>(reward)) {
     return as<NumericMatrix>(R_reward_matrix(model, action + 1,
-                                             _["sparse"] = LogicalVector::create(0)));
+                                             _["sparse"] = R_FALSE));
   }
   
   if (is<DataFrame>(reward)) {

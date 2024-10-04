@@ -60,7 +60,7 @@ gridworld_plot(
   model,
   epoch = 1L,
   actions = "character",
-  states = FALSE,
+  states = TRUE,
   index = FALSE,
   labels = TRUE,
   impossible_actions = FALSE,
@@ -204,6 +204,8 @@ supplied.}
 
 \code{gridworld_path()} returns a list with the elements \code{"path"},
 \code{"reward"} and \code{"solved"}.
+
+\code{gridworld_animate()} returns the final solution invisibly.
 }
 \description{
 Helper functions for gridworld MDPs to convert between state names and
@@ -297,7 +299,8 @@ trans_black_hole <- function(model,
     "s(5,3)", "s(5,4)", "s(5,5)"
   )) {
     if (end.state == "s(4,4)") {
-      return(.5)
+      return(.5 + gridworld_transition_prob_end_state(model, action, start.state,
+                                        end.state) * .5)
     } else {
       return(gridworld_transition_prob_end_state(model, action, start.state,
                                         end.state) * .5)
@@ -366,7 +369,7 @@ gridworld_path(sol)
 # Read a maze from a text file
 #   (X are walls, S is the start and G is the goal)
 
-# some examples are installed with pom
+# some examples are installed with the package
 maze_dir <- system.file("mazes", package = "markovDP")
 dir(maze_dir)
 
@@ -381,6 +384,13 @@ sol
 
 gridworld_plot(sol)
 gridworld_path(sol)
+
+# A maze can also be created directly from a character vector
+maze <- gridworld_read_maze(
+    textConnection(c("XXXXXX", 
+                     "XS  GX",
+                     "XXXXXX")))
+gridworld_plot(maze)
 
 # Create a small random maze
 rand_maze <- gridworld_random_maze(dim = c(5, 5))

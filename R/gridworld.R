@@ -61,7 +61,8 @@
 #'     "s(5,3)", "s(5,4)", "s(5,5)"
 #'   )) {
 #'     if (end.state == "s(4,4)") {
-#'       return(.5)
+#'       return(.5 + gridworld_transition_prob_end_state(model, action, start.state,
+#'                                         end.state) * .5)
 #'     } else {
 #'       return(gridworld_transition_prob_end_state(model, action, start.state,
 #'                                         end.state) * .5)
@@ -130,7 +131,7 @@
 #' # Read a maze from a text file
 #' #   (X are walls, S is the start and G is the goal)
 #'
-#' # some examples are installed with pom
+#' # some examples are installed with the package
 #' maze_dir <- system.file("mazes", package = "markovDP")
 #' dir(maze_dir)
 #'
@@ -145,6 +146,13 @@
 #'
 #' gridworld_plot(sol)
 #' gridworld_path(sol)
+#' 
+#' # A maze can also be created directly from a character vector
+#' maze <- gridworld_read_maze(
+#'     textConnection(c("XXXXXX", 
+#'                      "XS  GX",
+#'                      "XXXXXX")))
+#' gridworld_plot(maze)
 #'
 #' # Create a small random maze
 #' rand_maze <- gridworld_random_maze(dim = c(5, 5))
@@ -606,7 +614,7 @@ gridworld_plot <-
   function(model,
            epoch = 1L,
            actions = "character",
-           states = FALSE,
+           states = TRUE,
            index = FALSE,
            labels = TRUE,
            impossible_actions = FALSE,
@@ -843,6 +851,9 @@ gridworld_plot_transition_graph <-
 #' @param n number of iterations to animate.
 #' @param method an MDP solution method for [solve_MDP()].
 #' @param zlim limits for visualizing the state value.
+#' 
+#' @returns `gridworld_animate()` returns the final solution invisibly.
+#' 
 #' @export
 gridworld_animate <- function(model, method, n, zlim = NULL, ...) {
   if (is.null(model$info$gridworld)) {
@@ -866,6 +877,8 @@ gridworld_animate <- function(model, method, n, zlim = NULL, ...) {
       gridworld_plot(sol, sub = paste("Iteration", i))
     }
   }
+  
+  invisible(sol)
 }
 
 #' @rdname gridworld

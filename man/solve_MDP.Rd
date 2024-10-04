@@ -58,7 +58,7 @@ solve_MDP_TD(
   horizon = NULL,
   discount = NULL,
   alpha = 0.5,
-  epsilon = 0.1,
+  epsilon = 0.2,
   n = 1000,
   Q = NULL,
   continue = FALSE,

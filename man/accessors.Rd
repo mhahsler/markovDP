@@ -3,11 +3,23 @@
 %   R/accessors_transitions.R
 \name{accessors}
 \alias{accessors}
+\alias{normalize_MDP}
 \alias{start_vector}
 \alias{reward_matrix}
 \alias{transition_matrix}
 \title{Access to Parts of the Model Description}
 \usage{
+normalize_MDP(
+  model,
+  sparse = NULL,
+  trans_keyword = TRUE,
+  trans_function = TRUE,
+  keep_start = FALSE,
+  keep_reward_df = FALSE,
+  precompute_absorbing_unreachable = TRUE,
+  progress = TRUE
+)
+
 start_vector(model, start = NULL, sparse = NULL)
 
 reward_matrix(
@@ -34,13 +46,23 @@ transition_matrix(
 \arguments{
 \item{model}{A \link{MDP} object.}
 
-\item{start}{a start state description (see \link{MDP}). If \code{NULL} then the
-start vector is created using the start stored in the model.}
-
 \item{sparse}{logical; use sparse representation. \code{NULL} returns the
 representation stored in the problem description which saves the time
 for conversion. For vectors, additional options are \code{"states"} to return a vector of state names, and \code{"index"}
 to return an index vector of values that are \code{TRUE} or greater than 0.}
+
+\item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
+
+\item{trans_function}{logical; convert functions into matrices?}
+
+\item{keep_reward_df}{logical; if reward is a data.frame, then keep it.}
+
+\item{precompute_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
+
+\item{progress}{logical; show a progress bar with estimated time for completion.}
+
+\item{start}{a start state description (see \link{MDP}). If \code{NULL} then the
+start vector is created using the start stored in the model.}
 
 \item{action}{name or index of an action.}
 
@@ -49,8 +71,6 @@ to return an index vector of values that are \code{TRUE} or greater than 0.}
 \item{...}{further arguments are passed on.}
 
 \item{simplify}{logical; try to simplify action lists into a vector or matrix?}
-
-\item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
 }
 \value{
 A list or a list of lists of matrices.
@@ -95,15 +115,42 @@ resulting in no entries with 0.
 
 \code{start_vector()} translates the start state description into a probability vector.
 }
+
+\subsection{Sparse Matrices and Normalizing MDPs}{
+
+Different components can be specified in various ways. It is often
+necessary to convert each component into a specific form (e.g., a
+dense matrix) to save time during access.
+Convert the Complete MDP Description into a consistent form
+\code{normalize_MDP()} converts all components of the MDP description
+into a consistent form and
+returns a new MDP definition where \code{transition_prob},
+\code{reward}, and \code{start} are normalized. This includes the internal
+representation (dense, sparse, as a data.frame) and
+also, \code{states}, and \code{actions} are ordered as given in the problem
+definition to make safe access using numerical indices possible. Normalized
+MDP descriptions can be
+used in custom code that expects consistently a certain format.
+
+The default behavior of \code{sparse = NULL} uses parse matrices for large models
+where the dense transition model would need more
+than \code{options("MDP_SPARSE_LIMIT")} (the default is about 100 MB which
+can be changed using
+\code{\link[=options]{options()}}). Smaller models use faster dense
+matrices.
+}
 }
 \examples{
 data("Maze")
 gridworld_matrix(Maze)
 
+# here is the internal structure of the Maze object
+str(Maze)
+
 # List of |A| transition matrices. One per action in the from start.states x end.states
 Maze$transition_prob
 transition_matrix(Maze)
-transition_matrix(Maze, action = "up", sparse = TRUE)
+transition_matrix(Maze, action = "up", sparse = FALSE)
 transition_matrix(Maze,
   action = "up",
   start.state = "s(3,1)", end.state = "s(2,1)"
@@ -121,11 +168,13 @@ reward_matrix(Maze,
 
 # Translate the initial start probability vector
 Maze$start
-start_vector(Maze)
+start_vector(Maze, sparse = FALSE)
+start_vector(Maze, sparse = "states")
+start_vector(Maze, sparse = "index")
 
-# Normalize the whole model using dense representation
-Maze_norm <- normalize_MDP(Maze, sparse = FALSE)
-Maze_norm$transition_prob
+# Normalize the whole model using sparse representation
+Maze_norm <- normalize_MDP(Maze, sparse = TRUE)
+str(Maze_norm)
 }
 \seealso{
 Other MDP: 

@@ -12,7 +12,7 @@ solve_MDP_TD <-
            horizon = NULL,
            discount = NULL,
            alpha = 0.5,
-           epsilon = 0.1,
+           epsilon = 0.2,
            n = 1000,
            Q = NULL,
            continue = FALSE,
@@ -25,8 +25,7 @@ solve_MDP_TD <-
       horizon <- model$horizon
     
     if (is.null(horizon) || !is.finite(horizon)) {
-      horizon <- 100
-      warning("Finite horizon needed, using ", horizon, immediate. = TRUE)
+      stop("Finite horizon needed for exploration!")
     }
     
     if (is.null(discount)) {

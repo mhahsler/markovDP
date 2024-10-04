@@ -10,6 +10,7 @@
 #' to make writing code easier.
 #'
 #' ## Transition Probabilities \eqn{T(s'|s,a)}
+#'
 #' `transition_matrix()` accesses the transition model. The complete model
 #' is a list with one element for each action. Each element contains a states x states matrix
 #' with \eqn{s} (`start.state`) as rows and \eqn{s'} (`end.state`) as columns.
@@ -17,6 +18,7 @@
 #' (as a [Matrix::dgCMatrix-class]).
 #'
 #' ## Reward \eqn{R(s,s',a)}
+#'
 #' `reward_matrix()` accesses the reward model.
 #' The preferred representation is a data.frame with the
 #' columns `action`, `start.state`, `end.state`,
@@ -32,9 +34,32 @@
 #' resulting in no entries with 0.
 #'
 #' ## Start state
+#'
 #' `start_vector()` translates the start state description into a probability vector.
 #'
-
+#' ## Sparse Matrices and Normalizing MDPs
+#'
+#' Different components can be specified in various ways. It is often 
+#' necessary to convert each component into a specific form (e.g., a 
+#' dense matrix) to save time during access.  
+#' Convert the Complete MDP Description into a consistent form
+#' `normalize_MDP()` converts all components of the MDP description
+#'  into a consistent form and
+#' returns a new MDP definition where `transition_prob`,
+#' `reward`, and `start` are normalized. This includes the internal
+#' representation (dense, sparse, as a data.frame) and 
+#' also, `states`, and `actions` are ordered as given in the problem
+#' definition to make safe access using numerical indices possible. Normalized
+#' MDP descriptions can be
+#' used in custom code that expects consistently a certain format.
+#' 
+#' The default behavior of `sparse = NULL` uses parse matrices for large models 
+#' where the dense transition model would need more 
+#' than `options("MDP_SPARSE_LIMIT")` (the default is about 100 MB which 
+#' can be changed using
+#' [options()]). Smaller models use faster dense
+#' matrices. 
+#'
 #' @family MDP
 #' @name accessors
 #' @aliases accessors
@@ -54,11 +79,14 @@
 #' @examples
 #' data("Maze")
 #' gridworld_matrix(Maze)
+#' 
+#' # here is the internal structure of the Maze object
+#' str(Maze)
 #'
 #' # List of |A| transition matrices. One per action in the from start.states x end.states
 #' Maze$transition_prob
 #' transition_matrix(Maze)
-#' transition_matrix(Maze, action = "up", sparse = TRUE)
+#' transition_matrix(Maze, action = "up", sparse = FALSE)
 #' transition_matrix(Maze,
 #'   action = "up",
 #'   start.state = "s(3,1)", end.state = "s(2,1)"
@@ -76,12 +104,113 @@
 #'
 #' # Translate the initial start probability vector
 #' Maze$start
-#' start_vector(Maze)
+#' start_vector(Maze, sparse = FALSE)
+#' start_vector(Maze, sparse = "states")
+#' start_vector(Maze, sparse = "index")
 #'
-#' # Normalize the whole model using dense representation
-#' Maze_norm <- normalize_MDP(Maze, sparse = FALSE)
-#' Maze_norm$transition_prob
+#' # Normalize the whole model using sparse representation
+#' Maze_norm <- normalize_MDP(Maze, sparse = TRUE)
+#' str(Maze_norm)
 NULL
+
+# Use faster dense matrices for small problems
+# Use about 100 MB with one double using 8 bytes 
+
+options("MDP_SPARSE_LIMIT" = 100e6 / 8)
+
+#' @rdname accessors
+#' @param trans_function logical; convert functions into matrices?
+#' @param trans_keyword logical; convert distribution keywords (uniform and identity)
+#'  in `transition_prob` matrices?
+#' @param keep_reward_df logical; if reward is a data.frame, then keep it.
+#' @param precompute_absorbing_unreachable logical; should absorbing and unreachable states be precalculated?
+#' @param progress logical; show a progress bar with estimated time for completion.
+#' @export
+normalize_MDP <- function(model,
+                          sparse = NULL,
+                          trans_keyword = TRUE,
+                          trans_function = TRUE,
+                          keep_start = FALSE,
+                          keep_reward_df = FALSE,
+                          precompute_absorbing_unreachable = TRUE,
+                          progress = TRUE
+) {
+  if (!inherits(model, "MDP")) {
+    stop("model is not an MDP object!")
+  }
+  
+  if (is.null(sparse))
+    sparse <- length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
+    
+  if (!is.logical(sparse))
+    stop("sparse needs to be a NULL or a logical.")
+     
+  # start state vector + transitions matrix + reward matrix + check and fix
+  n_states <- length(model$states)
+  n_actions <- length(model$actions)
+  N <- n_states + n_actions * n_states * n_states * 3
+  if (progress) {
+    pb <- my_progress_bar(N, name = "normalize_MDP")
+    pb$tick(0)
+  }
+  
+  if (!keep_start)
+    model$start <- start_vector(model, sparse = sparse)
+  
+  if (progress)
+    pb$tick(n_states)
+  
+  if (is.function(model$transition_prob) && !trans_function) {
+    # do nothing
+  } else {
+    #model$transition_prob <-
+    #  transition_matrix(model, sparse = sparse, trans_keyword = trans_keyword)
+    
+    model$transition_prob <- 
+      sapply(
+        model$actions,
+        FUN = function(a) {
+          tm <- transition_matrix(model, a, sparse = sparse)
+          if (progress)
+            pb$tick(n_states * n_states)
+          tm
+        },
+        simplify = FALSE,
+        USE.NAMES = TRUE
+      )
+  }
+  
+  #  if (progress)
+  #    pb$tick(n_actions * n_states * n_states)
+  
+  if ((is.function(model$reward) && !trans_function)) {
+    # do nothing
+  } else if (is.data.frame(model$reward) && keep_reward_df) {
+    # do nothing
+  } else {
+    model$reward <- reward_matrix(model, sparse = sparse)
+  }
+  
+  if (progress)
+    pb$tick(n_actions * n_states * n_states)
+  
+  # make sure order is OK
+  model <- check_and_fix_MDP(model)
+  
+  if (progress)
+    pb$tick(n_actions * n_states * n_states)
+  
+  # TODO: remember absorbing states
+  # remember recalculated absorbing/unreachable states
+  model$absorbing_states <- NULL
+  model$unreachable_states <- NULL
+  if (precompute_absorbing_unreachable) {
+    model$absorbing_states <- absorbing_states(model, sparse = "states")
+    model$unreachable_states <- unreachable_states(model, sparse = "states")
+  }
+  model
+}
+
 
 
 # Translate a probability distribution like the start distribution in MDPs
@@ -212,7 +341,7 @@ NULL
   
   v <- .sparsify_vector(prob, sparse, names = state_labels)
   
-  if (!is.character(v) && check) {
+  if (check && !is.character(v) && !is.integer(v)) {
     if (!sum1(v))
       stop(
         "Illegal probability format.\n",
@@ -524,7 +653,7 @@ function2value <- function(model,
     dimnames(o) <- list(row, col)
     
     # we default to sparse here or the matrices may become to big
-    if (is.null(sparse))
+    if (is.null(sparse) && length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
     
     o <- .sparsify(o, sparse)
@@ -607,7 +736,7 @@ function2value <- function(model,
     }
     
     # we default to sparse here or the matrices may become to big
-    if (is.null(sparse))
+    if (is.null(sparse) && length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
     
     o <- .sparsify(o, sparse = sparse)
@@ -709,9 +838,6 @@ df2value <-
            row = NULL,
            col = NULL,
            sparse = NULL) {
-    # we default to sparse
-    if (is.null(sparse))
-      sparse <- TRUE
     
     ## we use int indices for action here
     if (is.null(action))
@@ -819,7 +945,7 @@ df2value <-
       
       # we default to sparse
       if (is.null(sparse))
-        sparse <- TRUE
+        sparse <- length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
       
       return(.sparsify_vector(v, sparse, names = model$states))
     }

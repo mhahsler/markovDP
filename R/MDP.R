@@ -96,21 +96,8 @@
 #' The default state state is a uniform
 #' distribution over all states.
 #' 
-#' ## Normalizing MDP Descriptions
-#' 
-#' Different components can be specified in various ways. It is often 
-#' necessary to convert each component into a specific form (e.g., a 
-#' dense matrix) to save time during access.  
-#' Convert the Complete MDP Description into a consistent form
-#' `normalize_MDP()` converts all components of the MDP description
-#'  into a consistent form and
-#' returns a new MDP definition where `transition_prob`,
-#' `reward`, and `start` are normalized. This includes the internal
-#' representation (dense, sparse, as a data.frame) and 
-#' also, `states`, and `actions` are ordered as given in the problem
-#' definition to make safe access using numerical indices possible. Normalized
-#' MDP descriptions can be
-#' used in custom code that expects consistently a certain format.
+#' ## Accessing Elements of the MDP
+#' See [accessors].
 #'
 #' @family MDP
 #' @family MDP_examples
@@ -127,7 +114,7 @@
 #' @param start Specifies in which state the MDP starts.
 #' @param info A list with additional information.
 #' @param name a string to identify the MDP problem.
-#' @param model,x a `MDP` object.
+#' @param model an `MDP` object.
 #'
 #' @return The function returns an object of class MDP which is list with
 #'   the model specification. [solve_MDP()] reads the object and adds a list element called
@@ -170,17 +157,14 @@
 #' str(car)
 #'
 #' # accessing elements
-#' transition_matrix(car, sparse = FALSE)
+#' start_vector(car, sparse = "states")
+#' transition_matrix(car)
 #' transition_matrix(car, sparse = TRUE)
-#' reward_matrix(car, sparse = FALSE)
+#' reward_matrix(car)
 #' reward_matrix(car, sparse = TRUE)
 #'
 #' sol <- solve_MDP(car)
 #' policy(sol)
-#' 
-#' # normalize MDP: make everything dense (transition_prob, reward and start)
-#' car_dense <- normalize_MDP(car, sparse = FALSE)
-#' str(car_dense)
 #' @export
 MDP <- function(states,
                 actions,
@@ -284,11 +268,11 @@ print.MDP <- function(x, ...) {
 #' @rdname MDP
 #' @param stop logical; stop with an error.
 #' @export
-is_solved_MDP <- function(x, stop = FALSE) {
-  if (!inherits(x, "MDP")) {
+is_solved_MDP <- function(model, stop = FALSE) {
+  if (!inherits(model, "MDP")) {
     stop("x needs to be an MDP object!")
   }
-  solved <- !is.null(x$solution)
+  solved <- !is.null(model$solution)
   if (stop && !solved) {
     stop("x needs to contain a policy. Use solve_MDP() or add_policy() first.")
   }
@@ -378,17 +362,17 @@ R_ <-
 #' @param epoch integer; an epoch that should be converted to the
 #'              corresponding episode in a time-dependent MDP.
 #' @export
-epoch_to_episode <- function(x, epoch) {
+epoch_to_episode <- function(model, epoch) {
   UseMethod("epoch_to_episode")
 }
 
 #' @export
-epoch_to_episode.MDP <- function(x, epoch) {
+epoch_to_episode.MDP <- function(model, epoch) {
   if (is.null(epoch)) {
     return(1L)
   }
 
-  episode <- which(epoch <= cumsum(x$horizon))[1]
+  episode <- which(epoch <= cumsum(model$horizon))[1]
   if (is.na(episode)) {
     stop("Epoch does not exist")
   }
@@ -402,91 +386,3 @@ epoch_to_episode.MDP <- function(x, epoch) {
 }
 
 
-
-#' @rdname MDP
-#' @param sparse logical; use sparse representation. matrices when the density is below 50% and keeps data.frame representation
-#'  for the reward field. 
-#' @param trans_function logical; convert functions into matrices?
-#' @param trans_keyword logical; convert distribution keywords (uniform and identity)
-#'  in `transition_prob` matrices?
-#' @param keep_reward_df logical; if reward is a data.frame, then keep it.
-#' @param precompute_absorbing_unreachable logical; should absorbing and unreachable states be precalculated?
-#' @param progress logical; show a progress bar with estimated time for completion.
-#' @export
-normalize_MDP <- function(model,
-                          sparse = TRUE,
-                          trans_keyword = TRUE,
-                          trans_function = TRUE,
-                          keep_reward_df = FALSE,
-                          precompute_absorbing_unreachable = TRUE,
-                          progress = TRUE
-                          ) {
-  if (!inherits(model, "MDP")) {
-    stop("model is not an MDP object!")
-  }
-  
-  # start state vector + transitions matrix + reward matrix + check and fix
-  n_states <- length(model$states)
-  n_actions <- length(model$actions)
-  N <- n_states + n_actions * n_states * n_states * 3
-  if (progress) {
-    pb <- my_progress_bar(N, name = "normalize_MDP")
-    pb$tick(0)
-  }
-  
-  if (trans_keyword)
-    model$start <- start_vector(model, sparse = sparse)
-  
-  if (progress)
-    pb$tick(n_states)
-  
-  if (is.function(model$transition_prob) && !trans_function) {
-    # do nothing
-  } else {
-    #model$transition_prob <-
-    #  transition_matrix(model, sparse = sparse, trans_keyword = trans_keyword)
-    
-    model$transition_prob <- 
-      sapply(
-        model$actions,
-        FUN = function(a) {
-          tm <- transition_matrix(model, a, sparse = sparse)
-          if (progress)
-            pb$tick(n_states * n_states)
-          tm
-        },
-        simplify = FALSE,
-        USE.NAMES = TRUE
-      )
-  }
-  
-  #  if (progress)
-  #    pb$tick(n_actions * n_states * n_states)
-  
-  if ((is.function(model$reward) && !trans_function)) {
-    # do nothing
-  } else if (is.data.frame(model$reward) && keep_reward_df) {
-    # do nothing
-  } else {
-    model$reward <- reward_matrix(model, sparse = sparse)
-  }
-  
-  if (progress)
-    pb$tick(n_actions * n_states * n_states)
-  
-  # make sure order is OK
-  model <- check_and_fix_MDP(model)
-  
-  if (progress)
-    pb$tick(n_actions * n_states * n_states)
-  
-  # TODO: remember absorbing states
-  # remember recalculated absorbing/unreachable states
-  model$absorbing_states <- NULL
-  model$unreachable_states <- NULL
-  if (precompute_absorbing_unreachable) {
-    model$absorbing_states <- absorbing_states(model, sparse = "states")
-    model$unreachable_states <- unreachable_states(model, sparse = "states")
-  }
-  model
-}
