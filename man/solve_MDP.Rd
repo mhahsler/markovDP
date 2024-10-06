@@ -45,7 +45,7 @@ solve_MDP_MC(
   n = 100,
   ...,
   Q = NULL,
-  epsilon = 0.1,
+  epsilon = 0.2,
   first_visit = TRUE,
   continue = FALSE,
   progress = TRUE,
@@ -354,7 +354,7 @@ policy_evaluation(Maze, policy(maze_solved), k_backup = 100)
 policy(maze_solved)
 
 # Learn a Policy using Q-Learning
-maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100)
+maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100, horizon = 100)
 maze_learned
 
 maze_learned$solution

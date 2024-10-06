@@ -59,57 +59,17 @@
 #' greedy_action(q, "s(3,1)", epsilon = .1, prob = TRUE)
 NULL
 
-# Calculate Q-Function from U
-# the (optimal) state-action value function Q_s(a,k) is the expected total reward
-# from stage k onward, if we choose a_k = a and then proceed optimally (given by U).
-.QV <-
-  function(s, a, P, R, GAMMA, U) {
-    sum(P[[a]][s, ] * (R[[a]][s, ] + GAMMA * U), 
-        na.rm = TRUE)
-  }
-
-.QV_vec <- Vectorize(.QV, vectorize.args = c("s", "a"))
-
-.QV_func <-
-  function(s, a, model, GAMMA, U) {
-    sum(transition_matrix(model, a, s) * (reward_matrix(model, a, s) + GAMMA * U),
-        na.rm = TRUE)
-  }
-
-.QV_func_vec <- Vectorize(.QV_func, vectorize.args = c("s", "a"))
-
 #' @rdname q_values
 #' @return `q_values()` returns a state by action matrix specifying the Q-function,
 #'   i.e., the action value for executing each action in each state. The Q-values
 #'   are calculated from the value function (U) and the transition model.
 #' @export
 q_values <- function(model, U = NULL) {
-  if (!inherits(model, "MDP")) {
-    stop("'model' needs to be of class 'MDP'.")
-  }
-
-  S <- model$states
-  A <- model$actions
-  P <- transition_matrix(model, sparse = TRUE)
-  # TODO: sparse = TRUE returns a dataframe. This uses a lot of memory!
-  R <- reward_matrix(model, sparse = FALSE)
-  policy <- model$solution$policy[[1]]
-  GAMMA <- model$discount
-
   if (is.null(U)) {
-    ## Q is stored in model
-    if (!is.null(model$solution$Q))
-      return(model$solution$Q)
-    
-    ## U is stored in model
-    if (!is.null(policy) || any(is.na(policy$U))) {
-      U <- policy$U
-    } else {
-      stop("'model' does not contain state utilities (it is unsolved). You need to specify U.")
-    }
+    U <- policy(model)$U
   }
   
-  structure(outer(S, A, .QV_vec, P, R, GAMMA, U), dimnames = list(S, A))
+  bellman_update(model, U, return_Q = TRUE)$Q
 }
 
 #' @rdname q_values

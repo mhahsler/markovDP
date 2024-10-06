@@ -114,7 +114,7 @@ appears last in the data.frame will take affect.
 \item A named list of matrices, one for each action. Each matrix is square with
 rows representing start states \eqn{s} and columns representing end states \eqn{s'}.
 Instead of a matrix, also the strings \code{'identity'} or \code{'uniform'} can be specified.
-\item One of the following functions:
+\item A function with the following arguments:
 \itemize{
 \item A function with the argument list \code{model}, \code{action}, \code{start.state}, \code{end.state}
 which returns a single transition probability.
@@ -124,8 +124,8 @@ be dense, a \link[Matrix:sparseVector]{Matrix::sparseVector} or a named vector o
 the non-zero probabilities named by the corresponding end state.
 }
 
-The arguments \code{action}, \code{start.state}, and \code{end.state} will be called with the
-state name as a string.
+The arguments \code{action}, \code{start.state}, and \code{end.state} will be always
+called with the state names as a character vectors of length 1.
 }
 }
 
@@ -139,9 +139,8 @@ You can use \code{rbind()}
 with helper function \code{R_()} to create this data frame. Rewards can be specified
 multiple times and the definition that
 appears last in the data.frame will take affect.
-\item A list of state x state matrices.
-The list elements are for \code{'action'}. The matrix rows are \code{start.state} and the
-columns are \code{end.state}.
+\item A named list of matrices, one for each action. Each matrix is square with
+rows representing start states \eqn{s} and columns representing end states \eqn{s'}.
 \item A function following the same rules as for transition probabilities.
 }
 

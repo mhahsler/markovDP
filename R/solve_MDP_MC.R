@@ -12,7 +12,7 @@ solve_MDP_MC <-
            n = 100,
            ...,
            Q = NULL,
-           epsilon = 0.1,
+           epsilon = 0.2,
            first_visit = TRUE,
            continue = FALSE,
            progress = TRUE,

@@ -15,26 +15,19 @@ num_states <- length(Maze_orig$states)
 
 timing <- data.frame(model = character(0), 
                      method = character(0),
+                     regret = numeric(0),
+                     different_actions = integer(0),
                      time = numeric(0))
 
-# need no parameters
-for (model in models_solve) {
-  for (m in methods_DP) {
-    if (verbose)
-      cat("Solving w/", m, ":", model$name, "\n")
-    
-    t <- system.time(sol <- solve_MDP(model, method = m))
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
-                                       time = t[3]))
-    if (verbose)
-      cat("time: ", t[3], " sec.\n\n")
-    
-    pol <- policy(sol)
-    expect_identical(dim(pol), c(num_states, 3L))
-    
-    # check_and_fix_MDP(sol)
-  }
+solutions <- list()
+
+# benchmark
+bench <- solve_MDP(models_solve[[1]], method = "value")
+
+different_actions <- function(policy, benchmark) {
+  pi <- policy(policy)$action
+  Q <- q_values(benchmark)
+  sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
 }
 
 
@@ -47,8 +40,12 @@ for (model in models_solve) {
     # TD warn about inf horizon
     t <- system.time(suppressWarnings((sol <- solve_MDP(model, method = m))))
     timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
+                                       method = m,
+                                       regret = regret(sol, bench),
+                                       different_actions = different_actions(sol, bench),
                                        time = t[3]))
+    solutions <- list(solutions, sol)
+    
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
     
@@ -59,6 +56,31 @@ for (model in models_solve) {
   }
 }
 
+# need no parameters
+for (model in models_solve) {
+  for (m in methods_DP) {
+    if (verbose)
+      cat("Solving w/", m, ":", model$name, "\n")
+    
+    t <- system.time(sol <- solve_MDP(model, method = m))
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = m, 
+                                       regret = regret(sol, bench),
+                                       different_actions = different_actions(sol, bench),
+                                       time = t[3]))
+    solutions <- list(solutions, sol)
+    
+    if (verbose)
+      cat("time: ", t[3], " sec.\n\n")
+    
+    pol <- policy(sol)
+    expect_identical(dim(pol), c(num_states, 3L))
+    
+    # check_and_fix_MDP(sol)
+  }
+}
+
+
 ### these methods are slow and need restrictions
 
 for (model in models_solve) {
@@ -66,13 +88,17 @@ for (model in models_solve) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, n = 10))
+    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
+                                       regret = regret(sol, bench),
+                                       different_actions = different_actions(sol, bench),
                                        time = t[3]))
+    solutions <- list(solutions, sol)
+    
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
     
@@ -91,8 +117,12 @@ for (model in models_solve) {
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
+                                       regret = regret(sol, bench),
+                                       different_actions = different_actions(sol, bench),
                                        time = t[3]))
     
+    
+    solutions <- list(solutions, sol)
     
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
@@ -104,11 +134,13 @@ for (model in models_solve) {
 
 rownames(timing) <- NULL
 
-#if (verbose) {
-#  library(tidyverse)
-#  ggplot(timing, aes(reorder(method, time), 
-#                     y = time, fill = abbreviate(model))) + 
-#    geom_bar(stat = "identity")
-#}
+#  if (verbose) {
+#   library(tidyverse)
+#   ggplot(timing, aes(reorder(method, time),
+#                      y = time, fill = abbreviate(model))) +
+#     geom_bar(stat = "identity")
+# }
 
 timing[order(timing$time),]
+timing[order(timing$regret),]
+timing[order(timing$different_actions),]

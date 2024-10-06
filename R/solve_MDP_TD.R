@@ -15,6 +15,7 @@ solve_MDP_TD <-
            epsilon = 0.2,
            n = 1000,
            Q = NULL,
+           matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
@@ -37,6 +38,22 @@ solve_MDP_TD <-
     gamma <- discount
     model$discount <- discount
     
+    if (matrix) {
+      if (verbose)
+        cat("Precomputing dense matrices for R and T ...")
+      model <- normalize_MDP(
+        model,
+        sparse = FALSE,
+        precompute_absorbing = TRUE,
+        precompute_unreachable = FALSE,
+        progress = progress
+      )
+      
+      if (verbose)
+        cat(" done.\n")
+    }
+    
+    
     if (progress) {
       pb <- my_progress_bar(n, name = "solve_MDP")
       pb$tick(0)
@@ -46,7 +63,6 @@ solve_MDP_TD <-
     A <- model$actions
     #S_absorbing <- S[which(absorbing_states(model))]
     start <- start_vector(model, sparse = FALSE)
-
 
     # Initialize Q
     if (continue) {

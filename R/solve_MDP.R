@@ -252,7 +252,7 @@
 #' policy(maze_solved)
 #'
 #' # Learn a Policy using Q-Learning
-#' maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100)
+#' maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100, horizon = 100)
 #' maze_learned
 #'
 #' maze_learned$solution

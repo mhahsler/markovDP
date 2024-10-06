@@ -4,18 +4,20 @@
 \alias{bellman_update}
 \title{Bellman Update}
 \usage{
-bellman_update(model, U)
+bellman_update(model, U, return_Q = FALSE)
 }
 \arguments{
 \item{model}{an MDP problem specification.}
 
 \item{U}{a vector with value function representing the state utilities
-(expected sum of discounted rewards from that point on).
-If \code{model} is a solved model, then the state
-utilities are taken from the solution.}
+(expected sum of discounted rewards from that point on). A single 0 can be
+used as a shorthand for a value function with all 0s.}
+
+\item{return_Q}{logical; return also the Q matrix.}
 }
 \value{
-an updates vector with state values (U).
+a list with the updated state value vector U and the taken actions
+pi.
 }
 \description{
 Update the value function with a Bellman update.
@@ -34,10 +36,10 @@ Maze
 # single Bellman update from a all 0 value function
 bellman_update(Maze, U = 0)
 
-# perform simple value iteration 
-U <- 0
+# perform simple value iteration for 10 iterations
+U <- list(U = 0)
 for (i in seq(10))
-  U <- bellman_update(Maze, U)
+  U <- bellman_update(Maze, U$U)
   
 U
 }

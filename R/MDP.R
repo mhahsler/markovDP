@@ -45,7 +45,7 @@
 #'   rows representing start states \eqn{s} and columns representing end states \eqn{s'}.
 #'   Instead of a matrix, also the strings `'identity'` or `'uniform'` can be specified.
 #'
-#' * One of the following functions:
+#' * A function with the following arguments:
 #'    - A function with the argument list `model`, `action`, `start.state`, `end.state` 
 #'      which returns a single transition probability.
 #'    - A function with the argument list `model`, `action`, `start.state` 
@@ -53,8 +53,8 @@
 #'      be dense, a [Matrix::sparseVector] or a named vector only containing 
 #'      the non-zero probabilities named by the corresponding end state.
 #'    
-#'    The arguments `action`, `start.state`, and `end.state` will be called with the 
-#'    state name as a string.
+#'    The arguments `action`, `start.state`, and `end.state` will be always 
+#'    called with the state names as a character vectors of length 1.
 #'
 #' ## Specification of the reward function: \eqn{R(a, s, s')}
 #'
@@ -67,9 +67,8 @@
 #'   multiple times and the definition that
 #'   appears last in the data.frame will take affect.
 #'
-#' * A list of state x state matrices. 
-#'   The list elements are for `'action'`. The matrix rows are `start.state` and the 
-#'   columns are `end.state`. 
+#' * A named list of matrices, one for each action. Each matrix is square with
+#'   rows representing start states \eqn{s} and columns representing end states \eqn{s'}.
 #'
 #' * A function following the same rules as for transition probabilities.
 #'
@@ -189,10 +188,10 @@ MDP <- function(states,
     horizon = horizon,
     states = states,
     actions = actions,
+    start = start,
     transition_prob = transition_prob,
     reward = reward,
-    info = info,
-    start = start
+    info = info
   )
 
   class(x) <- list("MDP", "list")

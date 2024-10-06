@@ -108,22 +108,19 @@ policy_evaluation <-
     # note for the many iterations, it is better to get the complete matrices
     if (matrix) {
       if (verbose)
-        cat("Extracting matrices for R and T ...")
-      
-      R <- reward_matrix(model, sparse = NULL)
-      if (progress) 
-        pb$tick(0)
-      
-      P <- transition_matrix(model, sparse = NULL)
-      if (progress) 
-        pb$tick(0)
+        cat("Precomputing dense matrices for R and T ...")
+      model <- normalize_MDP(
+        model,
+        sparse = FALSE,
+        precompute_absorbing = FALSE,
+        precompute_unreachable = FALSE,
+        progress = progress
+      )
       
       if (verbose)
-        cat("done\n")
+        cat(" done.\n")
     }
     
-    GAMMA <- model$discount
-
     if (is.data.frame(pi)) {
       pi <- pi$action
     }
@@ -146,13 +143,7 @@ policy_evaluation <-
         pb$tick()
       
       v <- U
-      
-      # apply the Bellman operator
-      if (matrix)
-        U <- .QV_vec(S, pi, P, R, GAMMA, U)
-      else
-        U <- .QV_func_vec(S, pi, model, GAMMA, U)
-      
+      U <- bellman_operator(model, pi, U)
       delta <- max(abs(v - U), na.rm = TRUE)
 
       if (verbose) {
@@ -170,61 +161,16 @@ policy_evaluation <-
     U
   }
 
-### this is used if we already have a matrix
-.policy_evaluation_int <-
-  function(S,
-           A,
-           P,
-           R,
-           pi,
-           GAMMA = 1,
-           U = NULL,
-           k_backups = 1000,
-           theta = 1e-3,
-           verbose = FALSE 
-           ) {
-   
-    
-    if (is.data.frame(pi)) {
-      pi <- pi$action
-    }
-    names(pi) <- S
-    
-    # start with all 0s if no previous U is given
-    if (is.null(U)) {
-      U <- rep(0, times = length(S))
-    }
-    names(U) <- S
-    
-    # we cannot count more than integer.max
-    if (k_backups > .Machine$integer.max) {
-      k_backups <- .Machine$integer.max
-      warning("Using the maximum number of backups of", k_backups)
-    }
-    
-    for (i in seq_len(k_backups)) {
-      v <- U
-      
-      # apply the Bellman operator
-      U <- .QV_vec(S, pi, P, R, GAMMA, U)
-      delta <- max(abs(v - U), na.rm = TRUE)
-      
-      if (verbose) {
-        cat("Backup step", i, ": delta =", delta, "\n")
-      }
-      
-      if (delta < theta) {
-        break
-      }
-    }
-    
-    U
-  }
-
 
 #' @rdname policy_evaluation
 #' @export
-bellman_operator <- function(model, pi, U)
-  .QV_func_vec(model$states, pi$action, model, model$discount %||% 1, U)
+bellman_operator <- function(model, pi, U) {
+  if (is.data.frame(pi)) {
+    pi <- pi$action
+  }
+  
+  Q <- bellman_update(model, U, return_Q = TRUE)$Q
+  Q[cbind(seq_along(model$states), pi)]
+}
 
 

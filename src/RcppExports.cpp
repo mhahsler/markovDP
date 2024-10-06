@@ -10,6 +10,20 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// QV_cpp
+NumericVector QV_cpp(NumericVector U, NumericMatrix P, NumericMatrix R, double GAMMA);
+RcppExport SEXP _markovDP_QV_cpp(SEXP USEXP, SEXP PSEXP, SEXP RSEXP, SEXP GAMMASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type U(USEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type P(PSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type R(RSEXP);
+    Rcpp::traits::input_parameter< double >::type GAMMA(GAMMASEXP);
+    rcpp_result_gen = Rcpp::wrap(QV_cpp(U, P, R, GAMMA));
+    return rcpp_result_gen;
+END_RCPP
+}
 // round_stochastic_cpp
 NumericVector round_stochastic_cpp(const NumericVector& x, int digits);
 RcppExport SEXP _markovDP_round_stochastic_cpp(SEXP xSEXP, SEXP digitsSEXP) {
@@ -67,6 +81,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_markovDP_QV_cpp", (DL_FUNC) &_markovDP_QV_cpp, 4},
     {"_markovDP_round_stochastic_cpp", (DL_FUNC) &_markovDP_round_stochastic_cpp, 2},
     {"_markovDP_veccrossprod", (DL_FUNC) &_markovDP_veccrossprod, 2},
     {"_markovDP_vecprod", (DL_FUNC) &_markovDP_vecprod, 2},

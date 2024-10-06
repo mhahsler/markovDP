@@ -4,7 +4,7 @@
 \alias{regret}
 \title{Calculate the Regret of a Policy}
 \usage{
-regret(policy, benchmark, start = NULL)
+regret(policy, benchmark, start = NULL, run_policy_eval = TRUE, ...)
 }
 \arguments{
 \item{policy}{a solved MDP containing the policy to calculate the regret for.}
@@ -13,6 +13,10 @@ regret(policy, benchmark, start = NULL)
 policy.}
 
 \item{start}{start state distribution. If NULL then the start state of the \code{benchmark} is used.}
+
+\item{run_policy_eval}{logical; run policy evaluation to re-estimate state values.}
+
+\item{...}{further arguments are passed on to \code{\link[=policy_evaluation]{policy_evaluation()}}.}
 }
 \value{
 the regret as a difference of expected long-term rewards.
@@ -27,6 +31,8 @@ state \eqn{s_0}.
 
 Note that for regret usually the optimal policy \eqn{\pi^*} is used as the benchmark.
 Since the optimal policy may not be known, regret relative to the best known policy can be used.
+
+If the policy has
 }
 \examples{
 data(Maze)

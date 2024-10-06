@@ -11,11 +11,11 @@
 #' @param k_backups policy iteration: number of look ahead steps used for approximate policy evaluation
 #'   used by the policy iteration method.
 #' @param continue logical; Continue with an unconverged solution specified in `model`.
-#' @param matrix logical; if `TRUE` then matrices for the transition model and 
-#'    the reward function are taken from the model first. This can be slow if functions 
+#' @param matrix logical; if `TRUE` then matrices for the transition model and
+#'    the reward function are taken from the model first. This can be slow if functions
 #'    need to be converted or not fit into memory if the models are large. If these
 #'    components are already matrices, then this is very fast. For `FALSE`, the
-#'    transition probabilities and the reward is extracted when needed. This is slower, 
+#'    transition probabilities and the reward is extracted when needed. This is slower,
 #'    but removes the time to calculate the matrices and it saves memory.
 #' @export
 solve_MDP_DP <- function(model,
@@ -34,15 +34,20 @@ solve_MDP_DP <- function(model,
   if (!inherits(model, "MDP")) {
     stop("'model' needs to be of class 'MDP'.")
   }
-
+ 
+  if (verbose)
+    progress <- FALSE
+   
   # Note: This is used by gridworld_animate()
   dots <- list(...)
-  if (!is.null(dots$n)) 
+  if (!is.null(dots$n))
     iter_max <- dots$n
   
-  methods <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
+  methods <- c("value_iteration",
+               "policy_iteration",
+               "prioritized_sweeping")
   method <- match.arg(method, methods)
-
+  
   ### default is infinite horizon
   if (!is.null(horizon)) {
     model$horizon <- horizon
@@ -50,7 +55,7 @@ solve_MDP_DP <- function(model,
   if (is.null(model$horizon)) {
     model$horizon <- Inf
   }
-
+  
   if (!is.null(discount)) {
     model$discount <- discount
   }
@@ -58,30 +63,46 @@ solve_MDP_DP <- function(model,
     message("No discount rate specified. Using .9 for the infinite horizon problem!")
     model$discount <- .9
   }
-
+  
   if (continue) {
     if (is.null(model$solution$policy[[1]]$U))
       stop("model solution does not contain a U vector to continue from!")
     U <- model$solution$policy[[1]]$U
   }
   
-  ret <- switch(method,
+  if (matrix) {
+    if (verbose)
+      cat("Precomputing dense matrices for R and T ...")
+    model <- normalize_MDP(
+      model,
+      sparse = FALSE,
+      precompute_absorbing = FALSE,
+      precompute_unreachable = FALSE,
+      progress = progress
+    )
+    
+    if (verbose)
+      cat(" done.\n")
+  }
+  
+  ret <- switch(
+    method,
     value_iteration = {
       if (is.infinite(model$horizon)) {
-        MDP_value_iteration_inf_horizon(model,
+        MDP_value_iteration_inf_horizon(
+          model,
           error,
           iter_max,
           U = U,
-          matrix = matrix,
           progress = progress,
           verbose = verbose,
           ...
         )
       } else {
-        MDP_value_iteration_finite_horizon(model,
+        MDP_value_iteration_finite_horizon(
+          model,
           horizon = model$horizon,
           U = U,
-          matrix = matrix,
           progress = progress,
           verbose = verbose,
           ...
@@ -90,11 +111,11 @@ solve_MDP_DP <- function(model,
     },
     policy_iteration = {
       if (is.infinite(model$horizon)) {
-        MDP_policy_iteration_inf_horizon(model,
+        MDP_policy_iteration_inf_horizon(
+          model,
           iter_max,
           k_backups,
           U = U,
-          matrix = matrix,
           progress = progress,
           verbose = verbose,
           ...
@@ -105,11 +126,11 @@ solve_MDP_DP <- function(model,
     },
     prioritized_sweeping = {
       if (is.infinite(model$horizon)) {
-        MDP_PS_inf_horizon(model,
-          error = error, 
+        MDP_PS_inf_horizon(
+          model,
+          error = error,
           iter_max = iter_max,
           U = U,
-          matrix = matrix,
           progress = progress,
           verbose = verbose,
           ...
@@ -119,9 +140,9 @@ solve_MDP_DP <- function(model,
       }
     }
   )
-
+  
   ret$solution$method <- method
-
+  
   ret
 }
 
@@ -130,46 +151,28 @@ MDP_value_iteration_finite_horizon <-
   function(model,
            horizon,
            U = NULL,
-           matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
     if (!inherits(model, "MDP")) {
       stop("'model' needs to be of class 'MDP'.")
     }
-
+    
     if (progress) {
-      pb <- my_progress_bar(horizon, name = "solve_MDP") 
+      pb <- my_progress_bar(horizon, name = "solve_MDP")
       pb$tick(0)
     }
     
     S <- model$states
-    A <- model$actions
-    
-    if (matrix) {
-      if (verbose)
-        cat("Extracting matrices for R and T ...")
-      R <- reward_matrix(model, sparse = NULL)
-      if (progress)
-        pb$tick(0)
-      
-      P <- transition_matrix(model, sparse = NULL)
-      if (progress)
-        pb$tick(0)
-      if (verbose)
-        cat("done.\n")
-    }
-    
-    GAMMA <- model$discount
     horizon <- as.integer(horizon)
-
+    
     if (is.null(U)) {
       U <- rep(0, times = length(S))
     }
     names(U) <- S
-
+    
     policy <- vector(mode = "list", length = horizon)
-      
+    
     for (t in seq(horizon, 1)) {
       if (progress)
         pb$tick()
@@ -178,15 +181,10 @@ MDP_value_iteration_finite_horizon <-
         cat("Iteration for t = ", t, "\n")
       }
       
-      if (matrix)
-        Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
-      else
-        Qs <- outer(S, A, .QV_func_vec, model, GAMMA, U)
+      U_prime <- bellman_update(model, U)
+      pi <- U_prime$pi
+      U <- U_prime$U
       
-      m <- apply(Qs, MARGIN = 1, which.max.random)
-      pi <- factor(m, levels = seq_along(A), labels = A)
-      U <- Qs[cbind(seq_along(S), m)]
-
       policy[[t]] <- data.frame(
         state = S,
         U = U,
@@ -194,14 +192,11 @@ MDP_value_iteration_finite_horizon <-
         row.names = NULL
       )
     }
-      
+    
     if (progress)
       pb$terminate()
-
-    model$solution <- list(
-      policy = policy,
-      converged = NA
-    )
+    
+    model$solution <- list(policy = policy, converged = NA)
     model
   }
 
@@ -214,32 +209,15 @@ MDP_value_iteration_inf_horizon <-
            progress = TRUE,
            verbose = FALSE,
            ...) {
-    
     if (verbose)
       progress <- FALSE
     
     if (progress) {
-      pb <- my_progress_spinner(name = "solve_MDP", 
-                                format_extra = " | max delta U: :delta | press esc/CTRL-C to terminate early")
+      pb <- my_progress_spinner(name = "solve_MDP", format_extra = " | max delta U: :delta | press esc/CTRL-C to terminate early")
       pb$tick(0, token = list(delta = "-"))
     }
     
     S <- model$states
-    A <- model$actions
-    
-    if (matrix) {
-      if (verbose)
-        cat("Extracting matrices for R and T ...")
-      R <- reward_matrix(model, sparse = NULL)
-      if (progress)
-        pb$tick(0, token = list(delta = "-"))
-      
-      P <- transition_matrix(model, sparse = NULL)
-      if (progress)
-        pb$tick(0, token = list(delta = "-"))
-      if (verbose)
-        cat("done.\n")
-    }
     
     GAMMA <- model$discount
     if (GAMMA < 1) {
@@ -254,9 +232,9 @@ MDP_value_iteration_inf_horizon <-
       U <- rep(0, times = length(S))
     }
     names(U) <- S
-
+    
     # return unconverged result when interrupted
-    on.exit({ 
+    on.exit({
       warning("MDP solver did not converge (manual interrupt).")
       
       if (verbose) {
@@ -283,46 +261,42 @@ MDP_value_iteration_inf_horizon <-
     for (i in seq_len(N_max)) {
       if (progress)
         pb$tick(token =
-                  list(delta = paste0(signif(delta, 3), "/", 
-                                       signif(convergence_limit, 3))))
+                  list(delta = paste0(
+                    signif(delta, 3), "/", signif(convergence_limit, 3)
+                  )))
       
       if (verbose && !progress) {
         cat("Iteration:", i)
       }
-
-      # Find the best action for each state given U
-      if (matrix)
-        Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
-      else
-        Qs <- outer(S, A, .QV_func_vec, model, GAMMA, U)
       
-      m <- apply(Qs, MARGIN = 1, which.max.random)
-      pi <- factor(m, levels = seq_along(A), labels = A)
-      U_t_plus_1 <- Qs[cbind(seq_along(S), m)]
-
+      U_t_plus_1 <- bellman_update(model, U)
+      pi <- U_t_plus_1$pi
+      U_t_plus_1 <- U_t_plus_1$U
+      
       delta <- max(abs(U_t_plus_1 - U))
       U <- U_t_plus_1
-
+      
       if (verbose && !progress) {
         cat(" -> delta:", delta, "\n")
       }
-
+      
       if (delta <= convergence_limit) {
         converged <- TRUE
         break
       }
     }
-
+    
     if (progress)
       pb$tick(0, token =
-                list(delta = paste0(signif(delta, 3), "/", 
-                                    signif(convergence_limit, 3))))
-
+                list(delta = paste0(
+                  signif(delta, 3), "/", signif(convergence_limit, 3)
+                )))
+    
     if (verbose) {
       cat("\nIterations needed:", i, "\n")
       # print(U)
     }
-
+    
     if (!converged) {
       warning(
         "MDP solver did not converge after ",
@@ -333,7 +307,7 @@ MDP_value_iteration_inf_horizon <-
         " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
       )
     }
-
+    
     # clear on.exit
     on.exit()
     
@@ -358,7 +332,7 @@ MDP_value_iteration_inf_horizon <-
 ##    Department of Computer Science, Rutgers University, May 2008
 ## https://www.academia.edu/15223291/Prioritized_Sweeping_Converges_to_the_Optimal_Value_Function
 ##
-## We initialize H(s) using the states reward so we start with the biggest 
+## We initialize H(s) using the states reward so we start with the biggest
 ## reward states and propagate the reward backwards.
 MDP_PS_inf_horizon <-
   function(model,
@@ -374,7 +348,8 @@ MDP_PS_inf_horizon <-
       progress <- FALSE
     
     if (progress) {
-      pb <- my_progress_spinner(name = "solve_MDP", ticks = "state updates",
+      pb <- my_progress_spinner(name = "solve_MDP",
+                                ticks = "state updates",
                                 format_extra = " | max priority: :error | press esc/CTRL-C to terminate early")
       pb$tick(0, token = list(error = "-"))
     }
@@ -382,24 +357,6 @@ MDP_PS_inf_horizon <-
     S <- model$states
     A <- model$actions
     
-    if (matrix) {
-      if (verbose)
-        cat("Extracting matrices for R and T ...")
-       
-      R <- reward_matrix(model, sparse = NULL)
-      if (progress) 
-        pb$tick(0, token = list(error = "-"))
-      
-      P <- transition_matrix(model, sparse = NULL)
-      if (progress) 
-        pb$tick(0, token = list(error = "-"))
-      
-      if (verbose)
-        cat("done\n")
-    }
-    
-    GAMMA <- model$discount
-
     if (!is.null(U)) {
       H <- model$solution$H
       pi <- as.integer(model$solution$policy[[1]]$action)
@@ -415,13 +372,14 @@ MDP_PS_inf_horizon <-
     
     # initialize with the maximum reward. This is a single value iteration pass.
     init_H <- match.arg(init_H, c("reward", "random"))
-     
+    
     if (is.null(H)) {
       if (init_H == "reward") {
         if (verbose)
           cat("initializing priority H using the Belmann error.\n\n")
-        H <- abs(bellman_update(model, U = U)) + error + 1e-6
-      } else { ### random
+        H <- abs(bellman_update(model, U = U)$U) + error + 1e-6
+      } else {
+        ### random
         if (verbose)
           cat("initializing priority H randomly greater than error.\n\n")
         H <- runif(length(model$states)) + error + 1e-6
@@ -430,13 +388,13 @@ MDP_PS_inf_horizon <-
       # cat(round(H,2), "\n")
     }
     # may not find the optimal value if some priorities are 0 (See paper)
-
+    
     # absorbing states get 0 priority
     H[absorbing_states(model, sparse = "states")] <- 0
     
     
     # return unconverged result when interrupted
-    on.exit({ 
+    on.exit({
       warning("MDP solver did not converge (manual interrupt).")
       
       if (verbose) {
@@ -466,46 +424,42 @@ MDP_PS_inf_horizon <-
     converged <- FALSE
     for (i in seq_len(iter_max)) {
       if (progress)
-        pb$tick(tokens = list(error = paste0(signif(err, 3), "/", 
-                                             signif(error, 3))))
-
+        pb$tick(tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
+      
       # update state with highest priority (error) next
       s <- which.max.random(H)
-
-      if (verbose)
-        cat(i, "- updating state", s, sQuote(S[s]),"- action", pi[s], "-> ")
-      
-      if (matrix)
-        Qs <- .QV_vec(s, A, P, R, GAMMA, U)
-      else
-        Qs <- .QV_func_vec(s, A, model, GAMMA, U)
-      
-      m <- which.max.random(Qs)
-      pi[s] <- m
-      delta <- abs(Qs[m] - U[s])
       
       if (verbose)
-        cat(pi[s], "- U ", signif(U[s], 3), "->", Qs[m],"\n")
+        cat(i, "- updating state", s, sQuote(S[s]), "- action", pi[s], "-> ")
       
-      U[s] <- Qs[m]
+      ### do Bellman update for a single state
+      Us_prime <- .bellman_state_update(model, s, U)
+      
+      pi[s] <- Us_prime$pi
+      Us_prime <- Us_prime$U
+      delta <- abs(Us_prime - U[s])
+      
+      if (verbose)
+        cat(pi[s], "- U ", signif(U[s], 3), "->", Us_prime, "\n")
+      
+      U[s] <- Us_prime
       
       # check for issues in pi
-      if(any(is.na(pi)) || any(pi > length(A)) || any(pi < 1))
+      if (any(is.na(pi)) || any(pi > length(A)) || any(pi < 1))
         stop("Problem with policy vector : ", pi)
-      
       
       # This is Moore and Atkeson (1993) called PS in Li and Littman (2008)
       H[s] <- 0 # it will be updated below if it is a an ancestor
-
+      
       # find states that can get us to s
-      ancestor_prob <- transition_matrix(model, end.state = s, 
-                                     simplify = TRUE, 
-                                     sparse = TRUE)
-      ancestor_ids <- Matrix::which(Matrix::rowSums(ancestor_prob, 
-                                                    sparseResult = TRUE) > 0)
+      ancestor_prob <- transition_matrix(model,
+                                         end.state = s,
+                                         simplify = TRUE,
+                                         sparse = TRUE)
+      ancestor_ids <- Matrix::which(Matrix::rowSums(ancestor_prob, sparseResult = TRUE) > 0)
       
       # note this also increases the priority for the state we just updated from
-      for (ancestor_id in ancestor_ids) 
+      for (ancestor_id in ancestor_ids)
         H[ancestor_id] <- max(H[ancestor_id], delta * max(ancestor_prob[ancestor_id, ]))
       
       # this makes sure absorbing states don't get updated in an infinite loop
@@ -514,30 +468,29 @@ MDP_PS_inf_horizon <-
       err <- max(H)
       
       if (verbose) {
-        cat("    updating H for states:", paste(ancestor_ids, 
-                                                sQuote(S[ancestor_ids]), 
-                                                collapse = ", "),"\n")
+        cat("    updating H for states:",
+            paste(ancestor_ids, sQuote(S[ancestor_ids]), collapse = ", "),
+            "\n")
         cat("    max priority (error):", err, ">=", error, "\n")
       }
-        
+      
       
       if (err < error) {
         converged <- TRUE
         break
       }
     }
-
+    
     on.exit()
     
     if (progress)
-      pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", 
-                                           signif(error, 3)))) 
+      pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
     
     if (verbose) {
       cat("Iterations performed:", i, "\n")
       cat("Converged:", converged, "\n")
     }
-
+    
     if (!converged) {
       warning(
         "MDP solver did not converge after ",
@@ -548,9 +501,9 @@ MDP_PS_inf_horizon <-
         " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
       )
     }
-
+    
     pi <- factor(pi, levels = seq_along(A), labels = A)
-
+    
     model$solution <- list(
       method = "value iteration (prioritized sweeping)",
       policy = list(data.frame(
@@ -580,54 +533,33 @@ MDP_policy_iteration_inf_horizon <-
            verbose = FALSE,
            ...) {
     if (progress) {
-      pb <- my_progress_spinner(name = "solve_MDP", 
-                                format_extra = paste0(" | changed actions: :changed_actions/",
-                                                      length(model$states),
-                                                      " | press esc/CTRL-C to terminate early"))
+      pb <- my_progress_spinner(
+        name = "solve_MDP",
+        format_extra = paste0(
+          " | changed actions: :changed_actions/",
+          length(model$states),
+          " | press esc/CTRL-C to terminate early"
+        )
+      )
       pb$tick(0, token = list(changed_actions = "-"))
     }
-      
+    
     S <- model$states
-    A <- model$actions
     
-    if (matrix) {
-      if (verbose)
-        cat("Extracting matrices for R and T ...")
-      R <- reward_matrix(model, sparse = NULL)
-      if (progress)
-        pb$tick(0, token = list(changed_actions = "-"))
-      
-      P <- transition_matrix(model, sparse = NULL)
-      if (progress)
-        pb$tick(0, token = list(changed_actions = "-"))
-      if (verbose)
-        cat("done.\n")
-    }
+    if (is.null(U))
+      U <- 0
     
-    GAMMA <- model$discount
-
-    if (is.null(U)) {
-      U <- rep(0, times = length(S))
-      pi <- random_policy(model)$action
-    } else {
-      # get greedy policy for a given U
-      if (matrix)
-        Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
-      else
-        Qs <- outer(S, A, .QV_func_vec, model, GAMMA, U)
-      
-      m <- apply(Qs, MARGIN = 1, which.max.random)
-      pi <- factor(m, levels = seq_along(A), labels = A)
-    }
-
+    pi <- greedy_policy(q_values(model, U))
+    U <- pi$U
+    pi <- pi$action
     names(U) <- S
     names(pi) <- S
     
-    if (progress) 
+    if (progress)
       pb$tick(0, token = list(changed_actions = "-"))
     
     # return unconverged result when interrupted
-    on.exit({ 
+    on.exit({
       warning("MDP solver did not converge (manual interrupt).")
       
       if (verbose) {
@@ -654,41 +586,41 @@ MDP_policy_iteration_inf_horizon <-
     for (i in seq_len(N_max)) {
       if (progress)
         pb$tick(token = list(changed_actions = changed_actions))
-
+      
       # evaluate to get U from pi
-      if (matrix)
-        U <- .policy_evaluation_int(S, A, P, R, pi, GAMMA = GAMMA, U =  U, k_backups = k_backups)
-      else
-        U <-
-          policy_evaluation(model, pi, U, k_backups = k_backups, matrix = matrix, progress = FALSE)
-        
+      policy_evaluation(
+        model,
+        pi,
+        U,
+        k_backups = k_backups,
+        matrix = matrix,
+        progress = FALSE
+      )
+      
       #if (progress)
       #  pb$tick(0, token = list(changed_actions = changed_actions))
       
-      # get greedy policy for U
-      if (matrix)
-        Qs <- outer(S, A, .QV_vec, P, R, GAMMA, U)
-      else
-        Qs <- outer(S, A, .QV_func_vec, model, GAMMA, U)
-
-      #if (progress)
-      #  pb$tick(0, token = list(changed_actions = changed_actions))
+      U_t_plus_1 <- bellman_update(model, U, return_Q = TRUE)
+      pi_prime <- U_t_plus_1$pi
+      U <- U_t_plus_1$U
       
-      # non-randomizes
-      m <- apply(Qs, MARGIN = 1, which.max.random)
-      pi_prime <- factor(m, levels = seq_along(A), labels = A)
-
-      # account for random tie breaking
+      # account for random tie breaking using Q
       # if (all(pi == pi_prime)) {
-      changed_actions <- sum(Qs[cbind(seq_len(nrow(Qs)), pi)] != apply(Qs, MARGIN = 1, max))
+      Q <- U_t_plus_1$Q
+      changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
+      
+      if (verbose)
+        cat(i, "- # of updated actions: ", changed_actions, "\n")
+      
+      
       if (changed_actions == 0) {
         converged <- TRUE
         break
       }
-
+      
       pi <- pi_prime
     }
-
+    
     #if (progress)
     #  pb$tick(0, token = list(changed_actions = changed_actions))
     
@@ -703,7 +635,7 @@ MDP_policy_iteration_inf_horizon <-
         " Consider decreasing the 'discount' factor or increasing 'N_max'."
       )
     }
-
+    
     model$solution <- list(
       method = "policy iteration",
       policy = list(data.frame(

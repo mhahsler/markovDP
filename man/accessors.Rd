@@ -11,12 +11,12 @@
 \usage{
 normalize_MDP(
   model,
+  transition_prob = TRUE,
+  reward = TRUE,
+  start = FALSE,
   sparse = NULL,
-  trans_keyword = TRUE,
-  trans_function = TRUE,
-  keep_start = FALSE,
-  keep_reward_df = FALSE,
   precompute_absorbing_unreachable = TRUE,
+  check_and_fix = TRUE,
   progress = TRUE
 )
 
@@ -46,23 +46,21 @@ transition_matrix(
 \arguments{
 \item{model}{A \link{MDP} object.}
 
-\item{sparse}{logical; use sparse representation. \code{NULL} returns the
-representation stored in the problem description which saves the time
-for conversion. For vectors, additional options are \code{"states"} to return a vector of state names, and \code{"index"}
-to return an index vector of values that are \code{TRUE} or greater than 0.}
+\item{transition_prob}{logical; convert the transition probabilities into a list of matrices.}
 
-\item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
-
-\item{trans_function}{logical; convert functions into matrices?}
-
-\item{keep_reward_df}{logical; if reward is a data.frame, then keep it.}
-
-\item{precompute_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
-
-\item{progress}{logical; show a progress bar with estimated time for completion.}
+\item{reward}{logical; convert the reward model into a list of matrices.}
 
 \item{start}{a start state description (see \link{MDP}). If \code{NULL} then the
 start vector is created using the start stored in the model.}
+
+\item{sparse}{logical; use sparse matrix representation? \code{NULL} decides the representation
+based on the memory it would take to store the faster dense representation.}
+
+\item{precompute_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
+
+\item{check_and_fix}{logical; checks the structure of the problem description.}
+
+\item{progress}{logical; show a progress bar with estimated time for completion.}
 
 \item{action}{name or index of an action.}
 
@@ -71,6 +69,8 @@ start vector is created using the start stored in the model.}
 \item{...}{further arguments are passed on.}
 
 \item{simplify}{logical; try to simplify action lists into a vector or matrix?}
+
+\item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
 }
 \value{
 A list or a list of lists of matrices.

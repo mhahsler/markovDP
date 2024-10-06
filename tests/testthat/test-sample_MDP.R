@@ -17,7 +17,8 @@ models_solved <- list(Maze_sparse_sol,
                       Maze_orig_sol)
 
 
-models_solved <- name_models(models_solved)
+models_solved <- 
+  name_models(models_solved)
 
 for (m in c(models_solve, models_solved)) {
   if (verbose)

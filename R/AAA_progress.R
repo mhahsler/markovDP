@@ -2,7 +2,7 @@ my_progress_bar <- function(N,
                             name = NULL,
                             format_extra = NULL,
                             clear = FALSE,
-                            show_after = 0.1,
+                            show_after = 0.5,
                             ...)
   progress::progress_bar$new(
     format = paste(
@@ -20,7 +20,7 @@ my_progress_spinner <- function(name = NULL,
                                 ticks = "iterations",
                                 format_extra = "",
                                 clear = FALSE,
-                                show_after = 0.1,
+                                show_after = 0.5,
                                 ...)
   progress::progress_bar$new(
     format = paste(

@@ -373,15 +373,10 @@ gridworld_maze_MDP <- function(dim,
     )
   }
   
-  # full unreachable_states is to expensive
-  
   if (normalize) {
-    model <- normalize_MDP(
-      model,
-      keep_reward_df = step_cost != 0,
-      precompute_absorbing_unreachable = FALSE,
-      sparse = TRUE
-    )
+    model <- normalize_MDP(model,
+                           precompute_absorbing = FALSE,
+                           precompute_unreachable = FALSE)
   }
   
   #model$absorbing_states <- absorbing_states(model, sparse = TRUE)

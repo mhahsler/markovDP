@@ -8,6 +8,8 @@
 #'
 #' Note that for regret usually the optimal policy \eqn{\pi^*} is used as the benchmark.
 #' Since the optimal policy may not be known, regret relative to the best known policy can be used.
+#' 
+#' If the policy has 
 #'
 #' @family MDP
 #'
@@ -15,6 +17,9 @@
 #' @param benchmark a solved MDP with the (optimal) policy. Regret is calculated relative to this
 #'    policy.
 #' @param start start state distribution. If NULL then the start state of the `benchmark` is used.
+#' @param  run_policy_eval logical; run policy evaluation to re-estimate state values.
+#' @param ... further arguments are passed on to [policy_evaluation()].
+#' 
 #' @return the regret as a difference of expected long-term rewards.
 #'
 #'
@@ -36,12 +41,12 @@
 #'
 #' regret(sol_manual, benchmark = sol_optimal)
 #' @export
-regret <- function(policy, benchmark, start = NULL) {
+regret <- function(policy, benchmark, start = NULL, run_policy_eval = TRUE, ...) {
   UseMethod("regret")
 }
 
 #' @export
-regret.MDP <- function(policy, benchmark, start = NULL) {
+regret.MDP <- function(policy, benchmark, start = NULL, run_policy_eval = TRUE, ...) {
   if (!inherits(benchmark, "MDP") || !is_solved_MDP(benchmark)) {
     stop("benchmark needs to be a solved MDP.")
   }
@@ -50,20 +55,19 @@ regret.MDP <- function(policy, benchmark, start = NULL) {
     stop("policy needs to be a solved MDP.")
   }
 
-  if (is.null(start)) {
-    start <- Matrix::which(start_vector(benchmark) > 0)
+  start <- start_vector(benchmark, start = start)
+  
+  if (run_policy_eval) {
+    U_bench <- policy_evaluation(benchmark, policy(benchmark), ...)
+    U_pol <- policy_evaluation(benchmark, policy(policy), ...)
+  } else {
+    U_bench <- policy(benchmark)$U
+    U_pol <- policy(policy)$U
   }
-
-  if (is.character(start)) {
-    start <- match(start, benchmark$states)
-  }
-
-  if (length(start) != 1L) {
-    stop("A single start state needs to be specified!")
-  }
-
-  r_bench <- policy(benchmark)$U[start]
-  r_pol <- policy(policy)$U[start]
+  
+  
+  r_bench <- sum(U_bench * start)
+  r_pol <- sum(U_pol * start)
 
   r_bench - r_pol
 }

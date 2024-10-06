@@ -79,10 +79,10 @@ Maze_orig <- MDP(
 
 Maze_orig <- normalize_MDP(
   Maze_orig,
-  trans_keyword = FALSE,
-  trans_function = FALSE,
-  keep_reward_df = TRUE,
-  precompute_absorbing_unreachable = TRUE
+  transition_prob = FALSE,
+  reward = FALSE,
+  precompute_absorbing = TRUE,
+  precompute_unreachable = TRUE
 )
 
 Maze_dense <- normalize_MDP(Maze_orig, sparse = FALSE)
