@@ -15,8 +15,9 @@ normalize_MDP(
   reward = TRUE,
   start = FALSE,
   sparse = NULL,
-  precompute_absorbing_unreachable = TRUE,
-  check_and_fix = TRUE,
+  precompute_absorbing = TRUE,
+  precompute_unreachable = TRUE,
+  check_and_fix = FALSE,
   progress = TRUE
 )
 
@@ -56,7 +57,9 @@ start vector is created using the start stored in the model.}
 \item{sparse}{logical; use sparse matrix representation? \code{NULL} decides the representation
 based on the memory it would take to store the faster dense representation.}
 
-\item{precompute_absorbing_unreachable}{logical; should absorbing and unreachable states be precalculated?}
+\item{precompute_absorbing}{logical; should absorbing states be precalculated?}
+
+\item{precompute_unreachable}{logical; should unreachable states be precalculated?}
 
 \item{check_and_fix}{logical; checks the structure of the problem description.}
 

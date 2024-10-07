@@ -141,7 +141,9 @@
 #' maze
 #' gridworld_matrix(maze, what = "label")
 #' gridworld_plot(maze)
-#' sol <- solve_MDP(maze, method = "lp", discount = 0.999)
+#' 
+#' # Prioritized sweeping is especially effective for larger mazes.
+#' sol <- solve_MDP(maze, method = "prioritized_sweeping")
 #' sol
 #'
 #' gridworld_plot(sol)
@@ -198,8 +200,6 @@ gridworld_init <-
       goal <- S[Matrix::which(.translate_distribution(goal, S) > 0)]
     if (!is.null(start))
       start <- S[Matrix::which(.translate_distribution(start, S) > 0)]
-    
-    
     
     if (remove_unreachable_states)
       S <- setdiff(S, setdiff(unreachable_states, c(start, goal)))
@@ -263,12 +263,13 @@ gridworld_init <-
       transition_prob = gridworld_transition_prob,
       reward = R,
       start = start,
+      absorbing_states = absorbing_states,
+      unreachable_states = if (remove_unreachable_states) character(0) else unreachable_states,
       info = list(
         gridworld = TRUE,
         dim = dim,
         start = start,
         goal = goal,
-        unreachable_states = if (remove_unreachable_states) character(0) else unreachable_states,
         absorbing_states = absorbing_states,
         state_labels = state_labels
       )
@@ -373,16 +374,14 @@ gridworld_maze_MDP <- function(dim,
     )
   }
   
+  model$absorbing_states <- gw$absorbing_states
+  model$unreachable_states <- gw$unreachable_states
+  
   if (normalize) {
     model <- normalize_MDP(model,
                            precompute_absorbing = FALSE,
                            precompute_unreachable = FALSE)
   }
-  
-  #model$absorbing_states <- absorbing_states(model, sparse = TRUE)
-  model$absorbing_states <- gw$info$goal
-  #model$unreachable_states <- unreachable_states(model, sparse = TRUE)
-  model$unreachable_states <- character(0)
   
   model
 }
@@ -423,19 +422,35 @@ gridworld_random_maze <- function(dim,
       }
     )
   
+  make_maze <- function() {
+    # random walls (cannot be start or goal)
+    walls <- sort(sample(seq(n * m), size = n * m * wall_prob))
+    walls <- setdiff(walls, c(start, goal)) 
+    
+    maze <- gridworld_maze_MDP(
+      dim = c(n, m),
+      start = start,
+      goal = goal,
+      walls = walls,
+      normalize = normalize,
+      name = "Random Maze"
+    )
+    
+    # random mazes may produce unreachable states and even unreachable goals
+    remove_unreachable_states(maze, use_precomputed = FALSE)
+  }
   
-  walls <- sort(sample(
-    setdiff(seq(n * m), union(start, goal)) , size = n * m * wall_prob
-  ))
+  maze <- make_maze()
+  tries <- 10L
   
-  gridworld_maze_MDP(
-    dim = c(n, m),
-    start = start,
-    goal = goal,
-    walls = walls,
-    normalize = normalize,
-    name = "Random Maze"
-  )
+  while (!all(maze$info$goal %in% maze$states)) {
+    if (tries < 1L)
+      stop("Cannot create a valid maze after 10 tries. Please reduce wall_prob!")
+    maze <- make_maze()
+    tries <- tries <- -1L
+  }
+    
+  maze
 }
 
 
@@ -1003,7 +1018,7 @@ gridworld_transition_prob_end_state <- function(model, action, start.state, end.
   }
   
   # stay in place for absorbing states
-  absorbing_states <- model$info$absorbing_states
+  absorbing_states <- model$absorbing_states
   if (!is.null(absorbing_states) &&
       start.state %in% absorbing_states) {
     return(as.integer(end.state == start.state))

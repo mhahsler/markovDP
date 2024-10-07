@@ -50,7 +50,7 @@ solve_MDP_sampling <-
     
     # return unconverged result when interrupted
     on.exit({
-      warning("MDP solver manually interrupted early.")
+      warning("MDP solver interrupted early.")
       
       if (verbose) {
         cat("\nTerminated during iteration:", i, "\n")

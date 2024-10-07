@@ -31,8 +31,9 @@ tabular methods:
   - Value Iteration ([Bellman 1957](#ref-Bellman1957))
   - Modified Policy Iteration ([Howard 1960](#ref-Howard1960); [Puterman
     and Shin 1978](#ref-Puterman1978))
-  - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993); [Li
-    and Littman 2008](#ref-Li2008))
+  - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993);
+    [Andre, Friedman, and Parr 1997](#ref-Andre1997); [Li and Littman
+    2008](#ref-Li2008))
 - **Linear Programming**
   - Primal Formulation ([Manne 1960](#ref-Manne1960))
 - **Monte Carlo Control**
@@ -99,7 +100,7 @@ Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
-    ##   Start: 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+    ##   Start: s(3,1)
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
     ##     'transition_prob', 'reward', 'info', 'start', 'absorbing_states',
@@ -120,7 +121,7 @@ sol
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
-    ##   Start: 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0
+    ##   Start: s(3,1)
     ##   Solved:
     ##     Method: 'value_iteration'
     ##     Solution converged: TRUE
@@ -153,6 +154,16 @@ of Standards and Technology (NIST) under grant number
 
 <div id="refs" class="references csl-bib-body hanging-indent"
 entry-spacing="0">
+
+<div id="ref-Andre1997" class="csl-entry">
+
+Andre, David, Nir Friedman, and Ronald Parr. 1997. “Generalized
+Prioritized Sweeping.” In *Advances in Neural Information Processing
+Systems*, edited by M. Jordan, M. Kearns, and S. Solla. Vol. 10. MIT
+Press.
+<https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf>.
+
+</div>
 
 <div id="ref-Bellman1957" class="csl-entry">
 

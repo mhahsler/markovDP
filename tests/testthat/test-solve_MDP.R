@@ -1,6 +1,7 @@
 ## context("solve_MDP")
 
-# models_solve <- gridworld_random_maze(30)
+# models_solve <- list(gridworld_random_maze(20))
+# gridworld_plot(models_solve[[1]])
 
 verbose <- interactive()
 
@@ -11,7 +12,7 @@ methods_MC <- c("MC_exploring_starts", "MC_on_policy", "MC_off_policy")
 methods_sampling <- c("q_planning")
 
 
-num_states <- length(Maze_orig$states)
+num_states <- length(models_solve[[1]]$states)
 
 timing <- data.frame(model = character(0), 
                      method = character(0),
@@ -41,10 +42,10 @@ for (model in models_solve) {
     t <- system.time(suppressWarnings((sol <- solve_MDP(model, method = m))))
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m,
-                                       regret = regret(sol, bench),
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
-    solutions <- list(solutions, sol)
+    solutions <- append(solutions, list(sol))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
@@ -65,10 +66,10 @@ for (model in models_solve) {
     t <- system.time(sol <- solve_MDP(model, method = m))
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench),
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
-    solutions <- list(solutions, sol)
+    solutions <- append(solutions, list(sol))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
@@ -94,10 +95,10 @@ for (model in models_solve) {
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench),
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
-    solutions <- list(solutions, sol)
+    solutions <- append(solutions, list(sol))
     
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
@@ -117,12 +118,12 @@ for (model in models_solve) {
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench),
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     
     
-    solutions <- list(solutions, sol)
+    solutions <- append(solutions, list(sol))
     
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))

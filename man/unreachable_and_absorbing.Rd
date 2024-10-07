@@ -10,7 +10,7 @@
 unreachable_states(
   model,
   horizon = Inf,
-  sparse = NULL,
+  sparse = "states",
   use_precomputed = TRUE,
   progress = TRUE,
   ...
@@ -19,12 +19,12 @@ unreachable_states(
 absorbing_states(
   model,
   state = NULL,
-  sparse = NULL,
+  sparse = "states",
   use_precomputed = TRUE,
   ...
 )
 
-remove_unreachable_states(model, ...)
+remove_unreachable_states(model, use_precomputed = TRUE, ...)
 }
 \arguments{
 \item{model}{a \link{MDP} object.}

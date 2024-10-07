@@ -379,7 +379,9 @@ maze <- gridworld_read_maze(file.path(maze_dir, "small_maze.txt"))
 maze
 gridworld_matrix(maze, what = "label")
 gridworld_plot(maze)
-sol <- solve_MDP(maze, method = "lp", discount = 0.999)
+
+# Prioritized sweeping is especially effective for larger mazes.
+sol <- solve_MDP(maze, method = "prioritized_sweeping")
 sol
 
 gridworld_plot(sol)

@@ -14,6 +14,7 @@ solve_MDP_MC <-
            Q = NULL,
            epsilon = 0.2,
            first_visit = TRUE,
+           matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
@@ -44,6 +45,23 @@ solve_MDP_MC <-
         stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
     } 
+    
+    if (matrix) {
+      if (verbose)
+        cat("Precomputing dense matrices for R and T ...")
+      model <- normalize_MDP(
+        model,
+        sparse = FALSE,
+        precompute_absorbing = TRUE,
+        precompute_unreachable = FALSE,
+        progress = progress
+      )
+      
+      if (verbose)
+        cat(" done.\n")
+    }
+    
+    
     
     switch(
       method,
@@ -124,7 +142,7 @@ MC_on_policy <- function(model,
     pb <- my_progress_bar(n, name = "solve_MDP")
   
   on.exit({ 
-    warning("MDP solver manually interrupted early.")
+    warning("MDP solver interrupted early.")
     
     if (verbose) {
       cat("\nTerminated during episode:", e, "\n")
@@ -263,7 +281,7 @@ MC_off_policy <- function(model,
     pb <- my_progress_bar(n, name = "solve_MDP")
   
   on.exit({ 
-    warning("MDP solver manually interrupted early.")
+    warning("MDP solver interrupted early.")
     
     if (verbose) {
       cat("\nTerminated during episode:", e, "\n")

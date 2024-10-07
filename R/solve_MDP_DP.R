@@ -34,10 +34,10 @@ solve_MDP_DP <- function(model,
   if (!inherits(model, "MDP")) {
     stop("'model' needs to be of class 'MDP'.")
   }
- 
+  
   if (verbose)
     progress <- FALSE
-   
+  
   # Note: This is used by gridworld_animate()
   dots <- list(...)
   if (!is.null(dots$n))
@@ -235,7 +235,7 @@ MDP_value_iteration_inf_horizon <-
     
     # return unconverged result when interrupted
     on.exit({
-      warning("MDP solver did not converge (manual interrupt).")
+      warning("MDP solver interrupted early.")
       
       if (verbose) {
         cat("\nTerminated during iteration:", i, "\n")
@@ -339,7 +339,8 @@ MDP_PS_inf_horizon <-
            error,
            iter_max = 10000,
            U = NULL,
-           init_H = "reward",
+           H_init = "reward",
+           H_update = "GenPS",
            matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
@@ -356,6 +357,7 @@ MDP_PS_inf_horizon <-
     
     S <- model$states
     A <- model$actions
+    GAMMA <- model$discount
     
     if (!is.null(U)) {
       H <- model$solution$H
@@ -371,10 +373,10 @@ MDP_PS_inf_horizon <-
     names(U) <- S
     
     # initialize with the maximum reward. This is a single value iteration pass.
-    init_H <- match.arg(init_H, c("reward", "random"))
+    H_init <- match.arg(H_init, c("reward", "random"))
     
     if (is.null(H)) {
-      if (init_H == "reward") {
+      if (H_init == "reward") {
         if (verbose)
           cat("initializing priority H using the Belmann error.\n\n")
         H <- abs(bellman_update(model, U = U)$U) + error + 1e-6
@@ -427,98 +429,133 @@ MDP_PS_inf_horizon <-
         pb$tick(tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
       
       # update state with highest priority (error) next
-      s <- which.max.random(H)
+      s_t <- which.max.random(H)
       
       if (verbose)
-        cat(i, "- updating state", s, sQuote(S[s]), "- action", pi[s], "-> ")
+        cat(i, "  updating state", s_t, sQuote(S[s_t]), "| action", pi[s_t], "-> ")
       
       ### do Bellman update for a single state
-      Us_prime <- .bellman_state_update(model, s, U)
+      Us_prime <- .bellman_state_update(model, s_t, U)
       
-      pi[s] <- Us_prime$pi
+      pi[s_t] <- Us_prime$pi
       Us_prime <- Us_prime$U
-      delta <- abs(Us_prime - U[s])
+      delta <- abs(Us_prime - U[s_t])
       
       if (verbose)
-        cat(pi[s], "- U ", signif(U[s], 3), "->", Us_prime, "\n")
+        cat(pi[s_t], "| U ", signif(U[s_t], 3), "->", Us_prime, "\n")
       
-      U[s] <- Us_prime
+      U[s_t] <- Us_prime
       
-      # check for issues in pi
-      if (any(is.na(pi)) || any(pi > length(A)) || any(pi < 1))
-        stop("Problem with policy vector : ", pi)
       
-      # This is Moore and Atkeson (1993) called PS in Li and Littman (2008)
-      H[s] <- 0 # it will be updated below if it is a an ancestor
+      # Bellman error in state s: E(s; V) =
+      #      max_a [R(s,a) + gamma sum_{s in S} T(s'|s,a) V(s')] - V(s)
       
-      # find states that can get us to s
-      ancestor_prob <- transition_matrix(model,
-                                         end.state = s,
-                                         simplify = TRUE,
-                                         sparse = TRUE)
-      ancestor_ids <- Matrix::which(Matrix::rowSums(ancestor_prob, sparseResult = TRUE) > 0)
+      if (H_update == "PS") {
+        # This is Moore and Atkeson (1993) called PS in Li and Littman (2008)
+        #
+        # forall s: H_t+1(s) <- max(H_t(s), delta max_a(T(s_t|s,a))) for s != s_t+1
+        #                       delta max_a(T(s_t|s,a))) for s = s_t+1
+        #
+        # where delta = |V_t+1(s_t) - V_t(s_t)| = |E(s; V_t+1)|
+        
+        H[s_t] <- 0 # it will be updated with delta max... below
+        
+        # find states that can get us to s, i.e., max_a((T(s_t|s, a)) > 0
+        max_a_T <- apply(
+          transition_matrix(
+            model,
+            end.state = s_t,
+            simplify = TRUE,
+            sparse = FALSE
+          ),
+          MARGIN = 1,
+          max
+        )
+        
+        ancestor_ids <- which(max_a_T > 0)
+        
+        # note this also increases the priority for the state we just updated from
+        H[ancestor_ids] <- pmax(H[ancestor_ids], delta * max_a_T[ancestor_ids])
+      }
       
-      # note this also increases the priority for the state we just updated from
-      for (ancestor_id in ancestor_ids)
-        H[ancestor_id] <- max(H[ancestor_id], delta * max(ancestor_prob[ancestor_id, ]))
-      
-      # this makes sure absorbing states don't get updated in an infinite loop
-      H[s] <- 0
+      else if (H_update == "GenPS") {
+        # This is Andre, Friedman, & Parr (1998) called GenPS in Li and Littman (2008)
+        #
+        # for all s: H_t+1 <- |E(s; V_t+1)| =
+        #             max_a [R(s,a) + gamma sum_{s in S} T(s'|s,a) V(s')] - V(s)
+        #
+        # Note: |E(s; V_t+1)| only changes for s_t and it's ancestors
+        T_s_t <- transition_matrix(
+          model,
+          end.state = s_t,
+          simplify = TRUE,
+          sparse = FALSE
+        )
+        
+        ancestor_ids <- union(which(rowSums(T_s_t) > 0), s_t)
+  
+        
+        # note this also increases the priority for the state we just updated from
+        H[ancestor_ids] <- apply((reward_matrix(model, start.state = ancestor_ids, end.state = s_t, simplify = TRUE) + 
+                 GAMMA * T_s_t[ancestor_ids,] * U[s_t]) - U[ancestor_ids], MARGIN = 1, max)
+        
+      }
       
       err <- max(H)
       
       if (verbose) {
-        cat("    updating H for states:",
-            paste(ancestor_ids, sQuote(S[ancestor_ids]), collapse = ", "),
-            "\n")
+        cat(
+          "    updating H for states:",
+          paste(ancestor_ids, sQuote(S[ancestor_ids]), "->", H[ancestor_ids], collapse = ", "),
+          "\n"
+        )
         cat("    max priority (error):", err, ">=", error, "\n")
       }
-      
-      
-      if (err < error) {
-        converged <- TRUE
-        break
-      }
+    
+    if (err < error) {
+      converged <- TRUE
+      break
     }
-    
-    on.exit()
-    
-    if (progress)
-      pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
-    
-    if (verbose) {
-      cat("Iterations performed:", i, "\n")
-      cat("Converged:", converged, "\n")
-    }
-    
-    if (!converged) {
-      warning(
-        "MDP solver did not converge after ",
-        i,
-        " iterations (delta = ",
-        delta,
-        ").",
-        " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
-      )
-    }
-    
-    pi <- factor(pi, levels = seq_along(A), labels = A)
-    
-    model$solution <- list(
-      method = "value iteration (prioritized sweeping)",
-      policy = list(data.frame(
-        state = S,
-        U = U,
-        action = pi,
-        row.names = NULL
-      )),
-      converged = converged,
-      delta = delta,
-      H = H,
-      iterations = i
-    )
-    model
   }
+
+on.exit()
+
+if (progress)
+  pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
+
+if (verbose) {
+  cat("Iterations performed:", i, "\n")
+  cat("Converged:", converged, "\n")
+}
+
+if (!converged) {
+  warning(
+    "MDP solver did not converge after ",
+    i,
+    " iterations (delta = ",
+    delta,
+    ").",
+    " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
+  )
+}
+
+pi <- factor(pi, levels = seq_along(A), labels = A)
+
+model$solution <- list(
+  method = "value iteration (prioritized sweeping)",
+  policy = list(data.frame(
+    state = S,
+    U = U,
+    action = pi,
+    row.names = NULL
+  )),
+  converged = converged,
+  delta = delta,
+  H = H,
+  iterations = i
+)
+model
+}
 
 
 ## Policy iteration
@@ -610,7 +647,7 @@ MDP_policy_iteration_inf_horizon <-
       changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
       
       if (verbose)
-        cat(i, "- # of updated actions: ", changed_actions, "\n")
+        cat(i, "| # of updated actions: ", changed_actions, "\n")
       
       
       if (changed_actions == 0) {

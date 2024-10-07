@@ -132,7 +132,7 @@ normalize_MDP <- function(model,
                           sparse = NULL,
                           precompute_absorbing = TRUE,
                           precompute_unreachable = TRUE,
-                          check_and_fix = TRUE,
+                          check_and_fix = FALSE,
                           progress = TRUE
 ) {
   if (!inherits(model, "MDP")) {
@@ -870,7 +870,7 @@ df2value <-
     cols <- seq_along(model$states)
     
     
-    # return a single value
+    # return a single value fast
     if (!is.null(row) &&
         !is.null(col) &&
         length(row) == 1L &&
@@ -965,8 +965,7 @@ df2value <-
     rs <- as.integer(df[[2L]])
     cs <- as.integer(df[[3L]])
     
-    ## FIXME: Matrix has an issue with subsetting dgTMatrix so I use a dgCMatrix
-    ## TODO: Make this sparse
+    ## TODO: Make this sparse for large matrices
     m <- matrix(0, nrow = length(rows), ncol = length(cols))
     
     # m <- new(

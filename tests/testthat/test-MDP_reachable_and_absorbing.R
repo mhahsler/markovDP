@@ -1,6 +1,6 @@
 # absorbing states
 
-(s_abs <- Maze_orig$info$absorbing_states)
+(s_abs <- Maze_orig$absorbing_states)
 
 # recalculate the known absorbing states using transition_prob
 

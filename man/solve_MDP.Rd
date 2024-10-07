@@ -47,6 +47,7 @@ solve_MDP_MC(
   Q = NULL,
   epsilon = 0.2,
   first_visit = TRUE,
+  matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
   verbose = FALSE
@@ -61,6 +62,7 @@ solve_MDP_TD(
   epsilon = 0.2,
   n = 1000,
   Q = NULL,
+  matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
   verbose = FALSE
@@ -189,23 +191,48 @@ that no state value is more than
 \eqn{error} from the value in the optimal value function. For undiscounted
 problems, we use \eqn{\delta \le error}.
 
-The greedy policy
+A greedy policy
 is calculated from the final value function. Value iteration can be seen as
 policy iteration with truncated policy evaluation.
-\item \strong{Prioritized Sweeping} (Moore and Atkeson, 1993) approximate the optimal value
+\item \strong{Prioritized Sweeping} (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008)
+approximate the optimal value
 function by iteratively adjusting always only the state value of the state
 with the largest Bellman error. That is, if a state is updated, all states leading
 to this states will have their priority increased by the update difference.
 This update order leads to faster convergence compared
 to sweeping the whole state state in regular value iteration.
 
-The additional parameter \code{init_H} can be used to define how to initialize
-the priority \eqn{H(s)}. The default is \code{init_H = "reward"} which uses the
+We implement the two priority update strategies described as \strong{PS} and
+\strong{GenPS} by Li and Littman.
+\itemize{
+\item \strong{PS} (Moore and Atkeson, 1993) updates the priority of a state \eqn{H(s)}
+using:
+\deqn{
+       \forall{s \in S}: H_{t+1}(s)  \leftarrow \begin{cases}
+         \max(H_{t}(s), \Delta_t \max_{a \in A}(T(s_t|s,a)) \text{ for } s \ne s_{t+1} \\
+         \Delta_t \max_{a \in A}(T(s_t|s,a) \text{ for } s = s_{t+1}
+         \end{cases}
+     }
+
+where \eqn{\Delta_t = |V_{t+1}(s_t) - V_t(s_t)| = |E(s; V_{t+1})|}, i.e.,
+the Bellman error for the updated state.
+\item \strong{GenPS} (Andre et al., 1997) updates all state priorities using their Bellman error:
+
+\deqn{\forall{s \in S}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})| =
+           \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} T(s'|s,a) V(s')\right] - V(s)
+     }
+}
+
+The update method can be chosen using the additional parameter \code{H_update}
+as the character string \code{"PS"} or \code{"GenPS"}. The default is \code{H_update = "GenPS"}.
+
+The additional parameter \code{H_init} can be used to define how to initialize
+the priority \eqn{H(s)}. The default is \code{H_init = "reward"} which uses the
 absolute value of the largest reward of going to the state.
 Since the value function \eqn{U} is initialized with all zeros, this represents
 the error and leads the algorithm to start
 sweeping backwards from the high reward states.
-\code{init_H = "random"} initializes the priorities randomly with a value larger than
+\code{H_init = "random"} initializes the priorities randomly with a value larger than
 \code{error} + a small value to make sure each state is tries at least once.
 
 This implementation stops updating when the largest priority values
@@ -363,9 +390,13 @@ plot_value_function(maze_learned)
 gridworld_plot(maze_learned)
 }
 \references{
+Andre, D., Friedman, N., and Parr, R. 1997. "Generalized prioritized sweeping." In Advances in Neural Information Processing Systems 10, pp. 1001-1007. \href{https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf}{NeurIPS Proceedings}
+
 Bellman, Richard. 1957. "A Markovian Decision Process." Indiana University Mathematics Journal 6: 679-84. \url{https://www.jstor.org/stable/24900506}.
 
-Howard, R. A. 1960. Dynamic Programming and Markov Processes. Cambridge, MA: MIT Press.
+Howard, R. A. 1960. "Dynamic Programming and Markov Processes." Cambridge, MA: MIT Press.
+
+Li, Lihong, and Michael Littman. 2008. "Prioritized Sweeping Converges to the Optimal Value Function." DCS-TR-631. Rutgers University. \doi{10.7282/T3TX3JSX}
 
 Manne, Alan. 1960. "On the Job-Shop Scheduling Problem." Operations Research 8 (2): 219-23. \doi{10.1287/opre.8.2.219}.
 

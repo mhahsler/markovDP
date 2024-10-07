@@ -71,9 +71,9 @@ Maze_orig <- MDP(
   horizon = Inf,
   states = gw$states,
   actions = gw$actions,
-  start = "s(3,1)",
   transition_prob = T,
   reward = R,
+  start = "s(3,1)",
   info = gw$info
 )
 
