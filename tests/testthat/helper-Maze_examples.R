@@ -159,9 +159,9 @@ models <- list(Maze_dense,
                Maze_function2_named,
                Maze_function3)
 
-models_solve <- list(Maze_dense,
-                    Maze_sparse,
-                    Maze_function2)
+
+# we test only one since the accessors are tested separately
+models_solve <- list(Maze_dense)
 
 name_models <- function(models)
   lapply(

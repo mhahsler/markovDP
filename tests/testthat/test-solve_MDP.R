@@ -143,5 +143,4 @@ rownames(timing) <- NULL
 # }
 
 timing[order(timing$time),]
-timing[order(timing$regret),]
 timing[order(timing$different_actions),]
