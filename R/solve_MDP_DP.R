@@ -625,7 +625,7 @@ MDP_policy_iteration_inf_horizon <-
         pb$tick(token = list(changed_actions = changed_actions))
       
       # evaluate to get U from pi
-      policy_evaluation(
+      U <- policy_evaluation(
         model,
         pi,
         U,
@@ -641,14 +641,13 @@ MDP_policy_iteration_inf_horizon <-
       pi_prime <- U_t_plus_1$pi
       U <- U_t_plus_1$U
       
+      # changed_actions <- sum(pi != pi_prime)
       # account for random tie breaking using Q
-      # if (all(pi == pi_prime)) {
       Q <- U_t_plus_1$Q
       changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
-      
+
       if (verbose)
-        cat(i, "| # of updated actions: ", changed_actions, "\n")
-      
+        cat(i, "| # of updated actions ", changed_actions, "\n")
       
       if (changed_actions == 0) {
         converged <- TRUE

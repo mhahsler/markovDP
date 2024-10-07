@@ -201,4 +201,4 @@ name_models <- function(models)
   )
 
 models <- name_models(models)
-models_solve <- name_models(models_solve)
+#models_solve <- name_models(models_solve)

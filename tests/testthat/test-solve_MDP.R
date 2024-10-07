@@ -27,10 +27,36 @@ bench <- solve_MDP(models_solve[[1]], method = "value")
 
 different_actions <- function(policy, benchmark) {
   pi <- policy(policy)$action
+  
+  # benchmark is VI and uses a greedy policy
   Q <- q_values(benchmark)
   sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
 }
 
+
+# need no parameters
+for (model in models_solve) {
+  for (m in methods_DP) {
+    if (verbose)
+      cat("Solving w/", m, ":", model$name, "\n")
+    
+    t <- system.time(sol <- solve_MDP(model, method = m))
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = m, 
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       different_actions = different_actions(sol, bench),
+                                       time = t[3]))
+    solutions <- append(solutions, list(sol))
+    
+    if (verbose)
+      cat("time: ", t[3], " sec.\n\n")
+    
+    pol <- policy(sol)
+    expect_identical(dim(pol), c(num_states, 3L))
+    
+    # check_and_fix_MDP(sol)
+  }
+}
 
 # need no parameters
 for (model in models_solve) {
@@ -57,29 +83,6 @@ for (model in models_solve) {
   }
 }
 
-# need no parameters
-for (model in models_solve) {
-  for (m in methods_DP) {
-    if (verbose)
-      cat("Solving w/", m, ":", model$name, "\n")
-    
-    t <- system.time(sol <- solve_MDP(model, method = m))
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       different_actions = different_actions(sol, bench),
-                                       time = t[3]))
-    solutions <- append(solutions, list(sol))
-    
-    if (verbose)
-      cat("time: ", t[3], " sec.\n\n")
-    
-    pol <- policy(sol)
-    expect_identical(dim(pol), c(num_states, 3L))
-    
-    # check_and_fix_MDP(sol)
-  }
-}
 
 
 ### these methods are slow and need restrictions
