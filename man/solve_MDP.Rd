@@ -214,26 +214,23 @@ using:
          \end{cases}
      }
 
-where \eqn{\Delta_t = |V_{t+1}(s_t) - V_t(s_t)| = |E(s; V_{t+1})|}, i.e.,
+where \eqn{\Delta_t = |V_{t+1}(s_t) - V_t(s_t)| = |E(s_t; V_{t+1})|}, i.e.,
 the Bellman error for the updated state.
-\item \strong{GenPS} (Andre et al., 1997) updates all state priorities using their Bellman error:
+\item \strong{GenPS} (Andre et al., 1997) updates all state priorities using their
+current Bellman error:
 
-\deqn{\forall{s \in S}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})| =
-           \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} T(s'|s,a) V(s')\right] - V(s)
-     }
+\deqn{\forall{s \in S}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})|}
+
+where \eqn{E(s; V_{t+1}) = \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} T(s'|s,a) V(s')\right] - V(s)}.
+is a state's Bellman error.
 }
 
 The update method can be chosen using the additional parameter \code{H_update}
-as the character string \code{"PS"} or \code{"GenPS"}. The default is \code{H_update = "GenPS"}.
-
-The additional parameter \code{H_init} can be used to define how to initialize
-the priority \eqn{H(s)}. The default is \code{H_init = "reward"} which uses the
-absolute value of the largest reward of going to the state.
-Since the value function \eqn{U} is initialized with all zeros, this represents
-the error and leads the algorithm to start
-sweeping backwards from the high reward states.
-\code{H_init = "random"} initializes the priorities randomly with a value larger than
-\code{error} + a small value to make sure each state is tries at least once.
+as the character string \code{"PS_random"}, \code{"PS_error"} or \code{"GenPS"}.
+The default is \code{H_update = "GenPS"}. For PS, random means that the
+priority vector is initialized with random values (larger than 0),
+and error means they are initialized with the Bellman error as in
+GenPS. However, this requires one complete sweep over all states.
 
 This implementation stops updating when the largest priority values
 over all states is less than the specified \code{error}.

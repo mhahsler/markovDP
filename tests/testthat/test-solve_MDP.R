@@ -5,7 +5,8 @@
 
 verbose <- interactive()
 
-methods_DP <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
+methods_DP <- c("value_iteration", "policy_iteration")
+methods_PS <- c("prioritized_sweeping")
 methods_LP <- c("lp")
 methods_TD <- c("sarsa", "q_learning", "expected_sarsa")
 methods_MC <- c("MC_exploring_starts", "MC_on_policy", "MC_off_policy")
@@ -41,6 +42,7 @@ for (model in models_solve) {
       cat("Solving w/", m, ":", model$name, "\n")
     
     t <- system.time(sol <- solve_MDP(model, method = m))
+    
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
@@ -57,6 +59,33 @@ for (model in models_solve) {
     # check_and_fix_MDP(sol)
   }
 }
+
+for (model in models_solve) {
+  for (m in methods_PS) {
+    for (H_update in c("PS_random", "PS_error", "GenPS")) {
+    if (verbose)
+      cat("Solving w/", m, ":", model$name, "\n")
+    
+    t <- system.time(sol <- solve_MDP(model, method = m, H_update = H_update))
+    
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = paste0(m, "_", H_update), 
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       different_actions = different_actions(sol, bench),
+                                       time = t[3]))
+    solutions <- append(solutions, list(sol))
+    
+    if (verbose)
+      cat("time: ", t[3], " sec.\n\n")
+    
+    pol <- policy(sol)
+    expect_identical(dim(pol), c(num_states, 3L))
+    
+    # check_and_fix_MDP(sol)
+    }
+  }
+}
+
 
 # need no parameters
 for (model in models_solve) {
@@ -92,7 +121,7 @@ for (model in models_solve) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000))
+    t <- system.time(sol <- solve_MDP(model, method = m, n = 10000))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
@@ -111,11 +140,36 @@ for (model in models_solve) {
 }
 
 for (model in models_solve) {
-  for (m in c(methods_TD, methods_MC)) {
+  for (m in c(methods_TD)) {
     if (verbose)
       cat("Solving w/", m, ":", model$name,"\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, n = 100, horizon = 100))
+    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000, horizon = 100))
+    
+    if (verbose)
+      cat("time: ", t[3], " sec.\n\n")
+    timing <- rbind(timing, data.frame(model = model$name, 
+                                       method = m, 
+                                       regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       different_actions = different_actions(sol, bench),
+                                       time = t[3]))
+    
+    
+    solutions <- append(solutions, list(sol))
+    
+    pol <- policy(sol)
+    expect_identical(dim(pol), c(num_states, 3L))
+    
+    # check_and_fix_MDP(sol)
+  }
+}
+
+for (model in models_solve) {
+  for (m in c(methods_MC)) {
+    if (verbose)
+      cat("Solving w/", m, ":", model$name,"\n")
+    
+    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000, horizon = 100))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")

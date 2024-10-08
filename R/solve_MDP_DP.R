@@ -23,7 +23,7 @@ solve_MDP_DP <- function(model,
                          horizon = NULL,
                          discount = NULL,
                          iter_max = 1000,
-                         error = 0.01,
+                         error = 0.001,
                          k_backups = 10,
                          U = NULL,
                          matrix = TRUE,
@@ -339,14 +339,20 @@ MDP_PS_inf_horizon <-
            error,
            iter_max = 10000,
            U = NULL,
-           H_init = "reward",
            H_update = "GenPS",
            matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
-    if (verbose)
+    if (verbose) {
       progress <- FALSE
+      
+      cat(
+        "Prioritized sweeping with H_update",
+        sQuote(H_update),
+        "\n"
+      )
+    }
     
     if (progress) {
       pb <- my_progress_spinner(name = "solve_MDP",
@@ -359,41 +365,28 @@ MDP_PS_inf_horizon <-
     A <- model$actions
     GAMMA <- model$discount
     
-    if (!is.null(U)) {
-      H <- model$solution$H
-      pi <- as.integer(model$solution$policy[[1]]$action)
-      if (is.null(pi))
-        stop("Policy missing in the model. Can't continue.")
-      
-    } else {
+    if (is.null(U))
       U <- rep(0, times = length(S))
-      pi <- as.integer(random_policy(model)$action)
-      H <- NULL
-    }
-    names(U) <- S
     
-    # initialize with the maximum reward. This is a single value iteration pass.
-    H_init <- match.arg(H_init, c("reward", "random"))
+    H_update <- match.arg(H_update, c("PS_random", "PS_error", "GenPS"))
     
-    if (is.null(H)) {
-      if (H_init == "reward") {
-        if (verbose)
-          cat("initializing priority H using the Belmann error.\n\n")
-        H <- abs(bellman_update(model, U = U)$U) + error + 1e-6
-      } else {
-        ### random
-        if (verbose)
-          cat("initializing priority H randomly greater than error.\n\n")
-        H <- runif(length(model$states)) + error + 1e-6
-      }
+    if (H_update == "PS_random") {
+      pi <- as.integer(random_policy(model)$pi)
+      H <- runif(length(S)) + 1e-6 + error
+    } else {
+      UQpi <- bellman_update(model, U = U)
+      pi <- as.integer(UQpi$pi)
       
-      # cat(round(H,2), "\n")
+      # Note: PS may not find the optimal value if some priorities are 0 (See paper)
+      H <- abs(UQpi$U - U) + 1e-6
+      U <- UQpi$U
+      
+      # for GenPS
+      E_sa <- UQpi$Q
     }
-    # may not find the optimal value if some priorities are 0 (See paper)
     
     # absorbing states get 0 priority
-    H[absorbing_states(model, sparse = "states")] <- 0
-    
+    #H[absorbing_states(model, sparse = "states")] <- 0
     
     # return unconverged result when interrupted
     on.exit({
@@ -415,7 +408,6 @@ MDP_PS_inf_horizon <-
         )),
         converged = converged,
         delta = delta,
-        H = H,
         iterations = i
       )
       return(model)
@@ -439,7 +431,7 @@ MDP_PS_inf_horizon <-
       
       pi[s_t] <- Us_prime$pi
       Us_prime <- Us_prime$U
-      delta <- abs(Us_prime - U[s_t])
+      delta <- Us_prime - U[s_t]
       
       if (verbose)
         cat(pi[s_t], "| U ", signif(U[s_t], 3), "->", Us_prime, "\n")
@@ -450,13 +442,15 @@ MDP_PS_inf_horizon <-
       # Bellman error in state s: E(s; V) =
       #      max_a [R(s,a) + gamma sum_{s in S} T(s'|s,a) V(s')] - V(s)
       
-      if (H_update == "PS") {
+      if (H_update != "GenPS") {
         # This is Moore and Atkeson (1993) called PS in Li and Littman (2008)
         #
-        # forall s: H_t+1(s) <- max(H_t(s), delta max_a(T(s_t|s,a))) for s != s_t+1
+        # forall s: H_t+1(s) <- max(H_t(s), |delta| max_a(T(s_t|s,a)) for s != s_t+1
         #                       delta max_a(T(s_t|s,a))) for s = s_t+1
         #
-        # where delta = |V_t+1(s_t) - V_t(s_t)| = |E(s; V_t+1)|
+        # where delta = V_t+1(s_t) - V_t(s_t) = E(s_t; V_t+1)
+        #
+        # Note: changes only happen if T(s_t|s,a) > 0 for any a
         
         H[s_t] <- 0 # it will be updated with delta max... below
         
@@ -472,33 +466,43 @@ MDP_PS_inf_horizon <-
           max
         )
         
-        ancestor_ids <- which(max_a_T > 0)
+        s_update <- which(max_a_T > 0)
         
-        # note this also increases the priority for the state we just updated from
-        H[ancestor_ids] <- pmax(H[ancestor_ids], delta * max_a_T[ancestor_ids])
+        # Note: this will also take care of s_t
+        H[s_update] <- pmax(H[s_update], abs(delta) * max_a_T[s_update])
       }
       
       else if (H_update == "GenPS") {
         # This is Andre, Friedman, & Parr (1998) called GenPS in Li and Littman (2008)
         #
-        # for all s: H_t+1 <- |E(s; V_t+1)| =
-        #             max_a [R(s,a) + gamma sum_{s in S} T(s'|s,a) V(s')] - V(s)
+        # for all s: H_t+1 <- |E(s; V_t+1)|
         #
-        # Note: |E(s; V_t+1)| only changes for s_t and it's ancestors
-        T_s_t <- transition_matrix(
+        # with E(s; V_t+1) = max_a [R(s,a) + gamma sum_{s in S} T(s'|s,a) V(s')] - V(s)
+        #
+        # for s != s_t: 
+        #    E(s; V_t+1) = max_a [E^a(s; V_t) + gamma T(s_t|s,a) E(s_t; V_t)]     
+        # for s = s_t:
+        #    E(s_t; V_t+1) = max_a [E^a(s_t; V_t) + gamma T(s_t|s_t,a) E(s_t; V_t)] - E(s_t; V_t)
+        #
+        # Notes:
+        #  * |E(s_t; V_t)| = H(s_t)_t
+        #  * changes only happen for states s where T(s_t|s,a) > 0 for any a
+        # We need: E^a(s; V_t) for all these states and E(s_t; V_t)
+
+        T_sa <- transition_matrix(
           model,
           end.state = s_t,
           simplify = TRUE,
           sparse = FALSE
         )
         
-        ancestor_ids <- union(which(rowSums(T_s_t) > 0), s_t)
-  
+        s_update <- union(which(rowSums(T_sa) > 0), s_t)
+        E_st <- max(E_sa[s_t, ])
         
-        # note this also increases the priority for the state we just updated from
-        H[ancestor_ids] <- apply((reward_matrix(model, start.state = ancestor_ids, end.state = s_t, simplify = TRUE) + 
-                 GAMMA * T_s_t[ancestor_ids,] * U[s_t]) - U[ancestor_ids], MARGIN = 1, max)
+        E_sa[s_update, ] <- E_sa[s_update, ] + GAMMA * T_sa[s_update, ] * E_st
+        E_sa[s_t, ] <- E_sa[s_t, ] - E_st
         
+        H[s_update] <- abs(apply(E_sa[s_update, ], MARGIN = 1, max))
       }
       
       err <- max(H)
@@ -506,56 +510,55 @@ MDP_PS_inf_horizon <-
       if (verbose) {
         cat(
           "    updating H for states:",
-          paste(ancestor_ids, sQuote(S[ancestor_ids]), "->", H[ancestor_ids], collapse = ", "),
+          paste(s_update, sQuote(S[s_update]), "->", signif(H[s_update], 3), collapse = ", "),
           "\n"
         )
         cat("    max priority (error):", err, ">=", error, "\n")
       }
-    
-    if (err < error) {
-      converged <- TRUE
-      break
+      
+      if (err < error) {
+        converged <- TRUE
+        break
+      }
     }
+    
+    on.exit()
+    
+    if (progress)
+      pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
+    
+    if (verbose) {
+      cat("Iterations performed:", i, "\n")
+      cat("Converged:", converged, "\n")
+    }
+    
+    if (!converged) {
+      warning(
+        "MDP solver did not converge after ",
+        i,
+        " iterations (delta = ",
+        delta,
+        ").",
+        " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
+      )
+    }
+    
+    pi <- factor(pi, levels = seq_along(A), labels = A)
+    
+    model$solution <- list(
+      method = "value iteration (prioritized sweeping)",
+      policy = list(data.frame(
+        state = S,
+        U = U,
+        action = pi,
+        row.names = NULL
+      )),
+      converged = converged,
+      delta = delta,
+      iterations = i
+    )
+    model
   }
-
-on.exit()
-
-if (progress)
-  pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
-
-if (verbose) {
-  cat("Iterations performed:", i, "\n")
-  cat("Converged:", converged, "\n")
-}
-
-if (!converged) {
-  warning(
-    "MDP solver did not converge after ",
-    i,
-    " iterations (delta = ",
-    delta,
-    ").",
-    " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
-  )
-}
-
-pi <- factor(pi, levels = seq_along(A), labels = A)
-
-model$solution <- list(
-  method = "value iteration (prioritized sweeping)",
-  policy = list(data.frame(
-    state = S,
-    U = U,
-    action = pi,
-    row.names = NULL
-  )),
-  converged = converged,
-  delta = delta,
-  H = H,
-  iterations = i
-)
-model
-}
 
 
 ## Policy iteration
@@ -637,7 +640,7 @@ MDP_policy_iteration_inf_horizon <-
       #if (progress)
       #  pb$tick(0, token = list(changed_actions = changed_actions))
       
-      U_t_plus_1 <- bellman_update(model, U, return_Q = TRUE)
+      U_t_plus_1 <- bellman_update(model, U)
       pi_prime <- U_t_plus_1$pi
       U <- U_t_plus_1$U
       
@@ -645,7 +648,7 @@ MDP_policy_iteration_inf_horizon <-
       # account for random tie breaking using Q
       Q <- U_t_plus_1$Q
       changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
-
+      
       if (verbose)
         cat(i, "| # of updated actions ", changed_actions, "\n")
       

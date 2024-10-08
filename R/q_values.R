@@ -69,7 +69,7 @@ q_values <- function(model, U = NULL) {
     U <- policy(model)$U
   }
   
-  bellman_update(model, U, return_Q = TRUE)$Q
+  bellman_update(model, U)$Q
 }
 
 #' @rdname q_values

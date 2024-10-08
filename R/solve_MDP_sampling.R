@@ -14,6 +14,8 @@ solve_MDP_sampling <-
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
+    PROGRESS_INTERVAL <- 100
+    
     if (!is.null(horizon))
       warning("q_planning does not use horizon. The specified horizon is ignored.")
     
@@ -68,11 +70,11 @@ solve_MDP_sampling <-
     })
     
     if (progress)
-      pb <- my_progress_bar(n, name = "solve_MDP")
+      pb <- my_progress_bar(n/PROGRESS_INTERVAL, name = "solve_MDP")
     
     # loop through tries
     for (i in seq(n)) {
-      if (progress)
+      if (!(i %% PROGRESS_INTERVAL) && progress)
         pb$tick()
       
       # sample a state/act pair

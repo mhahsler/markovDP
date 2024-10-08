@@ -169,7 +169,7 @@ bellman_operator <- function(model, pi, U) {
     pi <- pi$action
   }
   
-  Q <- bellman_update(model, U, return_Q = TRUE)$Q
+  Q <- bellman_update(model, U)$Q
   Q[cbind(seq_along(model$states), pi)]
 }
 

@@ -16,7 +16,6 @@
 #' @param U a vector with value function representing the state utilities
 #'    (expected sum of discounted rewards from that point on). A single 0 can be 
 #'    used as a shorthand for a value function with all 0s.
-#' @param return_Q logical; return also the Q matrix.
 #'    
 #' @return a list with the updated state value vector U and the taken actions
 #'    pi.
@@ -39,7 +38,7 @@
 #'   
 #' U
 #' @export
-bellman_update <- function(model, U, return_Q = FALSE) {
+bellman_update <- function(model, U) {
   if (!inherits(model, "MDP")) {
     stop("'model' needs to be of class 'MDP'.")
   }
@@ -47,9 +46,9 @@ bellman_update <- function(model, U, return_Q = FALSE) {
   S <- model$states
   A <- model$actions
   GAMMA <- model$discount %||% 1
-  
- if (length(U) == 1 && all(U == 0))
-   U <- numeric(length(S))
+ 
+  if (length(U) == 1 && all(U == 0))
+    U <- numeric(length(S))
    
   Q <- sapply(A, FUN = function(a) {
     P <- transition_matrix(model, a, sparse = FALSE)
@@ -63,13 +62,9 @@ bellman_update <- function(model, U, return_Q = FALSE) {
    
   m <- apply(Q, MARGIN = 1, which.max.random)
   
-  if (!return_Q)
-    list(U = Q[cbind(seq_along(S), m)] , 
-         pi = factor(m, levels = seq_along(A), labels = A))
-  else
-    list(U = Q[cbind(seq_along(S), m)] , 
-         pi = factor(m, levels = seq_along(A), labels = A),
-         Q = Q)
+  list(U = Q[cbind(seq_along(S), m)] , 
+       pi = factor(m, levels = seq_along(A), labels = A),
+       Q = Q)
 }
 
 # Bellman update for a single state

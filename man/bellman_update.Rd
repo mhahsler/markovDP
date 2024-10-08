@@ -4,7 +4,7 @@
 \alias{bellman_update}
 \title{Bellman Update}
 \usage{
-bellman_update(model, U, return_Q = FALSE)
+bellman_update(model, U)
 }
 \arguments{
 \item{model}{an MDP problem specification.}
@@ -12,8 +12,6 @@ bellman_update(model, U, return_Q = FALSE)
 \item{U}{a vector with value function representing the state utilities
 (expected sum of discounted rewards from that point on). A single 0 can be
 used as a shorthand for a value function with all 0s.}
-
-\item{return_Q}{logical; return also the Q matrix.}
 }
 \value{
 a list with the updated state value vector U and the taken actions
