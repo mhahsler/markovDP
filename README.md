@@ -103,11 +103,11 @@ Maze
     ##   Start: s(3,1)
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'transition_prob', 'reward', 'info', 'start', 'absorbing_states',
+    ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states',
     ##     'unreachable_states'
 
 ``` r
-gridworld_plot(Maze, state = TRUE)
+gw_plot(Maze, state = TRUE)
 ```
 
 ![](inst/README_files/problem-1.png)<!-- -->
@@ -127,7 +127,7 @@ sol
     ##     Solution converged: TRUE
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'transition_prob', 'reward', 'info', 'start', 'absorbing_states',
+    ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states',
     ##     'unreachable_states', 'solution'
 
 Display the value function.
@@ -139,7 +139,7 @@ plot_value_function(sol)
 ![](inst/README_files/value_function-1.png)<!-- -->
 
 ``` r
-gridworld_plot(sol)
+gw_plot(sol)
 ```
 
 ![](inst/README_files/gridworld_plot-1.png)<!-- -->

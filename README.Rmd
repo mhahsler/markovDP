@@ -72,7 +72,7 @@ Solving the simple maze from [@Russell2020].
 library("markovDP")
 data("Maze")
 Maze
-gridworld_plot(Maze, state = TRUE)
+gw_plot(Maze, state = TRUE)
 ```
 
 ```{r solve}
@@ -87,7 +87,7 @@ plot_value_function(sol)
 ```
 
 ```{r gridworld_plot}
-gridworld_plot(sol)
+gw_plot(sol)
 ```
 
 
