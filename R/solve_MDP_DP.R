@@ -22,9 +22,9 @@ solve_MDP_DP <- function(model,
                          method = "value_iteration",
                          horizon = NULL,
                          discount = NULL,
-                         iter_max = 1000,
+                         iter_max = 1000L,
                          error = 0.001,
-                         k_backups = 10,
+                         k_backups = 10L,
                          U = NULL,
                          matrix = TRUE,
                          continue = FALSE,
@@ -38,7 +38,7 @@ solve_MDP_DP <- function(model,
   if (verbose)
     progress <- FALSE
   
-  # Note: This is used by gridworld_animate()
+  # Note: This is used by gw_animate()
   dots <- list(...)
   if (!is.null(dots$n))
     iter_max <- dots$n
@@ -203,7 +203,7 @@ MDP_value_iteration_finite_horizon <-
 MDP_value_iteration_inf_horizon <-
   function(model,
            error,
-           N_max = 1000,
+           iter_max = 1000L,
            U = NULL,
            matrix = TRUE,
            progress = TRUE,
@@ -235,7 +235,25 @@ MDP_value_iteration_inf_horizon <-
     
     # return unconverged result when interrupted
     on.exit({
-      warning("MDP solver interrupted early.")
+      if (progress) {
+        pb$tick(0, token =
+                  list(delta = paste0(
+                    signif(delta, 3), "/", signif(convergence_limit, 3)
+                  )))
+        pb$terminate()
+      }
+      
+      if (!converged) {
+        if (i < iter_max)
+          warning("Manual interupt: MDP solver did not converge at iteration ", i)
+        else
+          warning(
+            "MDP solver did not converge after ",
+            i,
+            " iterations.",
+            " Consider decreasing the 'discount' factor or increasing 'error' or 'iter_max'."
+          )
+      } 
       
       if (verbose) {
         cat("\nTerminated during iteration:", i, "\n")
@@ -258,7 +276,7 @@ MDP_value_iteration_inf_horizon <-
     
     converged <- FALSE
     delta <- Inf
-    for (i in seq_len(N_max)) {
+    for (i in seq_len(iter_max)) {
       if (progress)
         pb$tick(token =
                   list(delta = paste0(
@@ -286,44 +304,7 @@ MDP_value_iteration_inf_horizon <-
       }
     }
     
-    if (progress)
-      pb$tick(0, token =
-                list(delta = paste0(
-                  signif(delta, 3), "/", signif(convergence_limit, 3)
-                )))
-    
-    if (verbose) {
-      cat("\nIterations needed:", i, "\n")
-      # print(U)
-    }
-    
-    if (!converged) {
-      warning(
-        "MDP solver did not converge after ",
-        i,
-        " iterations (delta = ",
-        delta,
-        ").",
-        " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
-      )
-    }
-    
-    # clear on.exit
-    on.exit()
-    
-    model$solution <- list(
-      method = "value iteration",
-      policy = list(data.frame(
-        state = S,
-        U = U,
-        action = pi,
-        row.names = NULL
-      )),
-      converged = converged,
-      delta = delta,
-      iterations = i
-    )
-    model
+    # return via on.exit()
   }
 
 ## Prioritized sweeping
@@ -337,19 +318,28 @@ MDP_value_iteration_inf_horizon <-
 MDP_PS_inf_horizon <-
   function(model,
            error,
-           iter_max = 10000,
+           iter_max = 1000L,
            U = NULL,
            H_update = "GenPS",
            matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
+    S <- model$states
+    A <- model$actions
+    GAMMA <- model$discount
+    
+    n <- as.integer(iter_max * length(S))
+    if (is.na(n))
+      stop("iter_max * |S| is >", .Machine$integer.max, "! Reduce iter_max.")
+     
     if (verbose) {
       progress <- FALSE
       
       cat(
-        "Prioritized sweeping with H_update",
-        sQuote(H_update),
+        "Prioritized sweeping",
+        "\nMax number of state updates is iter_max * |S|:",
+        n,
         "\n"
       )
     }
@@ -361,19 +351,27 @@ MDP_PS_inf_horizon <-
       pb$tick(0, token = list(error = "-"))
     }
     
-    S <- model$states
-    A <- model$actions
-    GAMMA <- model$discount
-    
     if (is.null(U))
       U <- rep(0, times = length(S))
+    i <- 0L
     
     H_update <- match.arg(H_update, c("PS_random", "PS_error", "GenPS"))
-    
     if (H_update == "PS_random") {
+      if (verbose)
+        cat(H_update, ":",
+            "Initializing H randomly.\n"
+        )
       pi <- as.integer(random_policy(model)$pi)
       H <- runif(length(S)) + 1e-6 + error
     } else {
+      i <- i + length(S)
+      if (verbose)
+        cat(
+          H_update, ":",
+          "Initializing H using a complete sweep (Bellman update) using",
+          i,
+          "state updates\n"
+        )
       UQpi <- bellman_update(model, U = U)
       pi <- as.integer(UQpi$pi)
       
@@ -388,12 +386,31 @@ MDP_PS_inf_horizon <-
     # absorbing states get 0 priority
     #H[absorbing_states(model, sparse = "states")] <- 0
     
-    # return unconverged result when interrupted
+    # return result also when interrupted
     on.exit({
-      warning("MDP solver did not converge (manual interrupt).")
-      
+      if (progress) {
+        pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
+        pb$terminate()
+      }
+         
+      if (!converged) {
+        if (i < n)
+          warning("Manual interupt: MDP solver did not converge at state update ", i)
+        else
+          warning(
+            "MDP solver did not converge after ",
+            i,
+            " iterations (delta = ",
+            delta,
+            ").",
+            " Consider decreasing the 'discount' factor or increasing 'error' or 'iter_max'."
+          )
+      } 
+       
       if (verbose) {
-        cat("\nTerminated during iteration:", i, "\n")
+        cat("State updates performed:", i, "(equivalent to", signif(i/length(S), 3), 
+            "complete sweeps)", "\n")
+        cat("Converged:", converged, "\n")
       }
       
       pi <- factor(pi, levels = seq_along(A), labels = A)
@@ -408,7 +425,7 @@ MDP_PS_inf_horizon <-
         )),
         converged = converged,
         delta = delta,
-        iterations = i
+        state_updates = i
       )
       return(model)
     })
@@ -416,10 +433,12 @@ MDP_PS_inf_horizon <-
     err <- sum(H)
     delta <- Inf
     converged <- FALSE
-    for (i in seq_len(iter_max)) {
-      if (progress)
+    while (i < n) {
+      i <- i + 1L
+      if (progress) {
         pb$tick(tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
-      
+      }
+        
       # update state with highest priority (error) next
       s_t <- which.max.random(H)
       
@@ -521,43 +540,8 @@ MDP_PS_inf_horizon <-
         break
       }
     }
-    
-    on.exit()
-    
-    if (progress)
-      pb$tick(0, tokens = list(error = paste0(signif(err, 3), "/", signif(error, 3))))
-    
-    if (verbose) {
-      cat("Iterations performed:", i, "\n")
-      cat("Converged:", converged, "\n")
-    }
-    
-    if (!converged) {
-      warning(
-        "MDP solver did not converge after ",
-        i,
-        " iterations (delta = ",
-        delta,
-        ").",
-        " Consider decreasing the 'discount' factor or increasing 'error' or 'N_max'."
-      )
-    }
-    
-    pi <- factor(pi, levels = seq_along(A), labels = A)
-    
-    model$solution <- list(
-      method = "value iteration (prioritized sweeping)",
-      policy = list(data.frame(
-        state = S,
-        U = U,
-        action = pi,
-        row.names = NULL
-      )),
-      converged = converged,
-      delta = delta,
-      iterations = i
-    )
-    model
+  
+    # return via on.exit()  
   }
 
 
@@ -565,7 +549,7 @@ MDP_PS_inf_horizon <-
 
 MDP_policy_iteration_inf_horizon <-
   function(model,
-           N_max = 1000,
+           iter_max = 1000,
            k_backups = 10,
            U = NULL,
            matrix = TRUE,
@@ -600,7 +584,22 @@ MDP_policy_iteration_inf_horizon <-
     
     # return unconverged result when interrupted
     on.exit({
-      warning("MDP solver did not converge (manual interrupt).")
+      if (progress) {
+        pb$tick(0, token = list(changed_actions = changed_actions))
+        pb$terminate()
+      }
+      
+      if (!converged) {
+        if (i < iter_max)
+          warning("Manual interupt: MDP solver did not converge at iteration ", i)
+        else
+          warning(
+            "MDP solver did not converge after ",
+            i,
+            " iterations.",
+            " Consider decreasing the 'discount' factor or increasing 'iter_max'."
+          )
+      } 
       
       if (verbose) {
         cat("\nTerminated during iteration:", i, "\n")
@@ -623,7 +622,9 @@ MDP_policy_iteration_inf_horizon <-
     
     changed_actions <- length(model$states)
     converged <- FALSE
-    for (i in seq_len(N_max)) {
+    i <- 0L
+    while (i < iter_max) {
+      i <- i + 1L
       if (progress)
         pb$tick(token = list(changed_actions = changed_actions))
       
@@ -660,31 +661,5 @@ MDP_policy_iteration_inf_horizon <-
       pi <- pi_prime
     }
     
-    #if (progress)
-    #  pb$tick(0, token = list(changed_actions = changed_actions))
-    
-    # deregister on.exit
-    on.exit()
-    
-    if (!converged) {
-      warning(
-        "MDP solver did not converge after ",
-        i,
-        " iterations.\n",
-        " Consider decreasing the 'discount' factor or increasing 'N_max'."
-      )
-    }
-    
-    model$solution <- list(
-      method = "policy iteration",
-      policy = list(data.frame(
-        state = S,
-        U = U,
-        action = pi,
-        row.names = NULL
-      )),
-      converged = converged,
-      iterations = i
-    )
-    model
+    # return is done in on.exit()
   }
