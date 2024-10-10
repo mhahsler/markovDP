@@ -2,22 +2,23 @@
 % Please edit documentation in R/gridworld.R
 \name{gridworld}
 \alias{gridworld}
-\alias{gridworld_init}
-\alias{gridworld_maze_MDP}
-\alias{gridworld_random_maze}
-\alias{gridworld_path}
-\alias{gridworld_matrix}
-\alias{gridworld_plot}
-\alias{gridworld_plot_transition_graph}
-\alias{gridworld_animate}
-\alias{gridworld_read_maze}
-\alias{gridworld_s2rc}
-\alias{gridworld_rc2s}
-\alias{gridworld_transition_prob}
-\alias{gridworld_transition_prob_end_state}
+\alias{gw_init}
+\alias{gw}
+\alias{gw_maze_MDP}
+\alias{gw_random_maze}
+\alias{gw_path}
+\alias{gw_matrix}
+\alias{gw_plot}
+\alias{gw_plot_transition_graph}
+\alias{gw_animate}
+\alias{gw_read_maze}
+\alias{gw_s2rc}
+\alias{gw_rc2s}
+\alias{gw_transition_prob}
+\alias{gw_transition_prob_end_state}
 \title{Helper Functions for Gridworld MDPs}
 \usage{
-gridworld_init(
+gw_init(
   dim,
   actions = c("up", "right", "down", "left"),
   start = NULL,
@@ -28,7 +29,7 @@ gridworld_init(
   state_labels = list()
 )
 
-gridworld_maze_MDP(
+gw_maze_MDP(
   dim,
   start,
   goal,
@@ -44,7 +45,7 @@ gridworld_maze_MDP(
   name = NA
 )
 
-gridworld_random_maze(
+gw_random_maze(
   dim,
   wall_prob = 0.2,
   start = NULL,
@@ -52,11 +53,11 @@ gridworld_random_maze(
   normalize = FALSE
 )
 
-gridworld_path(model, start = NULL, goal = NULL, horizon = NULL)
+gw_path(model, start = NULL, goal = NULL, horizon = NULL)
 
-gridworld_matrix(model, epoch = 1L, what = "states")
+gw_matrix(model, epoch = 1L, what = "states")
 
-gridworld_plot(
+gw_plot(
   model,
   epoch = 1L,
   actions = "character",
@@ -73,7 +74,7 @@ gridworld_plot(
   ...
 )
 
-gridworld_plot_transition_graph(
+gw_plot_transition_graph(
   x,
   hide_unreachable_states = TRUE,
   remove.loops = TRUE,
@@ -87,17 +88,17 @@ gridworld_plot_transition_graph(
   ...
 )
 
-gridworld_animate(model, method, n, zlim = NULL, ...)
+gw_animate(model, method, n, zlim = NULL, ...)
 
-gridworld_read_maze(file, discount = 1, restart = FALSE, name = "Maze")
+gw_read_maze(file, discount = 1, restart = FALSE, name = "Maze")
 
-gridworld_s2rc(s)
+gw_s2rc(s)
 
-gridworld_rc2s(rc)
+gw_rc2s(rc)
 
-gridworld_transition_prob(model, action, start.state)
+gw_transition_prob(model, action, start.state)
 
-gridworld_transition_prob_end_state(model, action, start.state, end.state)
+gw_transition_prob_end_state(model, action, start.state, end.state)
 }
 \arguments{
 \item{dim}{vector of length two with the x and y extent of the gridworld.}
@@ -133,7 +134,7 @@ the agent reaches the goal state.}
 \item{discount, horizon}{MDP discount factor, and horizon.}
 
 \item{info}{A list with additional information. Has to contain the gridworld
-dimensions as element \code{dim} and can be created using \code{gridworld_init()}.}
+dimensions as element \code{dim} and can be created using \code{gw_init()}.}
 
 \item{normalize}{logical; should the description be normalized for
 faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
@@ -200,12 +201,12 @@ supplied.}
 \item{action, start.state, end.state}{parameters for the transition function.}
 }
 \value{
-\code{gridworld_maze_MDP()} returns an MDP object.
+\code{gw_maze_MDP()} returns an MDP object.
 
-\code{gridworld_path()} returns a list with the elements \code{"path"},
+\code{gw_path()} returns a list with the elements \code{"path"},
 \code{"reward"} and \code{"solved"}.
 
-\code{gridworld_animate()} returns the final solution invisibly.
+\code{gw_animate()} returns the final solution invisibly.
 }
 \description{
 Helper functions for gridworld MDPs to convert between state names and
@@ -216,7 +217,7 @@ Gridworlds are implemented with state names \code{s(row,col)}, where
 \code{row} and \code{col} are locations in the matrix representing the gridworld.
 The actions are \code{"up"}, \code{"right"},  \code{"down"}, and  \code{"left"}.
 
-\code{gridworld_init()} initializes a new gridworld creating a matrix
+\code{gw_init()} initializes a new gridworld creating a matrix
 of states with the given dimensions. Other action names
 can be specified, but they must have the same effects in the same order
 as above. Unreachable states (walls) and absorbing state can be defined.
@@ -226,42 +227,42 @@ Several helper functions are provided
 to use states, look at the state layout, and plot policies on the
 gridworld.
 
-\code{gridworld_maze_MDP()} helps to easily define maze-like gridworld MDPs.
+\code{gw_maze_MDP()} helps to easily define maze-like gridworld MDPs.
 By default, the goal state is absorbing, but with \code{restart = TRUE}, the
 agent restarts the problem at the start state every time it reaches the goal
 and receives the reward. Note that this implies that the goal state itself
 becomes unreachable.
 
-\code{gridworld_path()} checks if a solved gridworld has a policy that
+\code{gw_path()} checks if a solved gridworld has a policy that
 leads from the start to the goal. Note this function currently samples only a single path which is
 an issue with stochastic transitions!
 
-\code{gridworld_matrix()} returns different information
+\code{gw_matrix()} returns different information
 (state names, values, actions, etc.) as a matrix. Note that some gridworlds
 have unreachable states removed. These states will be represented in the
 matrix as  \code{NA}.
 
-\code{gridworld_plot()} plots a gridworld.
+\code{gw_plot()} plots a gridworld.
 
-\code{gridworld_plot_transition_graph()} plots the transition graph
+\code{gw_plot_transition_graph()} plots the transition graph
 using the gridworld matrix as the layout.
 
-\code{gridworld_animate()} applies algorithms from \code{\link[=solve_MDP]{solve_MDP()}} iteration
+\code{gw_animate()} applies algorithms from \code{\link[=solve_MDP]{solve_MDP()}} iteration
 by iteration and visualized the state utilities. This helps to understand
 how the algorithms work.
 
-\code{gridworld_read_maze()} reads a maze in text format from a file
+\code{gw_read_maze()} reads a maze in text format from a file
 and converts it into a gridworld MDP.
 
-\code{gridworld_s2rc()} and \code{gridworld_rc2s} help with converting from
+\code{gw_s2rc()} and \code{gw_rc2s} help with converting from
 state names to xy-coordinates and vice versa.
 
-\code{gridworld_transition_prob()} and \code{gridworld_transition_prob3()}
+\code{gw_transition_prob()} and \code{gw_transition_prob3()}
 provide the standard transition functions for a gridworld.
 }
 \examples{
 # Defines states, actions and a transition model for a standard gridworld
-gw <- gridworld_init(
+gw <- gw_init(
   dim = c(7, 7),
   unreachable_states = c("s(2,2)", "s(7,3)", "s(3,6)"),
   absorbing_states = "s(4,4)",
@@ -272,18 +273,18 @@ str(gw)
 
 # display the state labels in the gridworld (states not represented in the 
 # model are shown as NA)
-gridworld_matrix(gw)
-gridworld_matrix(gw, what = "label")
-gridworld_matrix(gw, what = "absorbing")
-gridworld_matrix(gw, what = "unreachable")
+gw_matrix(gw)
+gw_matrix(gw, what = "label")
+gw_matrix(gw, what = "absorbing")
+gw_matrix(gw, what = "unreachable")
 
 # a transition function for regular moves in the gridworld is provided
-gridworld_transition_prob(gw, "right", "s(1,1)")
-gridworld_transition_prob_end_state(gw, "right", "s(1,1)", "s(1,2)")
+gw_transition_prob(gw, "right", "s(1,1)")
+gw_transition_prob_end_state(gw, "right", "s(1,1)", "s(1,2)")
 
 # convert between state names and row/column indices
-gridworld_s2rc("s(1,1)")
-gridworld_rc2s(c(1, 1))
+gw_s2rc("s(1,1)")
+gw_rc2s(c(1, 1))
 
 # The information in gw can be used to build a custom MDP.
 
@@ -299,16 +300,16 @@ trans_black_hole <- function(model,
     "s(5,3)", "s(5,4)", "s(5,5)"
   )) {
     if (end.state == "s(4,4)") {
-      return(.5 + gridworld_transition_prob_end_state(model, action, start.state,
+      return(.5 + gw_transition_prob_end_state(model, action, start.state,
                                         end.state) * .5)
     } else {
-      return(gridworld_transition_prob_end_state(model, action, start.state,
+      return(gw_transition_prob_end_state(model, action, start.state,
                                         end.state) * .5)
     }
   }
 
   # use the standard gridworld movement
-  gridworld_transition_prob_end_state(model, action, start.state, end.state)
+  gw_transition_prob_end_state(model, action, start.state, end.state)
 }
 
 black_hole <- MDP(
@@ -326,17 +327,17 @@ black_hole <- MDP(
 black_hole
 black_hole <- normalize_MDP(black_hole)
 
-gridworld_plot_transition_graph(black_hole)
+gw_plot_transition_graph(black_hole)
 
 # solve the problem
 sol <- solve_MDP(black_hole, error = 1)
-gridworld_matrix(sol, what = "values")
-gridworld_plot(sol)
+gw_matrix(sol, what = "values")
+gw_plot(sol)
 # the optimal policy is to fly around, but avoid the black hole.
 
 # Build a Maze: The Dyna Maze from Chapter 8 in the RL book
 
-DynaMaze <- gridworld_maze_MDP(
+DynaMaze <- gw_maze_MDP(
   dim = c(6, 9),
   start = "s(3,1)",
   goal = "s(1,9)",
@@ -351,20 +352,20 @@ DynaMaze <- gridworld_maze_MDP(
 )
 DynaMaze
 
-gridworld_matrix(DynaMaze)
-gridworld_matrix(DynaMaze, what = "labels")
+gw_matrix(DynaMaze)
+gw_matrix(DynaMaze, what = "labels")
 
-gridworld_plot_transition_graph(DynaMaze)
+gw_plot_transition_graph(DynaMaze)
 # Note that the problems resets if the goal state would be reached.
 
 sol <- solve_MDP(DynaMaze, method = "lp")
 
-gridworld_matrix(sol, what = "values")
-gridworld_matrix(sol, what = "actions")
-gridworld_plot(sol, states = TRUE)
+gw_matrix(sol, what = "values")
+gw_matrix(sol, what = "actions")
+gw_plot(sol, states = TRUE)
 
 # check if we found a solution
-gridworld_path(sol)
+gw_path(sol)
 
 # Read a maze from a text file
 #   (X are walls, S is the start and G is the goal)
@@ -375,28 +376,28 @@ dir(maze_dir)
 
 file.show(file.path(maze_dir, "small_maze.txt"))
 
-maze <- gridworld_read_maze(file.path(maze_dir, "small_maze.txt"))
+maze <- gw_read_maze(file.path(maze_dir, "small_maze.txt"))
 maze
-gridworld_matrix(maze, what = "label")
-gridworld_plot(maze)
+gw_matrix(maze, what = "label")
+gw_plot(maze)
 
 # Prioritized sweeping is especially effective for larger mazes.
 sol <- solve_MDP(maze, method = "prioritized_sweeping")
 sol
 
-gridworld_plot(sol)
-gridworld_path(sol)
+gw_plot(sol)
+gw_path(sol)
 
 # A maze can also be created directly from a character vector
-maze <- gridworld_read_maze(
+maze <- gw_read_maze(
     textConnection(c("XXXXXX", 
                      "XS  GX",
                      "XXXXXX")))
-gridworld_plot(maze)
+gw_plot(maze)
 
 # Create a small random maze
-rand_maze <- gridworld_random_maze(dim = c(5, 5))
-gridworld_plot(rand_maze)
+rand_maze <- gw_random_maze(dim = c(5, 5))
+gw_plot(rand_maze)
 }
 \seealso{
 Other gridworld: 
@@ -409,8 +410,8 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

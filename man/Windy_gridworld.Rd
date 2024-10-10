@@ -30,22 +30,22 @@ No discounting is used (i.e., \eqn{\gamma = 1}).
 data(Windy_gridworld)
 Windy_gridworld
 
-gridworld_matrix(Windy_gridworld)
-gridworld_matrix(Windy_gridworld, what = "labels")
+gw_matrix(Windy_gridworld)
+gw_matrix(Windy_gridworld, what = "labels")
 
-gridworld_plot(Windy_gridworld)
+gw_plot(Windy_gridworld)
 
 # The Goal is an absorbing state
 absorbing_states(Windy_gridworld, sparse = "states")
 
 # visualize the transition graph
-gridworld_plot_transition_graph(Windy_gridworld)
+gw_plot_transition_graph(Windy_gridworld)
 
 # solve using value iteration
 sol <- solve_MDP(Windy_gridworld)
 sol
 policy(sol)
-gridworld_plot(sol)
+gw_plot(sol)
 }
 \references{
 Richard S. Sutton and Andrew G. Barto (2018). Reinforcement Learning: An Introduction

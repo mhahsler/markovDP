@@ -59,7 +59,7 @@
 #'
 #' # U in the policy is and estimate of the utility of being in a state when using the optimal policy.
 #' policy(sol)
-#' gridworld_matrix(sol, what = "action")
+#' gw_matrix(sol, what = "action")
 #'
 #' ## Example 1: simulate 100 trajectories following the policy,
 #' #             only the final belief state is returned

@@ -52,7 +52,7 @@
 #' # get the greedy policy form the q-values
 #' pi_greedy <- greedy_policy(q)
 #' pi_greedy
-#' gridworld_plot(add_policy(Maze, pi_greedy), main = "Maze: Greedy Policy")
+#' gw_plot(add_policy(Maze, pi_greedy), main = "Maze: Greedy Policy")
 #'
 #' greedy_action(q, "s(3,1)", epsilon = 0, prob = FALSE)
 #' greedy_action(q, "s(3,1)", epsilon = 0, prob = TRUE)

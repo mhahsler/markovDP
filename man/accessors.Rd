@@ -145,7 +145,7 @@ matrices.
 }
 \examples{
 data("Maze")
-gridworld_matrix(Maze)
+gw_matrix(Maze)
 
 # here is the internal structure of the Maze object
 str(Maze)
@@ -183,8 +183,8 @@ str(Maze_norm)
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{act}()},
-\code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

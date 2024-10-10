@@ -25,7 +25,7 @@
 #' @examples
 #' data("Maze")
 #' Maze
-#' gridworld_matrix(Maze)
+#' gw_matrix(Maze)
 #'
 #' sol <- solve_MDP(Maze)
 #' policy(sol)

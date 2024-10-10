@@ -1,7 +1,7 @@
 ## context("solve_MDP")
 
-# models_solve <- list(gridworld_random_maze(20))
-# gridworld_plot(models_solve[[1]])
+# models_solve <- list(gw_random_maze(20))
+# gw_plot(models_solve[[1]])
 
 verbose <- interactive()
 
@@ -18,6 +18,7 @@ num_states <- length(models_solve[[1]]$states)
 timing <- data.frame(model = character(0), 
                      method = character(0),
                      regret = numeric(0),
+                     avg_U_diff =  numeric(0),
                      different_actions = integer(0),
                      time = numeric(0))
 
@@ -46,6 +47,7 @@ for (model in models_solve) {
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
@@ -71,6 +73,7 @@ for (model in models_solve) {
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = paste0(m, "_", H_update), 
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
@@ -98,6 +101,7 @@ for (model in models_solve) {
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m,
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
@@ -128,10 +132,13 @@ for (model in models_solve) {
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
-    
+   
+   
+     
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
     
@@ -151,6 +158,7 @@ for (model in models_solve) {
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     
@@ -176,6 +184,7 @@ for (model in models_solve) {
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
                                        regret = regret(sol, bench, run_policy_eval = FALSE),
+                                       avg_U_diff =  mean(policy(sol)$U - policy(bench)$U),
                                        different_actions = different_actions(sol, bench),
                                        time = t[3]))
     

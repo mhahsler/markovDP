@@ -29,20 +29,20 @@ No discounting is used (i.e., \eqn{\gamma = 1}).
 data(Cliff_walking)
 Cliff_walking
 
-gridworld_matrix(Cliff_walking)
-gridworld_matrix(Cliff_walking, what = "labels")
+gw_matrix(Cliff_walking)
+gw_matrix(Cliff_walking, what = "labels")
 
 # The Goal is an absorbing state
 absorbing_states(Cliff_walking, sparse = "states")
 
 # visualize the transition graph
-gridworld_plot_transition_graph(Cliff_walking)
+gw_plot_transition_graph(Cliff_walking)
 
 # solve using different methods
 sol <- solve_MDP(Cliff_walking)
 sol
 policy(sol)
-gridworld_plot(sol)
+gw_plot(sol)
 }
 \references{
 Richard S. Sutton and Andrew G. Barto (2018). Reinforcement Learning: An Introduction

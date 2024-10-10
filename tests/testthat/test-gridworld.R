@@ -1,10 +1,10 @@
 
 for (m in models) {
-  gridworld_matrix(m, what = "states")
-  gridworld_matrix(m, what = "index")
-  gridworld_matrix(m, what = "labels")
-  expect_error(gridworld_matrix(m, what = "values"))
-  expect_error(gridworld_matrix(m, what = "actions"))
-  gridworld_matrix(m, what = "absorbing")
-  gridworld_matrix(m, what = "unreachable")
+  gw_matrix(m, what = "states")
+  gw_matrix(m, what = "index")
+  gw_matrix(m, what = "labels")
+  expect_error(gw_matrix(m, what = "values"))
+  expect_error(gw_matrix(m, what = "actions"))
+  gw_matrix(m, what = "absorbing")
+  gw_matrix(m, what = "unreachable")
 }

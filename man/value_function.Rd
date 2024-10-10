@@ -56,9 +56,9 @@ plot_value_function(sol, epoch = 2)
 plot_value_function(sol, epoch = 3)
 
 # For a gridworld we can also plot is like this
-gridworld_plot(sol, epoch = 1)
-gridworld_plot(sol, epoch = 2)
-gridworld_plot(sol, epoch = 3)
+gw_plot(sol, epoch = 1)
+gw_plot(sol, epoch = 2)
+gw_plot(sol, epoch = 3)
 }
 \seealso{
 Other policy: 
@@ -74,8 +74,8 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

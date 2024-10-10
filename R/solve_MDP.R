@@ -41,10 +41,10 @@
 #'
 #' * **Prioritized Sweeping** (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008) 
 #'   approximate the optimal value
-#'   function by iteratively adjusting always only the state value of the state
-#'   with the largest Bellman error. That is, if a state is updated, all states leading
-#'   to this states will have their priority increased by the update difference. 
-#'   This update order leads to faster convergence compared
+#'   function by iteratively adjusting one state at a time. The state to be updated is chosen 
+#'   depending on its priority which reflects how much a state value may change 
+#'   given the most recently updated other states that can be directly reached via an action. 
+#'   This update order often lead to faster convergence compared
 #'   to sweeping the whole state state in regular value iteration.
 #'   
 #'   We implement the two priority update strategies described as __PS__ and
@@ -79,6 +79,10 @@
 #'   
 #'   This implementation stops updating when the largest priority values
 #'   over all states is less than the specified `error`.
+#'   
+#'   Since the logarithm does not sweep through the whole state space for each
+#'   iteration, `iter_max` is converted into an equivalent number of state updates 
+#'   \eqn{n = \text{iter_max} |S|}.
 #'
 #' Note that policies converge earlier than value functions.
 #'
@@ -240,7 +244,7 @@
 #' plot_value_function(maze_solved)
 #'
 #' # Gridworld solutions can be visualized
-#' gridworld_plot(maze_solved)
+#' gw_plot(maze_solved)
 #'
 #' # Use linear programming
 #' maze_solved <- solve_MDP(Maze, method = "lp")
@@ -254,9 +258,9 @@
 #' # finite horizon
 #' maze_solved <- solve_MDP(Maze, method = "value_iteration", horizon = 3)
 #' policy(maze_solved)
-#' gridworld_plot(maze_solved, epoch = 1)
-#' gridworld_plot(maze_solved, epoch = 2)
-#' gridworld_plot(maze_solved, epoch = 3)
+#' gw_plot(maze_solved, epoch = 1)
+#' gw_plot(maze_solved, epoch = 2)
+#' gw_plot(maze_solved, epoch = 3)
 #'
 #' # create a random policy where action n is very likely and approximate
 #' #  the value function. We change the discount factor to .9 for this.
@@ -284,7 +288,7 @@
 #' maze_learned$solution
 #' policy(maze_learned)
 #' plot_value_function(maze_learned)
-#' gridworld_plot(maze_learned)
+#' gw_plot(maze_learned)
 #' @export
 solve_MDP <- function(model, method = "value_iteration", ...) {
   if (!inherits(model, "MDP")) {

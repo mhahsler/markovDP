@@ -38,9 +38,12 @@ act <- function(model, state, action = NULL, ...) {
                    1L, 
                    prob = transition_matrix(model, action, state, 
                                             sparse = FALSE))
-  sp <- factor(S[sp], levels = S)
+  action <- .normalize_action(action, model)
+  state <- .normalize_state(state, model)
+  sp <- .normalize_state(sp, model)
+  
   r <-  reward_matrix(model, action, state, sp)
-                   
+  
   list(old_state = state,
        action = action,
        reward =  r,

@@ -74,8 +74,8 @@ if there is for all actions a probability of 1 for staying in the state.
 \examples{
 data(Maze)
 
-gridworld_matrix(Maze)
-gridworld_matrix(Maze, what = "labels")
+gw_matrix(Maze)
+gw_matrix(Maze, what = "labels")
 
 # -1 and +1 are absorbing states
 absorbing_states(Maze)
@@ -92,8 +92,8 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

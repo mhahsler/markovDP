@@ -73,13 +73,13 @@ sol
 ## policy with value function and optimal action.
 policy(sol)
 plot_value_function(sol)
-gridworld_plot(sol)
+gw_plot(sol)
 
 ## create a random policy
 pi_random <- random_policy(Maze, estimate_U = TRUE)
 pi_random
 
-gridworld_plot(add_policy(Maze, pi_random))
+gw_plot(add_policy(Maze, pi_random))
 
 ## create a manual policy (go up and in some squares to the right)
 acts <- rep("up", times = length(Maze$states))
@@ -88,14 +88,14 @@ acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
 pi_manual <- manual_policy(Maze, acts)
 pi_manual
 
-gridworld_plot(add_policy(Maze, pi_manual))
+gw_plot(add_policy(Maze, pi_manual))
 
 ## Finite horizon (we use incremental pruning because grid does not converge)
 sol <- solve_MDP(model = Maze, horizon = 3)
 sol
 
 policy(sol)
-gridworld_plot(sol)
+gw_plot(sol)
 }
 \seealso{
 Other policy: 

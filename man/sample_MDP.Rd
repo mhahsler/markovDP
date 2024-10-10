@@ -94,7 +94,7 @@ sol
 
 # U in the policy is and estimate of the utility of being in a state when using the optimal policy.
 policy(sol)
-gridworld_matrix(sol, what = "action")
+gw_matrix(sol, what = "action")
 
 ## Example 1: simulate 100 trajectories following the policy,
 #             only the final belief state is returned
@@ -127,8 +127,8 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

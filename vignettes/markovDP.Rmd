@@ -267,7 +267,7 @@ After loading the library, we create the states using a gridworld helper
 function.
 
 ```{r}
-gw <- gridworld_init(dim = c(3, 4),  
+gw <- gw_init(dim = c(3, 4),  
                      unreachable_states = "s(2,2)",
                      absorbing_states = c("s(1,4)", "s(2,4)"),
                      state_labels = list(
@@ -303,7 +303,7 @@ T <- function(model, action, start.state, end.state) {
     error_direction <- c("up", "down")
   }
 
-  rc <- gridworld_s2rc(start.state)
+  rc <- gw_s2rc(start.state)
   delta <- list(
     up = c(-1, 0),
     down = c(+1, 0),
@@ -315,7 +315,7 @@ T <- function(model, action, start.state, end.state) {
   add_prob <- function(P, rc, a, value) {
     new_rc <- rc + delta[[a]]
     # stay in place for moved to a non-existing state
-    if (!(gridworld_rc2s(new_rc) %in% model$states)) {
+    if (!(gw_rc2s(new_rc) %in% model$states)) {
       new_rc <- rc
     }
     P[new_rc[1], new_rc[2]] <- P[new_rc[1], new_rc[2]] + value
@@ -325,7 +325,7 @@ T <- function(model, action, start.state, end.state) {
   P <- add_prob(P, rc, action, .8)
   P <- add_prob(P, rc, error_direction[1], .1)
   P <- add_prob(P, rc, error_direction[2], .1)
-  P[rbind(gridworld_s2rc(end.state))]
+  P[rbind(gw_s2rc(end.state))]
 }
 ```
 

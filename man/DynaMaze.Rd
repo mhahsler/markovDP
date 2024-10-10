@@ -20,10 +20,10 @@ data(DynaMaze)
 
 DynaMaze
 
-gridworld_matrix(DynaMaze)
-gridworld_matrix(DynaMaze, what = "labels")
+gw_matrix(DynaMaze)
+gw_matrix(DynaMaze, what = "labels")
 
-gridworld_plot_transition_graph(DynaMaze)
+gw_plot_transition_graph(DynaMaze)
 }
 \references{
 Richard S. Sutton and Andrew G. Barto (2018). Reinforcement Learning: An Introduction

@@ -42,5 +42,5 @@ action.MDP <-
       a <- sample(available_A, size = 1L)
     }
    
-    a 
+    .normalize_action(a, model)
   }

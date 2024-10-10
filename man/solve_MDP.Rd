@@ -17,9 +17,9 @@ solve_MDP_DP(
   method = "value_iteration",
   horizon = NULL,
   discount = NULL,
-  iter_max = 1000,
-  error = 0.01,
-  k_backups = 10,
+  iter_max = 1000L,
+  error = 0.001,
+  k_backups = 10L,
   U = NULL,
   matrix = TRUE,
   continue = FALSE,
@@ -73,7 +73,7 @@ solve_MDP_sampling(
   method = "q_planning",
   horizon = NULL,
   discount = NULL,
-  alpha = 0.5,
+  alpha = function(t, n) 1/n,
   n = 1000,
   Q = NULL,
   continue = FALSE,
@@ -196,10 +196,10 @@ is calculated from the final value function. Value iteration can be seen as
 policy iteration with truncated policy evaluation.
 \item \strong{Prioritized Sweeping} (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008)
 approximate the optimal value
-function by iteratively adjusting always only the state value of the state
-with the largest Bellman error. That is, if a state is updated, all states leading
-to this states will have their priority increased by the update difference.
-This update order leads to faster convergence compared
+function by iteratively adjusting one state at a time. The state to be updated is chosen
+depending on its priority which reflects how much a state value may change
+given the most recently updated other states that can be directly reached via an action.
+This update order often lead to faster convergence compared
 to sweeping the whole state state in regular value iteration.
 
 We implement the two priority update strategies described as \strong{PS} and
@@ -234,6 +234,10 @@ GenPS. However, this requires one complete sweep over all states.
 
 This implementation stops updating when the largest priority values
 over all states is less than the specified \code{error}.
+
+Since the logarithm does not sweep through the whole state space for each
+iteration, \code{iter_max} is converted into an equivalent number of state updates
+\eqn{n = \text{iter_max} |S|}.
 }
 
 Note that policies converge earlier than value functions.
@@ -340,7 +344,7 @@ policy(maze_solved)
 plot_value_function(maze_solved)
 
 # Gridworld solutions can be visualized
-gridworld_plot(maze_solved)
+gw_plot(maze_solved)
 
 # Use linear programming
 maze_solved <- solve_MDP(Maze, method = "lp")
@@ -354,9 +358,9 @@ policy(maze_solved)
 # finite horizon
 maze_solved <- solve_MDP(Maze, method = "value_iteration", horizon = 3)
 policy(maze_solved)
-gridworld_plot(maze_solved, epoch = 1)
-gridworld_plot(maze_solved, epoch = 2)
-gridworld_plot(maze_solved, epoch = 3)
+gw_plot(maze_solved, epoch = 1)
+gw_plot(maze_solved, epoch = 2)
+gw_plot(maze_solved, epoch = 3)
 
 # create a random policy where action n is very likely and approximate
 #  the value function. We change the discount factor to .9 for this.
@@ -384,7 +388,7 @@ maze_learned
 maze_learned$solution
 policy(maze_learned)
 plot_value_function(maze_learned)
-gridworld_plot(maze_learned)
+gw_plot(maze_learned)
 }
 \references{
 Andre, D., Friedman, N., and Parr, R. 1997. "Generalized prioritized sweeping." In Advances in Neural Information Processing Systems 10, pp. 1001-1007. \href{https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf}{NeurIPS Proceedings}
@@ -416,8 +420,8 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{actions}},
 \code{\link{add_policy}()},
+\code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

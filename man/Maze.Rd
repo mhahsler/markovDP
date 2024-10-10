@@ -50,10 +50,10 @@ converges without discounting (\code{discount = 1}).
 # Here is the complete problem definition.
 
 # We first look at the state layout
-gridworld_matrix(gridworld_init(dim = c(3, 4)))
+gw_matrix(gw_init(dim = c(3, 4)))
 
 # the wall at s(2,2) is unreachable
-gw <- gridworld_init(dim = c(3, 4),
+gw <- gw_init(dim = c(3, 4),
         start = "s(3,1)",
         goal = "s(1,4)",
         absorbing_states = c("s(1,4)", "s(2,4)"),
@@ -63,11 +63,11 @@ gw <- gridworld_init(dim = c(3, 4),
             "s(2,4)" = "-1",
             "s(1,4)" = "Goal: +1")
 )
-gridworld_matrix(gw)
-gridworld_matrix(gw, what = "index")
-gridworld_matrix(gw, what = "labels")
+gw_matrix(gw)
+gw_matrix(gw, what = "index")
+gw_matrix(gw, what = "labels")
 
-# gridworld_init has created the following information
+# gw_init has created the following information
 str(gw)
 
 # the transition function is stochastic so we cannot use the standard
@@ -89,7 +89,7 @@ T <- function(model, action, start.state) {
     error_direction <- c("up", "down")
   }
   
-  rc <- gridworld_s2rc(start.state)
+  rc <- gw_s2rc(start.state)
   delta <- list(
     up = c(-1, 0),
     down = c(+1, 0),
@@ -99,21 +99,21 @@ T <- function(model, action, start.state) {
   
   # there are 3 directions. For blocked directions, stay in place
   # 1) action works .8
-  rc_new <- gridworld_rc2s(rc + delta[[action]])
+  rc_new <- gw_rc2s(rc + delta[[action]])
   if (rc_new \%in\% model$states)
     P[rc_new] <- .8
   else
     P[start.state] <- .8
   
   # 2) off to the right .1
-  rc_new <- gridworld_rc2s(rc + delta[[error_direction[1]]])
+  rc_new <- gw_rc2s(rc + delta[[error_direction[1]]])
   if (rc_new \%in\% model$states)
     P[rc_new] <- .1
   else
     P[start.state] <-  P[start.state] + .1
   
   # 3) off to the left .1
-  rc_new <- gridworld_rc2s(rc + delta[[error_direction[2]]])
+  rc_new <- gw_rc2s(rc + delta[[error_direction[2]]])
   if (rc_new \%in\% model$states)
     P[rc_new] <- .1
   else
@@ -149,9 +149,9 @@ Maze
 
 str(Maze)
 
-gridworld_matrix(Maze)
-gridworld_matrix(Maze, what = "labels")
-gridworld_plot(Maze)
+gw_matrix(Maze)
+gw_matrix(Maze, what = "labels")
+gw_plot(Maze)
 
 # find absorbing (terminal) states
 absorbing_states(Maze)
@@ -159,10 +159,10 @@ absorbing_states(Maze)
 maze_solved <- solve_MDP(Maze)
 policy(maze_solved)
 
-gridworld_matrix(maze_solved, what = "values")
-gridworld_matrix(maze_solved, what = "actions")
+gw_matrix(maze_solved, what = "values")
+gw_matrix(maze_solved, what = "actions")
 
-gridworld_plot(maze_solved)
+gw_plot(maze_solved)
 }
 \references{
 Russell,9 S. J. and Norvig, P. (2020). Artificial Intelligence:

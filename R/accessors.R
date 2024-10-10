@@ -39,26 +39,26 @@
 #'
 #' ## Sparse Matrices and Normalizing MDPs
 #'
-#' Different components can be specified in various ways. It is often 
-#' necessary to convert each component into a specific form (e.g., a 
-#' dense matrix) to save time during access.  
+#' Different components can be specified in various ways. It is often
+#' necessary to convert each component into a specific form (e.g., a
+#' dense matrix) to save time during access.
 #' Convert the Complete MDP Description into a consistent form
 #' `normalize_MDP()` converts all components of the MDP description
 #'  into a consistent form and
 #' returns a new MDP definition where `transition_prob`,
 #' `reward`, and `start` are normalized. This includes the internal
-#' representation (dense, sparse, as a data.frame) and 
+#' representation (dense, sparse, as a data.frame) and
 #' also, `states`, and `actions` are ordered as given in the problem
 #' definition to make safe access using numerical indices possible. Normalized
 #' MDP descriptions can be
 #' used in custom code that expects consistently a certain format.
-#' 
-#' The default behavior of `sparse = NULL` uses parse matrices for large models 
-#' where the dense transition model would need more 
-#' than `options("MDP_SPARSE_LIMIT")` (the default is about 100 MB which 
+#'
+#' The default behavior of `sparse = NULL` uses parse matrices for large models
+#' where the dense transition model would need more
+#' than `options("MDP_SPARSE_LIMIT")` (the default is about 100 MB which
 #' can be changed using
 #' [options()]). Smaller models use faster dense
-#' matrices. 
+#' matrices.
 #'
 #' @family MDP
 #' @name accessors
@@ -78,8 +78,8 @@
 #' @author Michael Hahsler
 #' @examples
 #' data("Maze")
-#' gridworld_matrix(Maze)
-#' 
+#' gw_matrix(Maze)
+#'
 #' # here is the internal structure of the Maze object
 #' str(Maze)
 #'
@@ -133,36 +133,37 @@ normalize_MDP <- function(model,
                           precompute_absorbing = TRUE,
                           precompute_unreachable = TRUE,
                           check_and_fix = FALSE,
-                          progress = TRUE
-) {
+                          progress = TRUE) {
   if (!inherits(model, "MDP")) {
     stop("model is not an MDP object!")
   }
   
   if (is.null(sparse))
-    sparse <- length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
+    sparse <- length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
   if (!is.logical(sparse) || length(sparse) != 1L)
     stop("sparse needs to be a NULL or a logical scalar.")
-     
+  
   # start state vector + transitions matrix + reward matrix + check and fix
   n_states <- length(model$states)
   n_actions <- length(model$actions)
   t_start <- n_states
   t_pass <- n_actions * n_states * n_states
   
-  N <- as.numeric(start) * t_start + 
+  N <- as.numeric(start) * t_start +
     as.numeric(transition_prob) * t_pass +
     as.numeric(reward) * t_pass +
-    as.numeric(precompute_absorbing && is.null(model$absorbing_states)) * t_pass +
-    as.numeric(precompute_unreachable && is.null(model$unreachable_states)) * t_pass +
+    as.numeric(precompute_absorbing &&
+                 is.null(model$absorbing_states)) * t_pass +
+    as.numeric(precompute_unreachable &&
+                 is.null(model$unreachable_states)) * t_pass +
     as.numeric(check_and_fix) * t_pass
-    
+  
   if (progress) {
     pb <- my_progress_bar(N, name = "normalize_MDP")
     pb$tick(0)
   }
- 
-  # start 
+  
+  # start
   if (start) {
     model$start <- start_vector(model, sparse = sparse)
     if (progress)
@@ -176,7 +177,7 @@ normalize_MDP <- function(model,
       pb$tick(t_pass)
     
     # w/progress
-    # model$transition_prob <- 
+    # model$transition_prob <-
     #   sapply(
     #     model$actions,
     #     FUN = function(a) {
@@ -189,28 +190,29 @@ normalize_MDP <- function(model,
     #     USE.NAMES = TRUE
     #   )
   }
-    
+  
   # reward
   if (reward) {
     model$reward <- reward_matrix(model, sparse = sparse)
     if (progress)
       pb$tick(t_pass)
   }
- 
+  
   # make sure order is OK
-  if (check_and_fix) { 
+  if (check_and_fix) {
     model <- check_and_fix_MDP(model)
     if (progress)
       pb$tick(t_pass)
   }
   
   # remember recalculated absorbing/unreachable states
-  if (precompute_absorbing && is.null(model$absorbing_states)) { 
+  if (precompute_absorbing && is.null(model$absorbing_states)) {
     model$absorbing_states <- absorbing_states(model, sparse = "states")
     if (progress)
       pb$tick(t_pass)
   }
-  if (precompute_unreachable && is.null(model$unreachable_states)) { 
+  if (precompute_unreachable &&
+      is.null(model$unreachable_states)) {
     model$unreachable_states <- unreachable_states(model, sparse = "states")
     if (progress)
       pb$tick(t_pass)
@@ -220,7 +222,10 @@ normalize_MDP <- function(model,
 }
 
 # Translate a probability distribution like the start distribution in MDPs
-.translate_distribution <- function(prob, state_labels, sparse = NULL, check = TRUE) {
+.translate_distribution <- function(prob,
+                                    state_labels,
+                                    sparse = NULL,
+                                    check = TRUE) {
   if (is.null(prob))
     stop("No probabilities provided (NULL)!")
   
@@ -280,7 +285,8 @@ normalize_MDP <- function(model,
   # start include: 1 3
   # start: first-state
   # start include: first-state third state
-  else if (is.character(prob) && (prob[1] != "-" || length(prob) == 0L) ||
+  else if (is.character(prob) &&
+           (prob[1] != "-" || length(prob) == 0L) ||
            is.numeric(prob) && all(prob > 0)) {
     if (is.character(prob))
       prob <- match(prob, state_labels)
@@ -372,8 +378,8 @@ normalize_MDP <- function(model,
       sparse <- "states"
     }
     
-    m <- pmatch(sparse, c("states", "index")) 
-    if(!is.na(m)) {
+    m <- pmatch(sparse, c("states", "index"))
+    if (!is.na(m)) {
       if (m == 2L)
         x <- match(x, state_labels)
       
@@ -390,17 +396,17 @@ normalize_MDP <- function(model,
     return(.sparsify_vector(x, sparse, state_labels))
   
   # index vector
-  .sparsify_vector(sparseVector(rep.int(TRUE, times = length(x)), 
-                                x, 
-                                length = length(state_labels)), sparse, state_labels)
+  .sparsify_vector(sparseVector(rep.int(TRUE, times = length(x)), x, length = length(state_labels)),
+                   sparse,
+                   state_labels)
   
   # x <- .translate_distribution(x, state_labels, sparse, check = FALSE)
-  # 
+  #
   # if(is(x, "sparseVector"))
   #   x <- as(x, "lsparseVector")
   # else if(is.numeric(x) && !is.integer(x))
   #   x <- as.logical(x)
-  # 
+  #
   # x
 }
 
@@ -439,7 +445,7 @@ normalize_MDP <- function(model,
   
   # NULL means as is
   if (is.null(sparse))
-      return(x)
+    return(x)
   
   if (is.logical(sparse)) {
     if (sparse)
@@ -451,14 +457,15 @@ normalize_MDP <- function(model,
   # state labels or indices
   if (is.character(sparse)) {
     sparse <- match.arg(sparse, c("states", "index"))
-    if (sparse == "states") { 
+    if (sparse == "states") {
       if (is(x, "sparseVector")) {
         if (is.null(names))
           stop("state names needed to return states.")
         return(names[Matrix::which(x > 0)])
       } else
         return(names(x)[x > 0])
-    } else { ### index
+    } else {
+      ### index
       return(unname(Matrix::which(x > 0)))
     }
   }
@@ -467,6 +474,40 @@ normalize_MDP <- function(model,
   
 }
 
+# make sure it is a factor
+.normalize_state <- function(state, model) {
+  if (is.factor(state))
+    return(state)
+  
+  if (is.numeric(state))
+    return(factor(
+      state,
+      levels = seq_along(model$states),
+      labels = model$states
+    ))
+  
+  if (is.character(state))
+    return(factor(state, levels = model$states))
+  
+  stop("Unknown state label: ", sQuote(state))
+}
+
+.normalize_action <- function(action, model) {
+  if (is.factor(action))
+    return(action)
+  
+  if (is.numeric(action))
+    return(factor(
+      action,
+      levels = seq_along(model$actions),
+      labels = model$actions
+    ))
+  
+  if (is.character(action))
+    return(factor(action, levels = model$actions))
+  
+  stop("Unknown action label: ", sQuote(action))
+}
 
 #' @rdname accessors
 #' @param start a start state description (see [MDP]). If `NULL` then the
@@ -571,7 +612,6 @@ function2value <- function(model,
                            row = NULL,
                            col = NULL,
                            sparse = NULL) {
-  
   if (is.null(action))
     action <- model$actions
   
@@ -597,7 +637,7 @@ function2value <- function(model,
   if (length(formals(f)) == 4L) {
     ### with end.state ####################################################
     
-    if (!is.null(col) && is.numeric(col)) 
+    if (!is.null(col) && is.numeric(col))
       col <- model$states[col]
     
     # single value
@@ -615,7 +655,7 @@ function2value <- function(model,
       return(.sparsify_vector(o, sparse = sparse, names = model$states))
     }
     
-    # no rows/1 col 
+    # no rows/1 col
     if (is.null(row) && !is.null(col) && length(col) == 1L) {
       fv <- Vectorize(f, vectorize.args = c("start.state"))
       o <- fv(model, action, model$states, col)
@@ -659,17 +699,18 @@ function2value <- function(model,
     dimnames(o) <- list(row, col)
     
     # we default to sparse here or the matrices may become to big
-    if (is.null(sparse) && length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
+    if (is.null(sparse) &&
+        length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
     
     o <- .sparsify(o, sparse)
-  
+    
     return(o)
     
   } else {
     ### no end.state ###################################################
-    # the function may return a 
-    # * dense probability vector 
+    # the function may return a
+    # * dense probability vector
     # * a sparseVector
     # * a short named vector with only values > 0
     # Convert it appropriately
@@ -677,12 +718,14 @@ function2value <- function(model,
       v <- f(model, action, row)
       
       # sparse or dense vector
-      if(length(v) == length(model$states))
+      if (length(v) == length(model$states))
         return(v)
       
       # translate partial vector into a sparse vector
       cols <- match(names(v), model$states)
-      sparseVector(x = unname(v), i = cols, length = length(model$states))
+      sparseVector(x = unname(v),
+                   i = cols,
+                   length = length(model$states))
     }
     
     # we need col ids to subset sparse vectors
@@ -707,7 +750,8 @@ function2value <- function(model,
     # no rows or specified rows / cols or no cols
     if (is.null(row))
       row <- model$states
-    .f_wrapper_vec <- Vectorize(.f_wrapper, vectorize.args = c("row"), 
+    .f_wrapper_vec <- Vectorize(.f_wrapper,
+                                vectorize.args = c("row"),
                                 SIMPLIFY = FALSE)
     o <- .f_wrapper_vec(f, model, action, row)
     
@@ -733,7 +777,7 @@ function2value <- function(model,
     o <- do.call("rbind", o)
     dimnames(o) <- list(row, model$states)
     
-    if(!is.null(col)) {
+    if (!is.null(col)) {
       o <- o[, col, drop = FALSE]
       colnames(o) <- model$states[col]
       
@@ -742,12 +786,13 @@ function2value <- function(model,
     }
     
     # we default to sparse here or the matrices may become to big
-    if (is.null(sparse) && length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
+    if (is.null(sparse) &&
+        length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
     
     o <- .sparsify(o, sparse = sparse)
     
-      
+    
     return(o)
   }
 }
@@ -803,7 +848,7 @@ matrix2value <-
           ncol = length(n_states)
         )
       )
-    
+      
       dimnames(m) <- list(model$states, model$states)
       
     }
@@ -845,7 +890,6 @@ df2value <-
            row = NULL,
            col = NULL,
            sparse = NULL) {
-    
     ## we use int indices for action here
     if (is.null(action))
       action <- model$actions
@@ -922,7 +966,7 @@ df2value <-
         v[c] <- value[i]
       }
       
-
+      
       return(.sparsify_vector(v, sparse, names = model$states))
     }
     
@@ -952,7 +996,7 @@ df2value <-
       
       # we default to sparse
       if (is.null(sparse))
-        sparse <- length(model$states)^2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
+        sparse <- length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
       
       return(.sparsify_vector(v, sparse, names = model$states))
     }

@@ -34,8 +34,8 @@
 #' @examples
 #' data(Maze)
 #'
-#' gridworld_matrix(Maze)
-#' gridworld_matrix(Maze, what = "labels")
+#' gw_matrix(Maze)
+#' gw_matrix(Maze, what = "labels")
 #'
 #' # -1 and +1 are absorbing states
 #' absorbing_states(Maze)

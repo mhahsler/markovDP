@@ -21,8 +21,8 @@
 #'
 #' DynaMaze
 #'
-#' gridworld_matrix(DynaMaze)
-#' gridworld_matrix(DynaMaze, what = "labels")
+#' gw_matrix(DynaMaze)
+#' gw_matrix(DynaMaze, what = "labels")
 #'
-#' gridworld_plot_transition_graph(DynaMaze)
+#' gw_plot_transition_graph(DynaMaze)
 NULL

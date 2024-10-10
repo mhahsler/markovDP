@@ -32,13 +32,13 @@
 #' ## policy with value function and optimal action.
 #' policy(sol)
 #' plot_value_function(sol)
-#' gridworld_plot(sol)
+#' gw_plot(sol)
 #'
 #' ## create a random policy
 #' pi_random <- random_policy(Maze, estimate_U = TRUE)
 #' pi_random
 #'
-#' gridworld_plot(add_policy(Maze, pi_random))
+#' gw_plot(add_policy(Maze, pi_random))
 #'
 #' ## create a manual policy (go up and in some squares to the right)
 #' acts <- rep("up", times = length(Maze$states))
@@ -47,14 +47,14 @@
 #' pi_manual <- manual_policy(Maze, acts)
 #' pi_manual
 #'
-#' gridworld_plot(add_policy(Maze, pi_manual))
+#' gw_plot(add_policy(Maze, pi_manual))
 #'
 #' ## Finite horizon (we use incremental pruning because grid does not converge)
 #' sol <- solve_MDP(model = Maze, horizon = 3)
 #' sol
 #'
 #' policy(sol)
-#' gridworld_plot(sol)
+#' gw_plot(sol)
 #' @export
 policy <- function(model, epoch = NULL, drop = TRUE) {
   UseMethod("policy")
@@ -108,7 +108,7 @@ random_policy <-
       pol <- data.frame(
         state = S,
         U = NA_real_,
-        action = factor(
+        action = .normalize_action(
           sapply(S, function(s) {
             avail_a <- available_actions(model, s, ...)
             if (length(avail_a) == 0L)
@@ -117,9 +117,7 @@ random_policy <-
               avail_a
             else 
               sample(as.integer(avail_a), size = 1L, prob = prob[avail_a]/sum(prob[avail_a]))
-          }),
-          levels = seq_along(A),
-          labels = A
+          }), model
         ), row.names = NULL
       )
       
@@ -128,15 +126,13 @@ random_policy <-
       pol <- data.frame(
         state = S,
         U = NA_real_,
-        action = factor(
+        action = .normalize_action(
           sample(
             seq_along(A),
             size = length(S),
             replace = TRUE,
             prob = prob
-          ),
-          levels = seq_along(A),
-          labels = A
+          ), model
         ), row.names = NULL
       )
     }
@@ -174,12 +170,9 @@ manual_policy <-
       actions <- A[actions]
     }
     
-    actions <- factor(actions, levels = A)
-    
-    
     pol <- data.frame(state = S,
                       U = U,
-                      action = actions, 
+                      action = .normalize_action(actions, model), 
                       row.names = NULL)
     
     if (estimate_U) {
