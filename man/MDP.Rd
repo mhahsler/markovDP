@@ -3,6 +3,7 @@
 \name{MDP}
 \alias{MDP}
 \alias{is_solved_MDP}
+\alias{is_converged_MDP}
 \alias{T_}
 \alias{R_}
 \alias{epoch_to_episode}
@@ -21,6 +22,8 @@ MDP(
 )
 
 is_solved_MDP(model, stop = FALSE)
+
+is_converged_MDP(model)
 
 T_(action = NA, start.state = NA, end.state = NA, probability)
 

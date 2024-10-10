@@ -88,7 +88,7 @@ policy_evaluation <-
   function(model,
            pi,
            U = NULL,
-           k_backups = 1000,
+           k_backups = 1000L,
            theta = 1e-3,
            matrix = TRUE,
            progress = TRUE,

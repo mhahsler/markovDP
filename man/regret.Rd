@@ -2,9 +2,15 @@
 % Please edit documentation in R/regret.R
 \name{regret}
 \alias{regret}
-\title{Calculate the Regret of a Policy}
+\alias{action_discrepancy}
+\alias{mean_value_error}
+\title{Regret of a Policy and Related Measures}
 \usage{
 regret(policy, benchmark, start = NULL, run_policy_eval = TRUE, ...)
+
+action_discrepancy(policy, benchmark, proportion = FALSE)
+
+mean_value_error(policy, benchmark, square = TRUE)
 }
 \arguments{
 \item{policy}{a solved MDP containing the policy to calculate the regret for.}
@@ -14,25 +20,54 @@ policy.}
 
 \item{start}{start state distribution. If NULL then the start state of the \code{benchmark} is used.}
 
-\item{run_policy_eval}{logical; run policy evaluation to re-estimate state values.}
-
 \item{...}{further arguments are passed on to \code{\link[=policy_evaluation]{policy_evaluation()}}.}
+
+\item{proportion}{logical; should the action discrepancy be reported as a proportion
+of states with a different action.}
+
+\item{square}{logical; should the value error be squared?}
+
+\item{policy_eval}{logical; run policy evaluation to re-estimate state values.}
 }
 \value{
-the regret as a difference of expected long-term rewards.
+\itemize{
+\item \code{regret()} returns the regret as a difference of expected long-term rewards.
+\item \code{action_discrepancy()} returns the number or proportion of diverging actions.
+\item \code{mean_value_error()} returns the mean squared or absolute difference in the
+value function.
+}
 }
 \description{
-Calculates the regret of a policy relative to a benchmark policy.
+Calculates the regret and related measures for a policy relative to a benchmark policy.
 }
 \details{
+\subsection{Regret}{
+
 Regret is defined as \eqn{V^{\pi^*}(s_0) - V^{\pi}(s_0)} with \eqn{V^\pi} representing the expected long-term
 state value (represented by the value function) given the policy \eqn{\pi} and the start
 state \eqn{s_0}.
 
-Note that for regret usually the optimal policy \eqn{\pi^*} is used as the benchmark.
+Note that for regret, usually the optimal policy \eqn{\pi^*} is used as the benchmark.
 Since the optimal policy may not be known, regret relative to the best known policy can be used.
 
-If the policy has
+Regret is only valid with converged value functions. This means that either the
+solver has converged, or the value function was estimated for the policy using
+converged \code{\link[=policy_evaluation]{policy_evaluation()}}.
+}
+
+\subsection{Action Discrepancy}{
+
+The action discrepancy is the number of states in the policy for which the
+prescribed action in the policy differs. This implementation calculates
+the Q matrix for the benchmark to make sure that actions with the same Q-value
+are considers as correct.
+}
+
+\subsection{Mean (squared) Value Error}{
+
+The mean value error is the sum of the squared differences in
+state values between the two solutions.
+}
 }
 \examples{
 data(Maze)
@@ -44,12 +79,15 @@ policy(sol_optimal)
 acts <- rep("up", times = length(Maze$states))
 names(acts) <- Maze$states
 acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
-U <- policy_evaluation(Maze, manual_policy(Maze, acts))
 
-sol_manual <- add_policy(Maze, manual_policy(Maze, acts, U = TRUE))
+sol_manual <- add_policy(Maze, manual_policy(Maze, acts, estimate_U = TRUE))
 policy(sol_manual)
 
 regret(sol_manual, benchmark = sol_optimal)
+
+action_discrepancy(sol_manual, benchmark = sol_optimal)
+
+mean_value_error(sol_manual, benchmark = sol_optimal)
 }
 \seealso{
 Other MDP: 

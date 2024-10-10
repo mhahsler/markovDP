@@ -9,7 +9,7 @@ policy_evaluation(
   model,
   pi,
   U = NULL,
-  k_backups = 1000,
+  k_backups = 1000L,
   theta = 0.001,
   matrix = TRUE,
   progress = TRUE,

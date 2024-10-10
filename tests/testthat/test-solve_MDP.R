@@ -12,14 +12,13 @@ methods_TD <- c("sarsa", "q_learning", "expected_sarsa")
 methods_MC <- c("MC_exploring_starts", "MC_on_policy", "MC_off_policy")
 methods_sampling <- c("q_planning")
 
-
 num_states <- length(models_solve[[1]]$states)
+bench <- solve_MDP(models_solve[[1]], method = "lp", discount = 0.999)
+
 
 timing <- data.frame(model = character(0), 
                      method = character(0),
-                     regret = numeric(0),
-                     avg_U_diff =  numeric(0),
-                     different_actions = integer(0),
+                     action_discrepancy = numeric(0),
                      time = numeric(0))
 
 solutions <- list()
@@ -46,9 +45,7 @@ for (model in models_solve) {
     
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
-                                       different_actions = different_actions(sol, bench),
+                                       action_discrepancy = action_discrepancy(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
     
@@ -72,9 +69,7 @@ for (model in models_solve) {
     
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = paste0(m, "_", H_update), 
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
-                                       different_actions = different_actions(sol, bench),
+                                       action_discrepancy = action_discrepancy(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
     
@@ -100,9 +95,7 @@ for (model in models_solve) {
     t <- system.time(suppressWarnings((sol <- solve_MDP(model, method = m))))
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m,
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
-                                       different_actions = different_actions(sol, bench),
+                                       action_discrepancy = action_discrepancy(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
     
@@ -131,9 +124,7 @@ for (model in models_solve) {
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
-                                       different_actions = different_actions(sol, bench),
+                                       action_discrepancy = action_discrepancy(sol, bench),
                                        time = t[3]))
     solutions <- append(solutions, list(sol))
    
@@ -157,9 +148,7 @@ for (model in models_solve) {
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       avg_U_diff =  mean(abs(policy(sol)$U - policy(bench)$U)),
-                                       different_actions = different_actions(sol, bench),
+                                       action_discrepancy = action_discrepancy(sol, bench),
                                        time = t[3]))
     
     
@@ -183,9 +172,7 @@ for (model in models_solve) {
       cat("time: ", t[3], " sec.\n\n")
     timing <- rbind(timing, data.frame(model = model$name, 
                                        method = m, 
-                                       regret = regret(sol, bench, run_policy_eval = FALSE),
-                                       avg_U_diff =  mean(policy(sol)$U - policy(bench)$U),
-                                       different_actions = different_actions(sol, bench),
+                                       action_discrepancy = action_discrepancy(sol, bench),
                                        time = t[3]))
     
     
@@ -209,4 +196,4 @@ rownames(timing) <- NULL
 # }
 
 timing[order(timing$time),]
-timing[order(timing$different_actions),]
+timing[order(timing$action_discrepancy),]

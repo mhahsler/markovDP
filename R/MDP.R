@@ -279,6 +279,13 @@ is_solved_MDP <- function(model, stop = FALSE) {
   solved
 }
 
+#' @rdname MDP
+#' @export
+is_converged_MDP <- function(model) (
+  !is.null(model$solution$converged) &&
+    !is.na(model$solution$converged) &&
+    model$solution$converged)
+
 ## this is .get_pg_index for MDPs
 .get_pol_index <- function(model, epoch) {
   epoch <- as.integer(epoch)
