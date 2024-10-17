@@ -21,106 +21,148 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library("markovDP")
-```
-
 # Introduction
 
-The package **markovDP** [@CRAN_markovDP] provides the infrastructure to work with discrete-time Markov
-Decision Processes (MDPs) [@Bellman1957; @Howard1960] in R. The focus is on convenience in formulating MDPs,
-the support of sparse representations (using sparse matrices, lists and
-data.frames) and visualization of results. Some key components are implemented
-in C++ to speed up computation. 
-It also provides to the following popular solving procedures:
+The package **markovDP** [@CRAN_markovDP] provides the infrastructure to
+work with discrete-time Markov Decision Processes (MDPs) [@Bellman1957;
+@Howard1960] in R. The focus is on convenience in formulating MDPs, the
+support of sparse representations (using sparse matrices, lists and
+data.frames) and visualization of results. Some key components are
+implemented in C++ to speed up computation. It also provides to the
+following popular solving procedures:
 
-* __Dynamic Programming__
-  - Value Iteration [@Bellman1957]
-  - Modified Policy Iteration [@Howard1960; @Puterman1978]
-  - Prioritized Sweeping [@Moore1993; @Li2008]
+-   **Dynamic Programming**
+    -   Value Iteration [@Bellman1957]
+    -   Modified Policy Iteration [@Howard1960; @Puterman1978]
+    -   Prioritized Sweeping [@Moore1993; @Li2008]
+-   **Linear Programming**
+    -   Primal Formulation [@Manne1960]
+-   **Monte Carlo Control**
+    -   Monte Carlo Control with Exploring Starts [@Sutton1998]
+    -   On-policy Monte Carlo Control [@Sutton1998]
+    -   Off-policy Monte Carlo Control [@Sutton1998]
+-   **Termporal Differencing**
+    -   Q-Learning [@Watkins1992]
+    -   Sarsa [@Rummery1994]
+    -   Expected Sarsa [@Sutton1998]
+-   **Sampling**
+    -   Random-sample one-step tabular Q-planning [@Sutton1998]
 
-* __Linear Programming__
-  - Primal Formulation [@Manne1960]
+The implementations follow the description is [@Russell2020] and
+[@Sutton1998] closely. The implementations represent the state space
+explicitly, so only problems with small to medium state spaces can be
+used. It is intended to work with simplified models, to be useful to
+teach how the different methods work, and to experiment with new
+algorithmic ideas.
 
-* __Monte Carlo Control__
-  - Monte Carlo Control with Exploring Starts [@Sutton1998]
-  - On-policy Monte Carlo Control [@Sutton1998]
-  - Off-policy Monte Carlo Control [@Sutton1998]
-
-* __Termporal Differencing__
-  - Q-Learning [@Watkins1992]
-  - Sarsa [@Rummery1994]
-  - Expected Sarsa [@Sutton1998]
-  
-* __Sampling__
-  - Random-sample one-step tabular Q-planning [@Sutton1998]
-
-The implementations follow the description is [@Russell2020] and 
-[@Sutton1998] closely. The implementations represent the state space explicitly, 
-so only problems with small to medium state spaces can be used. It is intended
-to work with simplified models, to be useful to teach how the different 
-methods work, and to experiment with new algorithmic ideas.
-
-**markovDP** provides an alternative implementation to the existing R package
-**MDPToolbox** [@CRAN_MDPtoolbox]. The main difference is that **markovDP**
-has a stronger focus on visualizing models and resulting policies.
-It is also designed with 
-compatibility with the package **pomdp** for Partially Observable Markov 
-Processes [@CRAN_pomdp] in mind. We also implement some reinforcement learning 
-algorithms (e.g., Q-learning) to solve MDP models. Here the MDP is defines the
-simulated environment the agent interacts with.
-Reinforcement learning algorithm implementations
-can also be found in the R package **ReinforcementLearning** [@Proellochs2020] 
-which focuses on model-free learning from pre-defined observations
-or interaction with an environment.
+**markovDP** provides an alternative implementation to the existing R
+package **MDPToolbox** [@CRAN_MDPtoolbox]. The main difference is that
+**markovDP** has a stronger focus on visualizing models and resulting
+policies. It is also designed with compatibility with the package
+**pomdp** for Partially Observable Markov Processes [@CRAN_pomdp] in
+mind. We also implement some reinforcement learning algorithms (e.g.,
+Q-learning) to solve MDP models. Here the MDP is defines the simulated
+environment the agent interacts with. Reinforcement learning algorithm
+implementations can also be found in the R package
+**ReinforcementLearning** [@Proellochs2020] which focuses on model-free
+learning from pre-defined observations or interaction with an
+environment.
 
 In this document, we will give a very brief introduction to the concept
-of MDPs, describe the features of the R package **markovDP**, and illustrate the
-usage with a toy example.
+of MDPs, describe the features of the R package **markovDP**, and
+illustrate the usage with a toy example.
 
 # Markov Decision Processes
 
-A Markov decision process (MDP) [@Bellman1957; @Howard1960]
-is a discrete-time stochastic control
-process. In each time step, an agent can perform an action which affect
-the system (i.e., may cause the system state to change). The agent's
-goal is to maximize its expected future rewards that depend on the
-sequence of system states and the agent's actions in the future. The
-goal is to find the optimal policy that guides the agent's actions.
+A Markov decision process (MDP) [@Bellman1957; @Howard1960] is a
+discrete-time stochastic control process. In each time step, an agent
+can perform an action which affect the system (i.e., may cause the
+system state to change). The agent's goal is to maximize its expected
+future rewards that depend on the sequence of system states and the
+agent's actions in the future. The goal is to find the optimal policy
+that guides the agent's actions.
 
 The MDP framework is general enough to model a variety of real-world
 sequential decision-making problems. Applications include robot
 navigation problems, machine maintenance, and planning under uncertainty
 in general.
 
-A discrete-time POMDP can formally be described as a 7-tuple
-$$\mathcal{P} = (S, A, T, R, \gamma),$$ where
+## Definition
 
--   $S = \{s_1, s_2, \dots, s_n\}$ is a set of fully observable states,
+A discrete-time MDP can formally be described by
 
--   $A = \{a_1, a_2, \dots, a_m\}$ is a set of actions,
+-   $\mathcal{S} = \{s_1, s_2, \dots, s_n\}$ is the set of fully
+    observable states.
 
--   $T$ a set of conditional transition probabilities $T(s' \mid s,a)$
-    for the state transition $s \rightarrow s'$ conditioned on the taken
-    action.
+-   $\mathcal{A} = \{a_1, a_2, \dots, a_m\}$ is the set of actions.
 
--   $R: S \times A \rightarrow \mathbb{R}$ is the reward function,
+
+-   $\mathcal{P}$ a set of conditional transition probabilities.
+    $p(s'|s,a)$ is the probability for the state transition
+    $s \rightarrow s'$ conditioned on the taken action $a$.
+
+-   $\mathcal{R}$ is the set of all possible rewards. The reward is
+    defined by a reward function $r(s, a, s')$ returning the immediate reward 
+    received when transitioning from state $s$ to $s'$ while using action $a$.
+    $R_t$ is a random variable for the immediate reward at time $t$.
 
 -   $\gamma \in [0, 1]$ is the discount factor.
 
-At each time period, the environment is in some known state $s \in S$.
-The agent chooses an action $a \in A$, which causes the environment to
-transition to state $s' \in S$ with probability $T(s' \mid s,a)$ and the
-agent receives the reward $R(s,a)$. This process repeats for each time
-period. The goal is for the agent to choose actions that maximizes the
-expected sum of discounted future rewards, i.e., she chooses the actions
-at each time $t$ that
-$$\max \mathbb{E}\left[\sum_{t=0}^{\infty} \gamma^t R(s_t, a_t)\right].$$
+At each time step $t$, the environment is in some known state
+$s \in \mathcal{S}$. The agent chooses an action $a \in \mathcal{A}$,
+which causes the environment to transition to state $s' \in \mathcal{S}$
+with probability $p(s' \mid s,a)$ and the agent receives the immediate reward
+$r(s,a, s')$ as a realization of the random variable $R_t$. 
+This process repeats for each time step $t$. The goal is
+for the agent to choose actions that maximizes the expected sum of
+discounted future immediate rewards. 
+We fist consider the infinite time horizon case.
+The optimal action for an MDP depends on the current state and can be specified as 
+a deterministic policy $\pi_*$ which gives for each state the 
+optimal action $\pi_*(s)$. This leads to the following optimization problem. 
+
+$$\pi_* = \max_\pi \mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^t R_t | \pi\right].$$
 
 For a finite time horizon, only the expectation over the sum up to the
-time horizon is used.
+time horizon $T$ is used and the the optimal policy also depends on the time step $t$ 
+and the start state $S_0$ specified as a distribution over the states.
+
+## Notation Used in the Package
+
+The notation used in the package largely follows [@Sutton1998].
+
+| Notation | Variables/Functions in Code | Description |
+|------|------|------|
+| $\mathcal{S}$ | `states`, `S()` | the set of state      |
+| $s, s'$ | `s`, `state`, `start.state`, `end.state` | a state |
+| $\mathcal{A}$ | `actions`, `A()` | the set of actions      |
+| $a$     | `a`, `action`          | a action     |
+| $t$  | `t`    |   discrete time step|
+| $T$   | `T`, `horizon` | final time step  (length) of an episode, horizon |
+| $p(s' | s, a)$ | `transition_matrix()`, `p` | probability of transition from state $s$ to state $s'$ by taking action $a$ |
+| $r(s,a,s')$| `reward_matrix()`, `reward`, `r` | expected immediate reward on transition from `s` to `s'` under action `a` |
+| $\gamma$ | `discount` | discount factor |
+| $S_t, A_t, R_t$|  | random variables for state, action and reward at time $t$ |
+| $s_0, S_0$ | `start`, `start_vector()` | single start state, start distribution over states |
+| $\pi$   | vector `pi`, `policy`  | a deterministic policy with an action for each state     |
+| $\pi(s)$   | | prescribed action for state $s$ in a deterministic policy   |
+| $v_\pi(s), v_*(s)$ | | value of state $s$ under policy  $\pi$ or under the optimal policy |  
+| $V$ | vector `V` | the tabular estimate of $v_\pi(s)$ or $v_*(s)$ | 
+| $q_\pi(s,a), q_*(s,a)$| | value of taking action $a$ in state $s$ under policy $\pi$ or the optimal policy |
+| $Q$ | matrix `Q` | the tabular estimate of $q_\pi(s,a)$ or $q_*(s,a)$ |
+| $B_\pi$| `bellman_operator()` | Bellman operator | 
+| $B_*$| `bellman_update()` | Bellman update | 
+| $\text{BE}$ | vector `BE` | Bellman error vector (state value difference due to a Bellman update) |
+| $\text{VE}$| `value_error()` | State value difference between two policies |
+| $\delta_t$| `delta`| temporal difference error |
+| $\Delta$ | `delta` | max. absolute Bellman error used in value iteration |
 
 # Package Functionality
+
+
+```{r setup}
+library("markovDP")
+```
 
 Solving a MDP problem with the **markovDP** package consists of two
 steps:
@@ -128,7 +170,7 @@ steps:
 1.  Define a MDP problem using the function `MDP()`, and
 2.  solve the problem using `solve_MDP()`.
 
-## Defining a MDP Problem
+## Defining an MDP Problem
 
 The `MDP()` function has the following arguments, each corresponds to
 one of the elements of a MDP.
@@ -139,26 +181,27 @@ str(args(MDP))
 
 where
 
--   `states` defines the set of states $S$,
+-   `states` defines the set of states.
 
--   `actions` defines the set of actions $A$,
+-   `actions` defines the set of actions.
 
 -   `transition_prob` defines the conditional transition probabilities
-    $T(s' \mid s,a)$,
+    $p(s' \mid s,a)$,
 
--   `reward` specifies the reward function $R$,
+-   `reward` specifies the reward function with entries for
+    $r(s, a, s')$,
 
--   `discount` is the discount factor $\gamma$ in range $[0,1]$,
+-   `discount` is the discount factor in the range $[0,1]$,
 
 -   `horizon` is the problem horizon as the number of periods to
     consider.
 
--   `start` The state in which the agent starts. It can be specified as
-    a probability distribution over the system states $S$.
+-   `start` defines in what state the problem starts. It is specified as
+    a probability distribution over the states.
 
-While specifying the discount rate and the set of states, and actions is
-straight-forward. Some arguments can be specified in different ways. The
-initial state `start` can be specified as
+While specifying the discount rate and the set of states, and actions in
+code is straight-forward. Some arguments can be specified in different
+ways. The initial state `start` can be specified as
 
 -   A vector of $n$ probabilities that add up to 1, where $n$ is the
     number of states.
@@ -205,15 +248,14 @@ The transition probabilities (`transition_prob`) and reward function
     representation for most problems.
 -   A named list of matrices representing the transition probabilities
     or rewards. Each list elements corresponds to an action.
--   A function with the model as the first argument and then 
-    the same arguments `T_()` or `R_()` that returns the
-    probability or reward.
+-   A function with the model as the first argument and then the same
+    arguments `T_()` or `R_()` that returns the probability or reward.
 
 More details can be found in the manual page for `MDP()`.
 
 ## Solving a MDP
 
-POMDP problems are solved with the function `solve_MDP()` with the
+MDP problems are solved with the function `solve_MDP()` with the
 following arguments.
 
 ```{r}
@@ -221,10 +263,10 @@ str(args(solve_MDP))
 ```
 
 The `model` argument is a MDP problem created using the `MDP()`
-function. The
-`method` argument specifies what algorithm the solver should use.
-Available methods including `"value_iteration"`, `"policy_iteration"`,
-`"q_learning"`, `"sarsa"`, `"expected_sarsa"` and several more.
+function. The `method` argument specifies what algorithm the solver
+should use. Available methods including `"value_iteration"`,
+`"policy_iteration"`, `"q_learning"`, `"sarsa"`, `"expected_sarsa"` and
+several more.
 
 # Toy Example: Steward Russell's 4x3 Maze Gridworld MDP
 
@@ -246,63 +288,72 @@ We represent the maze states as a gridworld matrix with 3 rows and 4
 columns. The states are labeled s(row, col) representing the position in
 the matrix. The \# (state s(2,2)) in the middle of the maze is an
 obstruction and not reachable. Rewards are associated with transitions.
-The default reward (penalty) is -0.04 for each action taken. 
-The start state marked with S is
-s(3,1). Transitioning to + (state s(1,4)) gives a reward of +1.0,
-transitioning to - (state s\_(2,4)) has a reward of -1.0. Both these
-states are absorbing (i.e., terminal) states.
+The default reward (penalty) is -0.04 for each action taken. The start
+state marked with S is s(3,1). Transitioning to + (state s(1,4)) gives a
+reward of +1.0, transitioning to - (state s\_(2,4)) has a reward of
+-1.0. Both these states are absorbing (i.e., terminal) states.
 
 Actions are movements (up, right, down, left). The actions are
 unreliable with a .8 chance to move in the correct direction and a 0.1
-chance to instead to move in a perpendicular direction. This means that 
+chance to instead to move in a perpendicular direction. This means that
 the maze has a stochastic transition model.
 
-## Specifying the Maze
+## Specifying the Stochastic Maze
 
 ```{r}
 library("markovDP")
 ```
 
-After loading the library, we create the states using a gridworld helper 
-function.
+After loading the library, we create the states using a gridworld helper
+function. We first look at the state layout of a $3 \times 4$ maze.
 
-```{r}
-gw <- gw_init(dim = c(3, 4),  
-                     unreachable_states = "s(2,2)",
-                     absorbing_states = c("s(1,4)", "s(2,4)"),
-                     state_labels = list(
-                         "s(3,1)" = "Start",
-                         "s(2,4)" = "-1",
-                         "s(1,4)" = "Goal: +1"
-                         )
-                     )
-
-gw$states
-gw$actions
+```{r }
+gw_matrix(gw_init(dim = c(3, 4)))
 ```
 
-The helper function also creates a deterministic transition function,
-but we need to create our own stochastic transition function is stochastic.
+Then we initialize the grid world with start state, goal state,
+absorbing states and the wall is an unreachable state.
 
-```{r}
-T <- function(model, action, start.state, end.state) {
-  action <- match.arg(action, choices = model$actions)
+```{r }
+gw <- gw_init(dim = c(3, 4),
+        start = "s(3,1)",
+        goal = "s(1,4)",
+        absorbing_states = c("s(1,4)", "s(2,4)"),
+        unreachable_states = "s(2,2)",
+        state_labels = list(
+            "s(3,1)" = "Start",
+            "s(2,4)" = "-1",
+            "s(1,4)" = "Goal: +1")
+)
+gw_matrix(gw)
+```
 
+We see that the unreachable state was automatically excluded from the state space.
+
+The initialization function also creates a deterministic transition function for a 
+grid world with deterministic movement in `gw$transition_prob`,
+but we need to create our own stochastic transition function. The following 
+function returns a probability vector for a given action in a given start state.
+The values are probabilities to reach an end state.
+
+```{r }
+P <- function(model, action, start.state) {
+  action <- match.arg(action, choices = A(model))
+  
+  P <- structure(numeric(length(S(model))), names = S(model))
+  
   # absorbing states
   if (start.state %in% model$info$absorbing_states) {
-    if (start.state == end.state) {
-      return(1)
-    } else {
-      return(0)
-    }
+    P[start.state] <- 1
+    return(P)
   }
-
+  
   if (action %in% c("up", "down")) {
     error_direction <- c("right", "left")
   } else {
     error_direction <- c("up", "down")
   }
-
+  
   rc <- gw_s2rc(start.state)
   delta <- list(
     up = c(-1, 0),
@@ -310,45 +361,54 @@ T <- function(model, action, start.state, end.state) {
     right = c(0, +1),
     left = c(0, -1)
   )
-  P <- matrix(0, nrow = 3, ncol = 4)
-
-  add_prob <- function(P, rc, a, value) {
-    new_rc <- rc + delta[[a]]
-    # stay in place for moved to a non-existing state
-    if (!(gw_rc2s(new_rc) %in% model$states)) {
-      new_rc <- rc
-    }
-    P[new_rc[1], new_rc[2]] <- P[new_rc[1], new_rc[2]] + value
-    P
-  }
-
-  P <- add_prob(P, rc, action, .8)
-  P <- add_prob(P, rc, error_direction[1], .1)
-  P <- add_prob(P, rc, error_direction[2], .1)
-  P[rbind(gw_s2rc(end.state))]
-}
+  
+  # there are 3 directions. For blocked directions, stay in place
+  # 1) action works .8
+  rc_new <- gw_rc2s(rc + delta[[action]])
+  if (rc_new %in% S(model))
+    P[rc_new] <- .8
+  else
+    P[start.state] <- .8
+  
+  # 2) off to the right .1
+  rc_new <- gw_rc2s(rc + delta[[error_direction[1]]])
+  if (rc_new %in% S(model))
+    P[rc_new] <- .1
+  else
+    P[start.state] <-  P[start.state] + .1
+  
+  # 3) off to the left .1
+  rc_new <- gw_rc2s(rc + delta[[error_direction[2]]])
+  if (rc_new %in% S(model))
+    P[rc_new] <- .1
+  else
+    P[start.state] <-  P[start.state] + .1
+  
+  P
+  } 
 ```
 
-Next, we specify the reward. We use a table. Every time a reward
-is calculated, the last matching row will be used. We set the default
-reward to -0.04 which will be used if no other row matches the start or end 
-state. Then we set the reward for the terminal states. Finally, we make sure 
-that staying in the terminal state does not add to the reward.
 
+Next, we specify the reward. The most convenient way is a table. Every time a reward is
+calculated, the last matching row will be used. We set the default
+reward for any transition to -0.04 which will be used if no other row matches the start or
+end state. Then we set the reward for the terminal states is +/-1 plus the cost to 
+transition to the state. Finally, we
+make sure that staying in the absorbing states does not add to the reward.
 
-
-```{r}
+```{r }
 R <- rbind(
   R_(                         value = -0.04),
-  R_(end.state = "s(2,4)",    value = -1),
-  R_(end.state = "s(1,4)",    value = +1),
+  R_(end.state = "s(2,4)",    value = -1 - 0.04),
+  R_(end.state = "s(1,4)",    value = +1 - 0.04),
   R_(start.state = "s(2,4)",  value = 0),
   R_(start.state = "s(1,4)",  value = 0)
 )
 ```
 
-Now, we can create the complete MDP problem. 
-```{r}
+Now, we can create the complete MDP problem.
+
+```{r }
 Maze <- MDP(
   name = "Stuart Russell's 3x4 Maze",
   discount = 1,
@@ -356,7 +416,7 @@ Maze <- MDP(
   states = gw$states,
   actions = gw$actions,
   start = "s(3,1)",
-  transition_prob = T,
+  transition_prob = P,
   reward = R,
   info = gw$info
 )
@@ -364,9 +424,10 @@ Maze <- MDP(
 Maze
 ```
 
+
 ## Solving the Maze
 
-We can solve the problem with the default solver method.
+We can solve the problem with the default solver method which is value iteration.
 
 ```{r}
 sol <- solve_MDP(Maze)
@@ -374,17 +435,23 @@ sol
 ```
 
 The output is an object of class MDP which contains the solution as an
-additional list component. It indicates that the algorithm has converged to 
-a stable solution.
-The found policy shows for each state the utility (i.e., the value function) 
-and the prescribed
-action.
+additional list component. It indicates that the algorithm has converged
+to a stable solution. 
+The detailed solution information is stored in `$solution`
+
+```{r}
+sol$solution
+```
+
+
+The policy can be accessed using the `polucy()` function.
 
 ```{r}
 policy(sol)
 ```
 
-
+The found policy shows for each state the value
+(i.e., the value function) and the prescribed action.
 We can visualize the value function.
 
 ```{r}
@@ -393,84 +460,90 @@ plot_value_function(sol)
 
 # Additional Functions
 
-The package provides several functions to work with models and policies. In the 
-following, we will organize them into categories. More details about each
-function, its parameters, and examples can be found in the manual pages.
+The package provides several functions to work with models and policies.
+In the following, we will organize them into categories. More details
+about each function, its parameters, and examples can be found in the
+manual pages.
 
 ## Access to Model Components
 
-Components of the model are stored in a list and can be accessed directly.
+Components of the model are stored in a list and can be accessed
+directly.
 
 ```{r }
 str(sol, max.level = 2)
 ```
 
-A special list element in `"solution"` which is only available when the model
-already contains a policy.
+The special list element `"solution"` is only available when the
+model already contains a policy.
 
-To access components more easily, several accessor functions are available:
+To access components more easily, several accessor functions are
+available:
 
-* `actions()` find available actions for a state.
-* `reward_matrix()` access the reward structure,
-* `start_vector()` access the initial state probabilities.
-* `transition_matrix()` access transition probabilities.
-* `transition_graph()` converts the transition matrix into a 
-   graph for visualization.
-* `policy()` extracts the policy for a solved model.
+-   `S()` the set of states.
+-   `A()` the set of actions.
+-   `actions()` find available actions for a state.
+-   `reward_matrix()` access the reward structure,
+-   `start_vector()` access the initial state probabilities.
+-   `transition_matrix()` access transition probabilities.
+-   `transition_graph()` converts the transition matrix into a graph for
+    visualization.
+-   `policy()` extracts the policy for a solved model.
 
-These functions can efficiently retrieve individual values and convert 
+These functions can efficiently retrieve individual values and convert
 the components into sparse and dense representations.
 
 ## Value Function
 
-* `value_function()` extracts the value function from a solved MDP.
-* `q_values()` calculates (approximates) Q-values for a given model and value function.
+-   `value_function()` extracts the value function from a solved MDP.
+-   `q_values()` calculates (approximate) Q-values for a given model
+    and value function.
 
 ## Policy
 
-Policies in this package are deterministic policies with one prescribed 
+Policies in this package are deterministic policies with one prescribed
 action per state. They are represented as a data.frame with columns for:
 
-* `state`: The state.
-* `U`: The state's value (discounted expected utility U) if the policy is followed.
-* `action`: The prescribed action.
+-   `state`: The state.
+-   `V`: The state's value (discounted expected utility U) if the policy
+    is followed.
+-   `action`: The prescribed action.
 
-Policies are typically creates using `solve_MDP()` and then stored in the
-`"solution"` component of the returned model. Policies can also be created
-by the following functions:
+Policies are typically created using `solve_MDP()` and then stored in
+the `"solution"` component of the returned model. Policies can also be
+created by the following functions:
 
-* `random_policy()` create a random policy.
-* `manual_policy()` specify a policy data.frame manually.
-* `greedy_policy()` generates a greedy policy using Q-values.
+-   `random_policy()` create a random policy.
+-   `manual_policy()` specify a policy data.frame manually.
+-   `greedy_policy()` generates a greedy policy using Q-values.
 
-A policy can be added to a model for the use in other functions using 
+A policy can be added to a model for the use in other functions using
 `add_policy()`.
 
-The action prescribed by a model with a policy can be calculated
-using `action()`. From a matrix with Q-values, `greedy_action()`
-can be used to find the best action.
+The action prescribed by a model with a policy can be calculated using
+`action()`. From a matrix with Q-values, `greedy_action()` can be used
+to find the best action.
 
-The value function for a policy applied to a model can be estimated 
+The value function for a policy applied to a model can be estimated
 using `policy_evaluation()`.
 
 ## Evaluation
 
 MDP policies can be evaluated using:
 
-* `reward()` calculates the expected reward of a policy
-* `regret()` calculates the regret of a policy relative to a benchmark policy.
+-   `reward()` calculates the expected reward of a policy
+-   `regret()` calculates the regret of a policy relative to a benchmark
+    policy.
 
 ## Sampling
 
-Trajectories through a MDPs are created using `sample_MDP()`.
-The outcome of single actions can be calculated by
-`act()`. 
-
+Trajectories through a MDPs are created using `sample_MDP()`. The
+outcome of single actions can be calculated by `act()`.
 
 ## Acknowledgments
 
-Development of this package was supported in part by
-National Institute of Standards and Technology (NIST) under grant number
+Development of this package was supported in part by National Institute
+of Standards and Technology (NIST) under grant number
 [60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
 
 # References

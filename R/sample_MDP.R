@@ -29,7 +29,7 @@
 #' @param engine `'cpp'` or `'r'` to perform simulation using a faster C++
 #'  or a native R implementation `NULL` uses the C++ implementation unless the transition model or
 #'  the reward are specified as R functions (which are slow in C++).
-#' @param return_trajectories logical; return the complete trajectories.
+#' @param trajectories logical; return the complete trajectories.
 #' @param delta_horizon precision used to determine the horizon for infinite-horizon problems.
 #' @param exploring_starts logical; randomly sample a start/action combination to
 #'  start the episode from.
@@ -45,7 +45,7 @@
 #'    contains the `episode` id, the `time` step, the state `s`,
 #'    the chosen action `a`,
 #'    the reward `r`, and the next state `s_prime`. Trajectories are
-#'    only returned for `return_trajectories = TRUE`.
+#'    only returned for `trajectories = TRUE`.
 #' @author Michael Hahsler
 #' @examples
 #' # enable parallel simulation
@@ -57,7 +57,7 @@
 #' sol <- solve_MDP(Maze, discount = 1)
 #' sol
 #'
-#' # U in the policy is and estimate of the utility of being in a state when using the optimal policy.
+#' # V in the policy is and estimate of the state values when following the optimal policy.
 #' policy(sol)
 #' gw_matrix(sol, what = "action")
 #'
@@ -66,8 +66,8 @@
 #' sim <- sample_MDP(sol, n = 100, horizon = 10, verbose = TRUE)
 #' sim
 #'
-#' # Note that all simulations start at s_1 and that the simulated avg. reward
-#' # is therefore an estimate to the U value for the start state s_1.
+#' # Note that all simulations for this model start at s_1 and that the simulated avg. reward
+#' # is therefore an estimate to the value function for the start state s_1.
 #' policy(sol)[1, ]
 #'
 #' # Calculate proportion of actions taken in the simulation
@@ -80,7 +80,7 @@
 #' #             states and return all trajectories
 #' sim <- sample_MDP(sol,
 #'   n = 100, start = "uniform", horizon = 10,
-#'   return_trajectories = TRUE
+#'   trajectories = TRUE
 #' )
 #' head(sim$trajectories)
 #'
@@ -95,7 +95,7 @@ sample_MDP <-
            epsilon = NULL,
            exploring_starts = FALSE,
            delta_horizon = 1e-3,
-           return_trajectories = FALSE,
+           trajectories = FALSE,
            engine = NULL,
            progress = TRUE,
            verbose = FALSE,
@@ -168,7 +168,7 @@ sample_MDP <-
             start,
             horizon,
             disc,
-            return_trajectories,
+            trajectories,
             epsilon,
             exploring_starts,
             verbose = verbose
@@ -198,7 +198,7 @@ sample_MDP <-
           start,
           horizon,
           disc,
-          return_trajectories,
+          trajectories,
           epsilon,
           exploring_starts,
           verbose = FALSE
@@ -226,10 +226,10 @@ sample_MDP <-
     
     # R implementation starts here ##############
     
-    states <- as.character(model$states)
+    states <- as.character(S(model))
     n_states <- length(states)
     states_absorbing <- absorbing_states(model, sparse = "index")
-    actions <- as.character(model$actions)
+    actions <- as.character(A(model))
     
     # for easier access
     pol <-
@@ -278,7 +278,7 @@ sample_MDP <-
       names(state_cnt) <- states
       rew <- 0
       
-      if (return_trajectories) {
+      if (trajectories) {
         trajectory <- data.frame(
           episode = rep(NA_integer_, horizon),
           time = rep(NA_integer_, horizon),
@@ -316,7 +316,7 @@ sample_MDP <-
         r <- reward_matrix(model, a, s_prev, s)
         rew <- rew + r * disc ^ (j - 1L)
         
-        if (return_trajectories) {
+        if (trajectories) {
           trajectory[j, ] <-
             data.frame(
               episode = i,
@@ -329,7 +329,7 @@ sample_MDP <-
         }
         
         if (s %in% states_absorbing) {
-          if (return_trajectories) {
+          if (trajectories) {
             trajectory <- trajectory[1:j, , drop = FALSE]
           }
           break
@@ -347,21 +347,12 @@ sample_MDP <-
     rew <- Reduce(c, lapply(sim, "[[", "reward"))
     rew <- unname(rew)
     
-    trajectories <- NULL
-    if (return_trajectories) {
-      trajectories <- Reduce(rbind, lapply(sim, "[[", "trajectory"))
-      trajectories$s <-
-        factor(trajectories$s,
-               levels = seq_along(states),
-               labels = states)
-      trajectories$a <-
-        factor(trajectories$a,
-               levels = seq_along(actions),
-               labels = actions)
-      trajectories$s_prime <-
-        factor(trajectories$s_prime,
-               levels = seq_along(states),
-               labels = states)
+    the_trajectories <- NULL
+    if (trajectories) {
+      the_trajectories <- Reduce(rbind, lapply(sim, "[[", "trajectory"))
+      the_trajectories$s <- .normalize_state(the_trajectories$s, model)
+      the_trajectories$a <- .normalize_action(the_trajectories$a, model)
+      the_trajectories$s_prime <- .normalize_state(the_trajectories$s_prime, model)
     }
     
     list(
@@ -369,6 +360,6 @@ sample_MDP <-
       reward = rew,
       action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
       state_cnt = Reduce("+", lapply(sim, "[[", "state_cnt")),
-      trajectories = trajectories
+      trajectories = the_trajectories
     )
   }

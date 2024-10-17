@@ -33,7 +33,7 @@ act <- function(model, state, action = NULL, ...) {
   if (is.null(action)) 
     action <- action(model, state, ...)
   
-  S <- model$states
+  S <- S(model)
   sp <- sample.int(length(S), 
                    1L, 
                    prob = transition_matrix(model, action, state, 

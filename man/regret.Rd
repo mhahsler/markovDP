@@ -3,14 +3,14 @@
 \name{regret}
 \alias{regret}
 \alias{action_discrepancy}
-\alias{mean_value_error}
+\alias{value_error}
 \title{Regret of a Policy and Related Measures}
 \usage{
-regret(policy, benchmark, start = NULL, run_policy_eval = TRUE, ...)
+regret(policy, benchmark, start = NULL, ...)
 
 action_discrepancy(policy, benchmark, proportion = FALSE)
 
-mean_value_error(policy, benchmark, square = TRUE)
+value_error(policy, benchmark, type = "RMSVE")
 }
 \arguments{
 \item{policy}{a solved MDP containing the policy to calculate the regret for.}
@@ -20,14 +20,13 @@ policy.}
 
 \item{start}{start state distribution. If NULL then the start state of the \code{benchmark} is used.}
 
-\item{...}{further arguments are passed on to \code{\link[=policy_evaluation]{policy_evaluation()}}.}
+\item{...}{further arguments are passed on to \code{\link[=reward]{reward()}}.}
 
 \item{proportion}{logical; should the action discrepancy be reported as a proportion
 of states with a different action.}
 
-\item{square}{logical; should the value error be squared?}
-
-\item{policy_eval}{logical; run policy evaluation to re-estimate state values.}
+\item{type}{type of error root mean square value error (\code{"RMSVE"}), mean square value error (\code{"MSVE"}),
+mean absolute value error (\code{"MAVE"}), absolute value error vector (\code{"AVE"}),  value error vector (\code{"VE"}).}
 }
 \value{
 \itemize{
@@ -43,9 +42,11 @@ Calculates the regret and related measures for a policy relative to a benchmark 
 \details{
 \subsection{Regret}{
 
-Regret is defined as \eqn{V^{\pi^*}(s_0) - V^{\pi}(s_0)} with \eqn{V^\pi} representing the expected long-term
-state value (represented by the value function) given the policy \eqn{\pi} and the start
-state \eqn{s_0}.
+Regret for a policy \eqn{\pi} is defined as
+\eqn{V_\pi(s_0) - v_*(s_0)}.
+\eqn{V_\pi(s_0)} representing the expected long-term
+state value for following policy \eqn{\pi} and the starting
+in state \eqn{s_0} (or a start distribution).
 
 Note that for regret, usually the optimal policy \eqn{\pi^*} is used as the benchmark.
 Since the optimal policy may not be known, regret relative to the best known policy can be used.
@@ -59,14 +60,16 @@ converged \code{\link[=policy_evaluation]{policy_evaluation()}}.
 
 The action discrepancy is the number of states in the policy for which the
 prescribed action in the policy differs. This implementation calculates
-the Q matrix for the benchmark to make sure that actions with the same Q-value
+the Q matrix for the benchmark to make sure that actions with the same Q value
 are considers as correct.
 }
 
-\subsection{Mean (squared) Value Error}{
+\subsection{Root Mean Squared Value Error}{
 
-The mean value error is the sum of the squared differences in
-state values between the two solutions.
+The root mean value error \eqn{\sqrt{\text{VE}} = \sqrt{||V - v_*||^2}}
+is the sum of the squared differences in
+state values between the two solution and the optimal value function. For \eqn{v_*}, the
+value function of the benchmark solution is used.
 }
 }
 \examples{
@@ -80,21 +83,22 @@ acts <- rep("up", times = length(Maze$states))
 names(acts) <- Maze$states
 acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
 
-sol_manual <- add_policy(Maze, manual_policy(Maze, acts, estimate_U = TRUE))
+sol_manual <- add_policy(Maze, manual_policy(Maze, acts, estimate_V = TRUE))
 policy(sol_manual)
 
 regret(sol_manual, benchmark = sol_optimal)
 
 action_discrepancy(sol_manual, benchmark = sol_optimal)
 
-mean_value_error(sol_manual, benchmark = sol_optimal)
+value_error(sol_manual, benchmark = sol_optimal, type = "VE")
+value_error(sol_manual, benchmark = sol_optimal, type = "MAVE")
+value_error(sol_manual, benchmark = sol_optimal, type = "RMSVE")
 }
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

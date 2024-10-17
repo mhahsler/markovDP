@@ -17,10 +17,10 @@ solve_MDP_DP(
   method = "value_iteration",
   horizon = NULL,
   discount = NULL,
-  iter_max = 1000L,
+  n = 1000L,
   error = 0.001,
   k_backups = 10L,
-  U = NULL,
+  V = NULL,
   matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
@@ -58,7 +58,8 @@ solve_MDP_TD(
   method = "q_learning",
   horizon = NULL,
   discount = NULL,
-  alpha = 0.5,
+  alpha = function(t, n) 1/n,
+  alpha_expected_sarsa = 1,
   epsilon = 0.2,
   n = 1000,
   Q = NULL,
@@ -105,25 +106,24 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
-\item{iter_max}{maximum number of iterations allowed to converge. If the
-maximum is reached then the non-converged solution is returned with a
-warning.}
+\item{n}{number of episodes used for learning.}
 
-\item{error}{value iteration: maximum error allowed in the utility of any state
-(i.e., the maximum policy loss) used as the termination criterion.}
+\item{error}{value iteration: maximum Bellman error allowed for the
+convergence criterion.}
 
-\item{k_backups}{policy iteration: number of look ahead steps used for approximate policy evaluation
-used by the policy iteration method.}
+\item{k_backups}{policy iteration: maximum number of Bellman backups used in
+the iterative policy evaluation step. Policy evaluation typically converges earlier
+with a maximum Bellman error less than \code{error}.}
 
-\item{U}{a vector with initial utilities used for each state. If
-\code{NULL}, then the default of a vector of all 0s is used.}
+\item{V}{a vector with initial state values. If
+\code{NULL}, then the default of a vector of all 0s (\code{\link[=V_zero]{V_zero()}}) is used.}
 
 \item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
 the reward function are taken from the model first. This can be slow if functions
-need to be converted or not fit into memory if the models are large. If these
+need to be converted or do not fit into memory if the models are large. If these
 components are already matrices, then this is very fast. For \code{FALSE}, the
 transition probabilities and the reward is extracted when needed. This is slower,
-but removes the time to calculate the matrices and it saves memory.}
+but removes the time and memory requirements needed to calculate the matrices.}
 
 \item{continue}{logical; Continue with an unconverged solution specified in \code{model}.}
 
@@ -132,16 +132,18 @@ but removes the time to calculate the matrices and it saves memory.}
 \item{verbose}{logical, if set to \code{TRUE}, the function provides the
 output of the solver in the R console.}
 
-\item{n}{number of episodes used for learning.}
-
-\item{Q}{a action value matrix.}
+\item{Q}{a state-action value matrix.}
 
 \item{epsilon}{used for \eqn{\epsilon}-greedy policies.}
 
 \item{first_visit}{if \code{TRUE} then only the first visit of a state/action pair
 in an episode is used to update Q, otherwise, every-visit update is used.}
 
-\item{alpha}{step size in \verb{(0, 1]}.}
+\item{alpha}{step size as a function of the time step \code{t} and the number of times
+the respective Q-value was updated \code{n} or a scalar.}
+
+\item{alpha_expected_sarsa}{step size for expected sarsa defaults to 1. Can be
+a funciton like for \code{alpha}.}
 }
 \value{
 \code{solve_MDP()} returns an object of class MDP which is a list with the
@@ -182,7 +184,7 @@ between two iterations).
 an arbitrary value function (by default all 0s) and iteratively
 updates the value function for each state using the Bellman equation.
 The iterations
-are terminated either after \code{iter_max} iterations or when the solution converges.
+are terminated either after \code{n} iterations or when the solution converges.
 Approximate convergence is achieved
 for discounted problems (with \eqn{\gamma < 1})
 when the maximal value function change for any state \eqn{\delta} is
@@ -235,9 +237,9 @@ GenPS. However, this requires one complete sweep over all states.
 This implementation stops updating when the largest priority values
 over all states is less than the specified \code{error}.
 
-Since the logarithm does not sweep through the whole state space for each
-iteration, \code{iter_max} is converted into an equivalent number of state updates
-\eqn{n = \text{iter_max} |S|}.
+Since the algorithm does not sweep through the whole state space for each
+iteration, \code{n} is converted into an equivalent number of state updates
+\eqn{n = n |S|}.
 }
 
 Note that policies converge earlier than value functions.
@@ -420,7 +422,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

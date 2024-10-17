@@ -30,7 +30,7 @@ for (m in c(models_solve, models_solved)) {
     m,
     n = n,
     horizon = 10,
-    return_trajectories = TRUE,
+    trajectories = TRUE,
     verbose = verb,
     engine = "r"
   )
@@ -49,7 +49,7 @@ for (m in c(models_solve, models_solved)) {
     n = n,
     horizon = 10,
     verbose = verb,
-    return_trajectories = TRUE,
+    trajectories = TRUE,
     engine = "cpp"
   )
   

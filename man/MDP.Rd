@@ -2,6 +2,8 @@
 % Please edit documentation in R/MDP.R
 \name{MDP}
 \alias{MDP}
+\alias{S}
+\alias{A}
 \alias{is_solved_MDP}
 \alias{is_converged_MDP}
 \alias{T_}
@@ -21,9 +23,13 @@ MDP(
   name = NA
 )
 
+S(model)
+
+A(model)
+
 is_solved_MDP(model, stop = FALSE)
 
-is_converged_MDP(model)
+is_converged_MDP(model, stop = FALSE)
 
 T_(action = NA, start.state = NA, end.state = NA, probability)
 
@@ -175,7 +181,10 @@ distribution over all states.
 
 \subsection{Accessing Elements of the MDP}{
 
-See \link{accessors}.
+The convenience functions \code{S()} and \code{A()} return the set of states and actions.
+
+See \link{accessors} for accessing transition probabilities, rewards, and the
+start state distribution.
 }
 }
 \examples{
@@ -215,6 +224,8 @@ car
 str(car)
 
 # accessing elements
+S(car)
+A(car)
 start_vector(car, sparse = "states")
 transition_matrix(car)
 transition_matrix(car, sparse = TRUE)
@@ -222,13 +233,14 @@ reward_matrix(car)
 reward_matrix(car, sparse = TRUE)
 
 sol <- solve_MDP(car)
+sol
+
 policy(sol)
 }
 \seealso{
 Other MDP: 
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

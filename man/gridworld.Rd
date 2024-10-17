@@ -386,7 +386,7 @@ sol <- solve_MDP(maze, method = "prioritized_sweeping")
 sol
 
 gw_plot(sol)
-gw_path(sol)
+gw_path(sol, horizon = 1000)
 
 # A maze can also be created directly from a character vector
 maze <- gw_read_maze(
@@ -410,7 +410,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{policy_evaluation}()},

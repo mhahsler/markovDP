@@ -51,8 +51,8 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
     gamma <- 0.999
   }
 
-  n_s <- length(model$states)
-  n_a <- length(model$actions)
+  n_s <- length(S(model))
+  n_a <- length(A(model))
 
   if (verbose) {
     cat("creating constraints ...\n")
@@ -64,7 +64,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   # enforce the Bellman equation for each state
   # V(s) \geq r + \gamma\sum_{s' \in S} P(s' | s,a)*V(s'),\; \forall a\in A, s \in S
   #
-  # we can use the constraints V (I - GAMMA * T) >= TR for all a, s
+  # we can use the constraints V (I - gamma * T) >= TR for all a, s
 
   # T(s,a, s'): maps actions + start states -> end states
   T <- matrix(NA_real_, nrow = n_a * n_s, ncol = n_s)
@@ -75,8 +75,8 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
       i <- i + 1L
     }
   }
-  rownames(T) <- paste(rep(model$actions, each = n_s), rep(model$states, n_a))
-  colnames(T) <- model$states
+  rownames(T) <- paste(rep(A(model), each = n_s), rep(S(model), n_a))
+  colnames(T) <- S(model)
 
   const_mat <- do.call(rbind, replicate(n_a, diag(n_s), simplify = FALSE)) - gamma * T
   const_dir <- rep(">=", n_a * n_s)
@@ -93,11 +93,11 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   }
 
   # sum_sp (T * R): maps actions + start states -> expected reward
-  TR <- sapply(model$actions, FUN = function(a) {
+  TR <- sapply(A(model), FUN = function(a) {
     rowSums(transition_matrix(model, action = a) * R[[a]])
   })
   TR <- as.vector(TR)
-  names(TR) <- paste(rep(model$actions, each = n_s), rep(model$states, n_a))
+  names(TR) <- paste(rep(A(model), each = n_s), rep(S(model), n_a))
   const_rhs <- TR
 
   if (verbose) {
@@ -137,7 +137,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   model$solution <- list(
     method = "lp",
     policy = list(pi),
-    converged = NA,
+    converged = TRUE,
     solver_out = solution
   )
 

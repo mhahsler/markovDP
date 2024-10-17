@@ -72,7 +72,7 @@ unreachable_states.MDP <- function(model,
                                    ...) {
   if (use_precomputed &&
       !is.null(model$unreachable_states) && !is.finite(horizon)) {
-    return(.translate_logical(model$unreachable_states, model$states, sparse = sparse))
+    return(.translate_logical(model$unreachable_states, S(model), sparse = sparse))
   }
   
   if (is.null(sparse))
@@ -82,7 +82,7 @@ unreachable_states.MDP <- function(model,
     !.reachable_states(model, horizon = horizon, progress = progress),
     "sparseVector"
   ),
-  model$states,
+  S(model),
   sparse = sparse)
 }
 
@@ -100,7 +100,7 @@ unreachable_states.MDP <- function(model,
   }
   
   if (progress) {
-    pb <- my_progress_bar(N = length(model$states), name = "unreachable_states")
+    pb <- my_progress_bar(N = length(S(model)), name = "unreachable_states")
     pb$tick(0)
   }
   
@@ -113,7 +113,7 @@ unreachable_states.MDP <- function(model,
     
     # available_actions is slow!
     #for (action in available_actions(model, state)){
-    for (action in model$actions) {
+    for (action in A(model)) {
       next_states <- transition_matrix(model, action, state, sparse = "states")
       
       for (next_state in next_states) {
@@ -133,7 +133,7 @@ unreachable_states.MDP <- function(model,
   if (progress)
     pb$terminate()
   
-  model$states %in% names(reached$as_list())
+  S(model) %in% names(reached$as_list())
 }
 
 
@@ -162,12 +162,12 @@ absorbing_states.MDP <- function(model,
     if (use_precomputed && !is.null(model$absorbing_states)) {
       if (is.character(model$absorbing_states)) {
         if (!is.character(state))
-          state <- model$states[state]
+          state <- S(model)[state]
         return(state %in% model$absorbing_states)
       }
       # must be a logical vector (for sparse we need a index)
       if (is.character(state))
-        state <- match(state, model$states)
+        state <- match(state, S(model))
       return(as(model$absorbing_states[state], "vector"))
     } else
       return(all(
@@ -183,27 +183,27 @@ absorbing_states.MDP <- function(model,
   # all states
   if (is.null(state)) {
     if (use_precomputed && !is.null(model$absorbing_states)) {
-      return(.translate_logical(model$absorbing_states, model$states, sparse))
+      return(.translate_logical(model$absorbing_states, S(model), sparse))
     } else {
-      absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
+      absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(A(model))
       if (is.null(sparse))
         sparse <- "states"
-      return(.translate_logical(absorbing, model$states, sparse))
+      return(.translate_logical(absorbing, S(model), sparse))
     }
   }
   
   # some states
   if (is.character(state))
-    state <- match(state, model$states)
+    state <- match(state, S(model))
   
   if (use_precomputed && !is.null(model$absorbing_states)) {
-    absorbing <- .translate_logical(model$absorbing_states, model$states, sparse = TRUE)
+    absorbing <- .translate_logical(model$absorbing_states, S(model), sparse = TRUE)
   } else {
-    absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(model$actions)
+    absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(A(model))
   }
   
   absorbing <- absorbing[state]
-  .translate_logical(absorbing, model$states[state], sparse)
+  .translate_logical(absorbing, S(model)[state], sparse)
 }
 
 #' @rdname unreachable_and_absorbing
@@ -216,7 +216,7 @@ remove_unreachable_states <- function(model, use_precomputed = TRUE, ...) {
                                     sparse = FALSE, 
                                     use_precomputed = use_precomputed))
   
-  if (length(reachable) == length(model$states)) {
+  if (length(reachable) == length(S(model))) {
     model$unreachable <- character(0)
     return(model)
   }
@@ -253,7 +253,7 @@ remove_unreachable_states <- function(model, use_precomputed = TRUE, ...) {
   
   # fix start state
   if (is.numeric(model$start) || is(model$start, "sparseVector")) {
-    if (length(model$start) == length(model$states)) {
+    if (length(model$start) == length(S(model))) {
       ### prob vector
       model$start <- model$start[reachable]
       if (!sum1(model$start)) {
@@ -263,14 +263,14 @@ remove_unreachable_states <- function(model, use_precomputed = TRUE, ...) {
       }
     } else {
       ### state ids... we translate to state names and use code below!
-      model$start <- model$states[model$start]
+      model$start <- S(model)[model$start]
     }
   }
   if (is.character(model$start)) {
     if (model$start == "uniform") {
       # do nothing
     } else {
-      model$start <- intersect(model$start, model$states[reachable])
+      model$start <- intersect(model$start, S(model)[reachable])
     }
     if (length(model$start) == 0L) {
       stop("Start state is not reachable.")

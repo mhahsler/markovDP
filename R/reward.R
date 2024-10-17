@@ -1,8 +1,8 @@
 #' Calculate the Expected Reward of a Policy
 #'
 #' This function calculates the expected total reward for an MDP policy
-#' given a start state (distribution). The value is calculated using the value function stored
-#' in the MDP solution.
+#' given a start state (distribution). The value is calculated using the value
+#' function stored in the MDP solution.
 #'
 #' The reward is typically calculated using the value function
 #' of the solution. If these are not available, then [sample_MDP()] is
@@ -14,8 +14,10 @@
 #' @param start specification of the current state (see argument start
 #' in [MDP] for details). By default the start state defined in
 #' the model as start is used. Multiple states can be specified as rows in a matrix.
-#' @param epoch epoch for a finite-horizon solutions.
-#' @param ... further arguments are passed on.
+#' @param method `"solution"` uses the converged value function stored in the solved model, 
+#'               `"policy_evaluation"` estimates the value function, and `"sample"`
+#'               calculates the average reward by sampling episodes from the model.
+#' @param ... further arguments are passed on to [policy_evaluation()] or [sample_MDP()].
 #'
 #' @returns `reward()` returns a vector of reward values, one for each belief if a matrix is specified.
 #'
@@ -38,6 +40,8 @@
 #'
 #' # expected reward when we start from a random state
 #' reward(sol, start = "uniform")
+#' 
+#' reward(sol, method = "sample", start = "uniform", horizon = 100)
 #' @export
 reward <- function(model, ...) {
   UseMethod("reward")
@@ -47,17 +51,30 @@ reward <- function(model, ...) {
 #' @export
 reward.MDP <- function(model,
                        start = NULL,
-                       epoch = 1L,
+                       method = "solution",
                        ...) {
-  is_solved_MDP(model, stop = TRUE)
-
+  method <- match.arg(method, c("solution", "policy_evaluation", "sample"))
   start <- start_vector(model, start = start)
-
-  pol <- policy(model, epoch)
-
-  if (is.null(pol$U)) {
-    pol$U <- policy_evaluation(pol, model)
+ 
+  if (method == "solution" && !is_converged_MDP(model)) {
+    method <- "policy_evaluation"
+    warning("model does not contain a converged solution. Using policy evaluation to obtain the value function.")
   }
-
-  return(drop(crossprod(pol$U, start)))
+   
+  if (method == "solution") {
+    r <- sum(policy(model)$V * start)
+  }
+  
+  else if (method == "policy_evaluation") {
+    r <- sum(policy_evaluation(model, policy(model), ...) * start)
+  }
+  
+  else if (method == "sample") {
+    r <- sample_MDP(model, start = start, ...)$avg_reward
+  }
+  
+  else
+    stop("Unknown method!")
+  
+  r
 }

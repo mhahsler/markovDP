@@ -2,21 +2,27 @@
 % Please edit documentation in R/policy.R
 \name{policy}
 \alias{policy}
+\alias{add_policy}
 \alias{random_policy}
 \alias{manual_policy}
-\title{Extract or Create a Policy}
+\alias{induced_transition_matrix}
+\title{Extract, Create Add a Policy to a Model}
 \usage{
 policy(model, epoch = NULL, drop = TRUE)
+
+add_policy(model, policy)
 
 random_policy(
   model,
   prob = NULL,
-  estimate_U = FALSE,
+  estimate_V = FALSE,
   only_available_actions = FALSE,
   ...
 )
 
-manual_policy(model, actions, U = NULL, estimate_U = FALSE)
+manual_policy(model, actions, V = NULL, estimate_V = FALSE)
+
+induced_transition_matrix(model, policy = NULL, epoch = 1L)
 }
 \arguments{
 \item{model}{A solved \link{MDP} object.}
@@ -26,11 +32,13 @@ with elements for each epoch.}
 
 \item{drop}{logical; drop the list for converged, epoch-independent policies.}
 
+\item{policy}{a policy data.frame.}
+
 \item{prob}{probability vector for random actions for \code{random_policy()}.
 a logical indicating if action probabilities should be returned for
 \code{greedy_action()}.}
 
-\item{estimate_U}{logical; estimate the value function
+\item{estimate_V}{logical; estimate the value function
 using \code{\link[=policy_evaluation]{policy_evaluation()}}?}
 
 \item{only_available_actions}{logical; only sample from available actions?
@@ -41,28 +49,42 @@ using \code{\link[=policy_evaluation]{policy_evaluation()}}?}
 \item{actions}{a vector with the action (either the action label or the
 numeric id) for each state.}
 
-\item{U}{a vector with the value function for the policy. If \code{TRUE}, then
+\item{V}{a vector representing the value function for the policy. If \code{TRUE}, then
 the it is estimated using \code{policy_evaluation()}.}
 }
 \value{
-A data.frame containing the policy. If \code{drop = FALSE} then the policy is returned
+\itemize{
+\item \code{policy()}, \code{random_policy()} and \code{manual_policy()} return a data.frame
+containing the policy. If \code{drop = FALSE} then the policy is returned
 as a list with the policy for each epoch.
+\item \code{add_policy()} returns an MDP object.
+\item \code{induced_transition_matrix} returns a single transition matrix.
+}
+
+The model description with the added policy.
 }
 \description{
 Extracts the policy from a solved model or create a policy. All
 policies are deterministic.
 }
 \details{
-For an MDP, the deterministic policy is a data.frame with columns for:
+\code{policy()} extracts the (deterministic) policy from a solved MDP in the form of a
+a data.frame with columns for:
 \itemize{
 \item \code{state}: The state.
-\item \code{U}: The state's value (discounted expected utility U) if the policy
-is followed.
+\item \code{V}: The state values if the policy is followed.
 \item \code{action}: The prescribed action.
 }
 
 For unconverged, finite-horizon problems, the solution is a policy for
 each epoch. This is returned as a list of data.frames.
+
+\code{add_policy()} adds a policy to an existing MDP object.
+
+\code{random_policy()} and \code{manual_policy()} construct new policies.
+
+\code{induced_transition_matrix()} returns the single transition matrix which follows
+the actions specified in a policy.
 }
 \examples{
 data("Maze")
@@ -75,8 +97,10 @@ policy(sol)
 plot_value_function(sol)
 gw_plot(sol)
 
+induced_transition_matrix(sol)
+
 ## create a random policy
-pi_random <- random_policy(Maze, estimate_U = TRUE)
+pi_random <- random_policy(Maze, estimate_V = TRUE)
 pi_random
 
 gw_plot(add_policy(Maze, pi_random))
@@ -85,7 +109,9 @@ gw_plot(add_policy(Maze, pi_random))
 acts <- rep("up", times = length(Maze$states))
 names(acts) <- Maze$states
 acts[c("s(1,1)", "s(1,2)", "s(1,3)")] <- "right"
-pi_manual <- manual_policy(Maze, acts)
+acts
+
+pi_manual <- manual_policy(Maze, acts, estimate_V = TRUE)
 pi_manual
 
 gw_plot(add_policy(Maze, pi_manual))
@@ -95,12 +121,13 @@ sol <- solve_MDP(model = Maze, horizon = 3)
 sol
 
 policy(sol)
-gw_plot(sol)
+gw_plot(sol, epoch = 1)
+gw_plot(sol, epoch = 2)
+gw_plot(sol, epoch = 3)
 }
 \seealso{
 Other policy: 
 \code{\link{action}()},
-\code{\link{add_policy}()},
 \code{\link{bellman_update}()},
 \code{\link{policy_evaluation}()},
 \code{\link{q_values}()},

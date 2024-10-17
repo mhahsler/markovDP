@@ -147,7 +147,7 @@
 #' sol
 #'
 #' gw_plot(sol)
-#' gw_path(sol)
+#' gw_path(sol, horizon = 1000)
 #' 
 #' # A maze can also be created directly from a character vector
 #' maze <- gw_read_maze(
@@ -344,7 +344,7 @@ gw_maze_MDP <- function(dim,
   } else {
     # all actions in the goal redirect to a start state
     trans_restart <- function(model, action, start.state) {
-      P <- structure(numeric(length(model$states)), names = model$states)
+      P <- structure(numeric(length(S(model))), names = S(model))
       
       if (start.state %in% model$info$goal) {
         P[model$info$start] <- 1 / length(model$info$start)
@@ -481,7 +481,7 @@ gw_path <- function(model,
     n = 1,
     horizon = horizon,
     epsilon = 0,
-    return_trajectories = TRUE
+    trajectories = TRUE
   )
   
   path <- s$trajectories
@@ -550,19 +550,19 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
     what,
     states = {
       l <- structure(rep(NA_character_, length(all_states)), names = all_states)
-      l[model$states] <- model$states
+      l[S(model)] <- S(model)
       l
     },
     index = {
       l <- structure(rep(NA_integer_, length(all_states)), names = all_states)
-      l[model$states] <- seq_along(model$states)
+      l[S(model)] <- seq_along(S(model))
       l
     },
     labels = {
       l <- structure(rep("", length(all_states)), names = all_states)
       
       # X is for states that are unreachable (incl not in the model states)
-      l[!(all_states %in% model$states)] <- "X"
+      l[!(all_states %in% S(model))] <- "X"
       l[Matrix::which(unreachable_states(model, sparse = TRUE))] <- "X"
       labels <- model$info$state_labels
       l[names(labels)] <- unlist(labels)
@@ -572,7 +572,7 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
     values = {
       l <- structure(rep(NA_real_, length(all_states)), names = all_states)
       p <- policy(model, drop = FALSE)[[epoch]]
-      l[p$state] <- p$U
+      l[p$state] <- p$V
       l
     },
     actions = {
@@ -583,12 +583,12 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
     },
     absorbing = {
       l <- structure(rep(NA, length(all_states)), names = all_states)
-      l[model$states] <- absorbing_states(model, sparse = TRUE)
+      l[S(model)] <- absorbing_states(model, sparse = TRUE)
       l
     },
     unreachable = {
       l <- structure(rep(NA, length(all_states)), names = all_states)
-      l[model$states] <- unreachable_states(model, sparse = FALSE)
+      l[S(model)] <- unreachable_states(model, sparse = FALSE)
       l
     }
   )
@@ -973,9 +973,9 @@ gw_rc2s <- function(rc) {
 #'
 #' @export
 gw_transition_prob <- function(model, action, start.state) {
-  P <- structure(numeric(length(model$states)), names = model$states)
+  P <- structure(numeric(length(S(model))), names = S(model))
   
-  ai <- match(action, model$actions)
+  ai <- match(action, A(model))
   
   # stay in place for unknown actions
   if (is.na(ai)) {
@@ -997,7 +997,7 @@ gw_transition_prob <- function(model, action, start.state) {
   es <- gw_rc2s(rc)
   
   # stay in place if we would leave the gridworld
-  if (!(es %in% model$states)) {
+  if (!(es %in% S(model))) {
     es <- start.state
   }
   
@@ -1009,7 +1009,7 @@ gw_transition_prob <- function(model, action, start.state) {
 #' @param action,start.state,end.state parameters for the transition function.
 #' @export
 gw_transition_prob_end_state <- function(model, action, start.state, end.state) {
-  ai <- match(action, model$actions)
+  ai <- match(action, A(model))
   
   # stay in place for unknown actions
   if (is.na(ai)) {
@@ -1029,7 +1029,7 @@ gw_transition_prob_end_state <- function(model, action, start.state, end.state) 
   rc <- switch(ai, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
   
   es <- gw_rc2s(rc)
-  if (!(es %in% model$states)) {
+  if (!(es %in% S(model))) {
     es <- start.state
   }
   as.integer(es == end.state)
@@ -1038,8 +1038,8 @@ gw_transition_prob_end_state <- function(model, action, start.state, end.state) 
 
 # Creating sparse vectors is too expensive
 gw_transition_prob_sparse <- function(model, action, start.state) {
-  a_i <- match(action, model$actions)
-  start_i = match(start.state, model$states)
+  a_i <- match(action, A(model))
+  start_i = match(start.state, S(model))
   
   # stay in place for unknown actions
   if (is.na(a_i) || is.na(start_i)) {
@@ -1058,7 +1058,7 @@ gw_transition_prob_sparse <- function(model, action, start.state) {
     rc <- switch(a_i, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
     
     es <- gw_rc2s(rc)
-    end_i <- match(es, model$states)
+    end_i <- match(es, S(model))
     
     # stay in place if we would leave the gridworld
     if (is.na(end_i)) {
@@ -1069,6 +1069,6 @@ gw_transition_prob_sparse <- function(model, action, start.state) {
   return(sparseVector(
     x = 1,
     i = end_i,
-    length = length(model$states)
+    length = length(S(model))
   ))
 }

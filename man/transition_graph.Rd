@@ -93,7 +93,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

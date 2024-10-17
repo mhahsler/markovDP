@@ -10,18 +10,18 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 NumericVector QV_cpp(
-    NumericVector U,
+    NumericVector V,
     NumericMatrix P,
     NumericMatrix R,
     double GAMMA
     ) {
   
   int n = P.nrow();
-  NumericVector U_prime(n);
+  NumericVector V_prime(n);
   
   for (int s = 0; s < n; ++s) {
-    U_prime[s] = sum(P(s, _) * (R(s, _) + GAMMA * U));
+    V_prime[s] = sum(P(s, _) * (R(s, _) + GAMMA * V));
   }
  
-  return(U_prime);
+  return(V_prime);
 }

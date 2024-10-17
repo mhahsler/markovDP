@@ -69,11 +69,12 @@
 #' str(gw)
 #'
 #' # the transition function is stochastic so we cannot use the standard
-#' # gridworld gw$transition_prob() function and have to replace it
-#' T <- function(model, action, start.state) {
-#'   action <- match.arg(action, choices = model$actions)
+#' # gridworld function provided in gw$transition_prob() and we 
+#' # have to replace it
+#' P <- function(model, action, start.state) {
+#'   action <- match.arg(action, choices = A(model))
 #'   
-#'   P <- structure(numeric(length(model$states)), names = model$states)
+#'   P <- structure(numeric(length(S(model))), names = S(model))
 #'   
 #'   # absorbing states
 #'   if (start.state %in% model$info$absorbing_states) {
@@ -98,21 +99,21 @@
 #'   # there are 3 directions. For blocked directions, stay in place
 #'   # 1) action works .8
 #'   rc_new <- gw_rc2s(rc + delta[[action]])
-#'   if (rc_new %in% model$states)
+#'   if (rc_new %in% S(model))
 #'     P[rc_new] <- .8
 #'   else
 #'     P[start.state] <- .8
 #'   
 #'   # 2) off to the right .1
 #'   rc_new <- gw_rc2s(rc + delta[[error_direction[1]]])
-#'   if (rc_new %in% model$states)
+#'   if (rc_new %in% S(model))
 #'     P[rc_new] <- .1
 #'   else
 #'     P[start.state] <-  P[start.state] + .1
 #'   
 #'   # 3) off to the left .1
 #'   rc_new <- gw_rc2s(rc + delta[[error_direction[2]]])
-#'   if (rc_new %in% model$states)
+#'   if (rc_new %in% S(model))
 #'     P[rc_new] <- .1
 #'   else
 #'     P[start.state] <-  P[start.state] + .1
@@ -120,12 +121,12 @@
 #'   P
 #'   } 
 #'
-#' T(gw, "up", "s(3,1)")
+#' P(gw, "up", "s(3,1)")
 #'
 #' R <- rbind(
 #'   R_(                         value = -0.04),
-#'   R_(end.state = "s(2,4)",    value = -1),
-#'   R_(end.state = "s(1,4)",    value = +1),
+#'   R_(end.state = "s(2,4)",    value = -1 - 0.04),
+#'   R_(end.state = "s(1,4)",    value = +1 - 0.04),
 #'   R_(start.state = "s(2,4)",  value = 0),
 #'   R_(start.state = "s(1,4)",  value = 0)
 #' )
@@ -138,7 +139,7 @@
 #'   states = gw$states,
 #'   actions = gw$actions,
 #'   start = "s(3,1)",
-#'   transition_prob = T,
+#'   transition_prob = P,
 #'   reward = R,
 #'   info = gw$info
 #' )

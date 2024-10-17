@@ -1,17 +1,21 @@
 # Solve MDPs using Temporal Differencing
 
 #' @rdname solve_MDP
-#' @param alpha step size in `(0, 1]`.
+#' @param alpha step size as a function of the time step `t` and the number of times
+#'   the respective Q-value was updated `n` or a scalar.
+#' @param alpha_expected_sarsa step size for expected sarsa defaults to 1. Can be 
+#'  a funciton like for `alpha`.
 #' @param epsilon used for \eqn{\epsilon}-greedy policies.
 #' @param n number of episodes used for learning.
-#' @param Q a action value matrix.
+#' @param Q a state-action value matrix.
 #' @export
 solve_MDP_TD <-
   function(model,
            method = "q_learning",
            horizon = NULL,
            discount = NULL,
-           alpha = 0.5,
+           alpha = function(t, n) 1/n,
+           alpha_expected_sarsa = 1,
            epsilon = 0.2,
            n = 1000,
            Q = NULL,
@@ -22,9 +26,11 @@ solve_MDP_TD <-
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
     
+    if (verbose)
+      progress <- FALSE
+    
     if (is.null(horizon))
       horizon <- model$horizon
-    
     if (is.null(horizon) || !is.finite(horizon)) {
       stop("Finite horizon needed for exploration!")
     }
@@ -35,12 +41,16 @@ solve_MDP_TD <-
     if (is.null(discount)) {
       discount <- 1
     }
-    gamma <- discount
     model$discount <- discount
-    
+   
+    if (method == "expected_sarsa" && !is.null(alpha_expected_sarsa))
+      alpha <- alpha_expected_sarsa
+    if (!is.function(alpha))
+      alpha_val <- alpha
+     
     if (matrix) {
       if (verbose)
-        cat("Precomputing dense matrices for R and T ...")
+        cat("Precomputing dense matrices for transitions and rewards ...")
       model <- normalize_MDP(
         model,
         sparse = FALSE,
@@ -53,26 +63,31 @@ solve_MDP_TD <-
         cat(" done.\n")
     }
     
-    
     if (progress) {
-      pb <- my_progress_bar(n, name = "solve_MDP")
+      pb <- my_progress_bar(n + 1L, name = "solve_MDP")
       pb$tick(0)
     }
       
-    S <- model$states
-    A <- model$actions
+    S <- S(model)
+    A <- A(model)
     #S_absorbing <- S[which(absorbing_states(model))]
     start <- start_vector(model, sparse = FALSE)
 
-    # Initialize Q
+    # Initialize Q and Q_N
     if (continue) {
       if (is.null(model$solution$Q))
-    
         stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
+      Q_N <- model$solution$Q_N
     } else if (is.null(Q)) {
       Q <-
         matrix(0,
+               nrow = length(S),
+               ncol = length(A),
+               dimnames = list(S, A)
+        )
+      Q_N <-
+        matrix(0L,
                nrow = length(S),
                ncol = length(A),
                dimnames = list(S, A)
@@ -81,10 +96,16 @@ solve_MDP_TD <-
     
     # return unconverged result when interrupted
     on.exit({ 
-      warning("MDP solver interrupted early.")
+      if (progress) {
+        pb$tick(0)
+        pb$terminate()
+      }
+      
+      if (e < n)
+          warning("Manual interupt: MDP solver stopped at episode ", e)
       
       if (verbose) {
-        cat("\nTerminated during iteration:", i, "\n")
+        cat("\nTerminated at episode:", e, "\n")
       }
       
       model$solution <- list(
@@ -93,6 +114,7 @@ solve_MDP_TD <-
         epsilon = epsilon,
         n = n,
         Q = Q,
+        Q_N = Q_N,
         converged = NA,
         policy = list(greedy_policy(Q))
       )
@@ -101,21 +123,26 @@ solve_MDP_TD <-
     
     
     # loop episodes
-    for (e in seq_len(n)) {
+    e <- 0L
+    while (e < n) {
+      e <- e +1L
       if (progress)
         pb$tick()
       
-      s <- sample(S, 1, prob = start)
+      s <- sample(S, 1L, prob = start)
       a <- greedy_action(Q, s, epsilon)
 
       # loop steps in episode
-      i <- 1L
+      i <- 0L
       while (TRUE) {
-        if ((i %% 100 == 0) && !pb$finished && progress)
+        i <- i + 1L
+        if ((i %% 100 == 0) && progress && !pb$finished)
           pb$tick(0)
+        
         #s_prime <- sample(S, 1L, prob = P[[a]][s, ])
         s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
         #s_prime <- sample_sparse(S, 1L, prob = transition_matrix(model, a, s, sparse = NULL))
+        
         r <- reward_matrix(model, a, s, s_prime)
         a_prime <- greedy_action(Q, s_prime, epsilon)
 
@@ -123,40 +150,44 @@ solve_MDP_TD <-
           if (i == 1L) {
             cat("\n*** Episode", e, "***\n")
           }
-          cat(sprintf("Ep %i step %i - s:%s a:%i r:%.2f s':%s a':%i\n", 
-                      e, i, s, a, r, s_prime, a_prime))
-          #print(Q)
+          cat(sprintf("Ep %i step %i - transition: %s -> %s; action: %i -> %i q(s,a): %.3f -> ", 
+                      e, i, s, s_prime, a, a_prime, Q[s, a]))
         }
 
+        # update Q and Q_N and calculate alpha
+        Q_N[s, a] <- Q_N[s, a] + 1L
+        if (is.function(alpha))
+          alpha_val <- alpha(t, Q_N[s, a])
+        
         if (method == "sarsa") {
-          # is called Sarsa because it uses the sequence s, a, r, s', a'
+          # on-policy: is called Sarsa because it uses the sequence s, a, r, s', a'
           Q[s, a] <-
-            Q[s, a] + alpha * (r + gamma * Q[s_prime, a_prime] - Q[s, a])
-          if (is.na(Q[s, a])) {
-            Q[s, a] <- -Inf
-          }
+            Q[s, a] + alpha_val * (r + discount * Q[s_prime, a_prime] - Q[s, a])
+        
         } else if (method == "q_learning") {
-          # a' is greedy instead of using the behavior policy
-          a_max <- greedy_action(Q, s_prime, epsilon = 0)
+          # we update the greedy action (max Q) -> off policy
           Q[s, a] <-
-            Q[s, a] + alpha * (r + gamma * Q[s_prime, a_max] - Q[s, a])
-          if (is.na(Q[s, a])) {
-            Q[s, a] <- -Inf
-          }
+            Q[s, a] + alpha_val * (r + discount * max(Q[s_prime, ]) - Q[s, a])
+        
         } else if (method == "expected_sarsa") {
-          p <-
-            greedy_action(Q, s_prime, epsilon, prob = TRUE)
+          # on-policy 
           exp_Q_prime <-
             sum(greedy_action(Q, s_prime, epsilon, prob = TRUE) * Q[s_prime, ],
-              na.rm = TRUE
+                na.rm = TRUE
             )
           Q[s, a] <-
-            Q[s, a] + alpha * (r + gamma * exp_Q_prime - Q[s, a])
-          if (is.na(Q[s, a])) {
-            Q[s, a] <- -Inf
-          }
+            Q[s, a] + alpha_val * (r + discount * exp_Q_prime - Q[s, a])
         }
 
+        if (is.na(Q[s, a])) {
+          Q[s, a] <- -Inf
+        }
+        
+        if (verbose) {
+          cat(sprintf("%.3f (N: %i alpha: %.3f)\n", Q[s, a], Q_N[s,a], alpha_val))
+        }
+        
+        
         s <- s_prime
         a <- a_prime
 
@@ -166,24 +197,8 @@ solve_MDP_TD <-
         if (i >= horizon)
           break
 
-        i <- i + 1L
       }
     }
     
-    if (progress)
-      pb$terminate()
-
-    on.exit()
-    
-    model$solution <- list(
-      method = method,
-      alpha = alpha,
-      epsilon = epsilon,
-      n = n,
-      Q = Q,
-      converged = NA,
-      policy = list(greedy_policy(Q))
-    )
-
-    model
+    # return via on.exit()
   }

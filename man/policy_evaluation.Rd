@@ -2,38 +2,35 @@
 % Please edit documentation in R/policy_evaluation.R
 \name{policy_evaluation}
 \alias{policy_evaluation}
-\alias{bellman_operator}
 \title{Policy Evaluation}
 \usage{
 policy_evaluation(
   model,
-  pi,
-  U = NULL,
+  pi = NULL,
+  V = NULL,
   k_backups = 1000L,
   theta = 0.001,
   matrix = TRUE,
   progress = TRUE,
   verbose = FALSE
 )
-
-bellman_operator(model, pi, U)
 }
 \arguments{
 \item{model}{an MDP problem specification.}
 
-\item{pi}{a policy as a data.frame with at least columns for states and action.}
+\item{pi}{a policy as a data.frame with at least columns for states and action. If \code{NULL},
+then the policy in model is used.}
 
-\item{U}{a vector with value function representing the state utilities
-(expected sum of discounted rewards from that point on).
+\item{V}{a vector with estimated state values representing a value function.
 If \code{model} is a solved model, then the state
-utilities are taken from the solution.}
+values are taken from the solution.}
 
 \item{k_backups}{number of look ahead steps used for approximate policy evaluation
 used by the policy iteration method. Set k_backups to \code{Inf} to only use
 \eqn{\theta} as the stopping criterion.}
 
-\item{theta}{stop when the largest change in a state value is less
-than \eqn{\theta}.}
+\item{theta}{stop when the largest state Bellman error (\eqn{\delta = V_{k+1} - V})
+is less than \eqn{\theta}.}
 
 \item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
 the reward function are taken from the model first. This can be slow if functions
@@ -55,18 +52,14 @@ Estimate the value function for a policy applied to a
 model by repeatedly applying the Bellman operator.
 }
 \details{
-The Bellman operator updates a value function given the model defining
-\eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy
-\eqn{\pi} by applying the Bellman equation as an update rule for each state:
+The value function for a policy can be estimated (called policy evaluation)
+by repeatedly applying the Bellman operator \eqn{B_\pi} till convergence.
+In each iteration, all state values are updated. In this implementation updating is
+stopped when the largest state Bellman error is below a threshold.
 
-\deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
+\deqn{||V_{k+1} - V_k||_\infty < \theta.}
 
-A policy can be evaluated by applying the Bellman operator till convergence.
-In each iteration, all states are updated. In this implementation updating is
-stopped after\code{k_backups} iterations or after the
-largest update
-
-\deqn{||U_{k+1} - U_k||_\infty < \theta.}
+Or if \code{k_backups} iterations have been completed.
 }
 \examples{
 data(Maze)
@@ -92,9 +85,9 @@ pi_random
 
 # 4. an improved policy based on one policy evaluation and
 #   policy improvement step.
-u <- policy_evaluation(Maze, pi_random)
-q <- q_values(Maze, U = u)
-pi_greedy <- greedy_policy(q)
+V <- policy_evaluation(Maze, pi_random)
+Q <- q_values(Maze, V)
+pi_greedy <- greedy_policy(Q)
 pi_greedy
 
 #' compare the approx. value functions for the policies (we restrict
@@ -115,7 +108,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
@@ -129,7 +121,6 @@ Other MDP:
 
 Other policy: 
 \code{\link{action}()},
-\code{\link{add_policy}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{q_values}()},

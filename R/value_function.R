@@ -42,7 +42,7 @@ value_function <- function(model, drop = TRUE) {
 #' @export
 value_function.MDP <- function(model, drop = TRUE) {
   is_solved_MDP(model, stop = TRUE)
-  val <- lapply(policy(model, drop = FALSE), "[[", "U")
+  val <- lapply(policy(model, drop = FALSE), "[[", "V")
 
   if (drop && length(val) == 1L) {
     val <- val[[1]]
@@ -52,11 +52,11 @@ value_function.MDP <- function(model, drop = TRUE) {
 }
 
 #' @rdname value_function
-#' @export
 #' @param epoch epoch for finite time horizon solutions.
 #' @param legend logical; show legend.
 #' @param col,ylab,las are passed on to [graphics::barplot()].
 #' @param main a main title for the plot. Defaults to the name of the problem.
+#' @export
 plot_value_function <- function(model,
                                 epoch = 1,
                                 legend = TRUE,
@@ -87,11 +87,11 @@ plot_value_function.MDP <-
     policy <- policy(model, drop = FALSE)[[epoch]]
 
     mid <- barplot(
-      policy$U,
+      policy$V,
       col = col,
       ylab = ylab,
       xlab = "State",
-      names.arg = paste(model$states),
+      names.arg = paste(S(model)),
       las = las,
       main = main,
       ...
@@ -108,3 +108,20 @@ plot_value_function.MDP <-
     }
     invisible(NULL)
   }
+
+#' @rdname value_function
+#' @export
+V_zero <- function(model) {
+  S <- S(model)
+  structure(rep(0, times = length(S)), names = S)
+}
+
+#' @rdname value_function
+#' @param min,max minimum and maximum for the uniformly distributed random
+#'    state values.
+#' @export
+V_random <- function(model, min = 1e-6, max = 1) {
+  S <- S(model)
+  structure(runif(length(S), min, max), names = S)
+}
+

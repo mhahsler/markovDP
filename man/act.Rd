@@ -41,7 +41,6 @@ replicate(10, act(sol, "s(1,3)", epsilon = .2))
 Other MDP: 
 \code{\link{MDP}()},
 \code{\link{accessors}},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

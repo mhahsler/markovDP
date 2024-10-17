@@ -12,7 +12,7 @@ sample_MDP(
   epsilon = NULL,
   exploring_starts = FALSE,
   delta_horizon = 0.001,
-  return_trajectories = FALSE,
+  trajectories = FALSE,
   engine = NULL,
   progress = TRUE,
   verbose = FALSE,
@@ -39,7 +39,7 @@ start the episode from.}
 
 \item{delta_horizon}{precision used to determine the horizon for infinite-horizon problems.}
 
-\item{return_trajectories}{logical; return the complete trajectories.}
+\item{trajectories}{logical; return the complete trajectories.}
 
 \item{engine}{\code{'cpp'} or \code{'r'} to perform simulation using a faster C++
 or a native R implementation \code{NULL} uses the C++ implementation unless the transition model or
@@ -62,7 +62,7 @@ A list with elements:
 contains the \code{episode} id, the \code{time} step, the state \code{s},
 the chosen action \code{a},
 the reward \code{r}, and the next state \code{s_prime}. Trajectories are
-only returned for \code{return_trajectories = TRUE}.
+only returned for \code{trajectories = TRUE}.
 }
 }
 \description{
@@ -92,7 +92,7 @@ data(Maze)
 sol <- solve_MDP(Maze, discount = 1)
 sol
 
-# U in the policy is and estimate of the utility of being in a state when using the optimal policy.
+# V in the policy is and estimate of the state values when following the optimal policy.
 policy(sol)
 gw_matrix(sol, what = "action")
 
@@ -101,8 +101,8 @@ gw_matrix(sol, what = "action")
 sim <- sample_MDP(sol, n = 100, horizon = 10, verbose = TRUE)
 sim
 
-# Note that all simulations start at s_1 and that the simulated avg. reward
-# is therefore an estimate to the U value for the start state s_1.
+# Note that all simulations for this model start at s_1 and that the simulated avg. reward
+# is therefore an estimate to the value function for the start state s_1.
 policy(sol)[1, ]
 
 # Calculate proportion of actions taken in the simulation
@@ -115,7 +115,7 @@ hist(sim$reward)
 #             states and return all trajectories
 sim <- sample_MDP(sol,
   n = 100, start = "uniform", horizon = 10,
-  return_trajectories = TRUE
+  trajectories = TRUE
 )
 head(sim$trajectories)
 
@@ -127,7 +127,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

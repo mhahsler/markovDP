@@ -3,34 +3,30 @@
 #' Estimate the value function for a policy applied to a 
 #' model by repeatedly applying the Bellman operator.
 #' 
-#' The Bellman operator updates a value function given the model defining
-#' \eqn{T}, \eqn{\gamma} and \eqn{R}, and a policy
-#' \eqn{\pi} by applying the Bellman equation as an update rule for each state:
+#' The value function for a policy can be estimated (called policy evaluation)
+#' by repeatedly applying the Bellman operator \eqn{B_\pi} till convergence.
+#' In each iteration, all state values are updated. In this implementation updating is
+#' stopped when the largest state Bellman error is below a threshold.
 #'
-#' \deqn{U_{k+1}(s) =\sum_a \pi_{a|s} \sum_{s'} T(s' | s,a) [R(s,a) + \gamma U_k(s')]}
+#' \deqn{||V_{k+1} - V_k||_\infty < \theta.}
 #'
-#' A policy can be evaluated by applying the Bellman operator till convergence.
-#' In each iteration, all states are updated. In this implementation updating is
-#' stopped after`k_backups` iterations or after the
-#' largest update
-#'
-#' \deqn{||U_{k+1} - U_k||_\infty < \theta.}
+#' Or if `k_backups` iterations have been completed.
 #'
 #' @family MDP
 #' @family policy
 #' @author Michael Hahsler
 #'
 #' @param model an MDP problem specification.
-#' @param U a vector with value function representing the state utilities
-#'    (expected sum of discounted rewards from that point on).
+#' @param V a vector with estimated state values representing a value function.
 #'    If `model` is a solved model, then the state
-#'    utilities are taken from the solution.
-#' @param pi a policy as a data.frame with at least columns for states and action.
+#'    values are taken from the solution.
+#' @param pi a policy as a data.frame with at least columns for states and action. If `NULL`,
+#'     then the policy in model is used.
 #' @param k_backups number of look ahead steps used for approximate policy evaluation
 #'    used by the policy iteration method. Set k_backups to `Inf` to only use
 #'    \eqn{\theta} as the stopping criterion.
-#' @param theta stop when the largest change in a state value is less
-#'    than \eqn{\theta}.
+#' @param theta stop when the largest state Bellman error (\eqn{\delta = V_{k+1} - V}) 
+#'    is less than \eqn{\theta}.
 #' @param matrix logical; if `TRUE` then matrices for the transition model and 
 #'    the reward function are taken from the model first. This can be slow if functions 
 #'    need to be converted or not fit into memory if the models are large. If these
@@ -70,9 +66,9 @@
 #'
 #' # 4. an improved policy based on one policy evaluation and
 #' #   policy improvement step.
-#' u <- policy_evaluation(Maze, pi_random)
-#' q <- q_values(Maze, U = u)
-#' pi_greedy <- greedy_policy(q)
+#' V <- policy_evaluation(Maze, pi_random)
+#' Q <- q_values(Maze, V)
+#' pi_greedy <- greedy_policy(Q)
 #' pi_greedy
 #'
 #' #' compare the approx. value functions for the policies (we restrict
@@ -86,8 +82,8 @@
 #' @export
 policy_evaluation <-
   function(model,
-           pi,
-           U = NULL,
+           pi = NULL,
+           V = NULL,
            k_backups = 1000L,
            theta = 1e-3,
            matrix = TRUE,
@@ -97,13 +93,16 @@ policy_evaluation <-
       stop("'model' needs to be of class 'MDP'.")
     }
 
+    if (is.null(pi))
+      pi <- policy(model)
+    
     if (progress) {
       pb <- my_progress_spinner(name = "policy_evaluation")
       pb$tick(0)
     }
     
-    S <- model$states
-    A <- model$actions
+    S <- S(model)
+    A <- A(model)
     
     # note for the many iterations, it is better to get the complete matrices
     if (matrix) {
@@ -127,10 +126,10 @@ policy_evaluation <-
     names(pi) <- S
 
     # start with all 0s if no previous U is given
-    if (is.null(U)) {
-      U <- rep(0, times = length(S))
+    if (is.null(V)) {
+      V <- rep(0, times = length(S))
     }
-    names(U) <- S
+    names(V) <- S
     
     # we cannot count more than integer.max
     if (k_backups > .Machine$integer.max) {
@@ -142,9 +141,9 @@ policy_evaluation <-
       if (progress)
         pb$tick()
       
-      v <- U
-      U <- bellman_operator(model, pi, U)
-      delta <- max(abs(v - U), na.rm = TRUE)
+      v <- V
+      V <- bellman_operator(model, pi, V)
+      delta <- max(abs(v - V), na.rm = TRUE)
 
       if (verbose) {
         cat("Backup step", i, ": delta =", delta, "\n")
@@ -158,19 +157,9 @@ policy_evaluation <-
     if (progress)
       pb$terminate()
     
-    U
+    V
   }
 
 
-#' @rdname policy_evaluation
-#' @export
-bellman_operator <- function(model, pi, U) {
-  if (is.data.frame(pi)) {
-    pi <- pi$action
-  }
-  
-  Q <- bellman_update(model, U)$Q
-  Q[cbind(seq_along(model$states), pi)]
-}
 
 

@@ -6,7 +6,7 @@
 \alias{greedy_policy}
 \title{Q-Values and Greedy Policies}
 \usage{
-q_values(model, U = NULL)
+q_values(model, V = NULL)
 
 greedy_action(Q, s, epsilon = 0, prob = FALSE)
 
@@ -15,12 +15,12 @@ greedy_policy(Q)
 \arguments{
 \item{model}{an MDP problem specification.}
 
-\item{U}{a vector with value function representing the state utilities
-(expected sum of discounted rewards from that point on).
+\item{V}{the state values.
 If \code{model} is a solved model, then the state
-utilities are taken from the solution.}
+values are taken from the solution.}
 
-\item{Q}{an action value function with Q-values as a state by action matrix.}
+\item{Q}{an action-value function with \eqn{Q(s,a)} values as a
+state by action matrix.}
 
 \item{s}{a state.}
 
@@ -40,25 +40,26 @@ the probability for each action is returned.
 \code{greedy_policy()} returns the greedy policy given \code{Q}.
 }
 \description{
-Implementation several functions useful to deal with Q-values for MDPs
-which maps a state/action pair to a utility value.
+Several useful functions to deal with Q-values (action values)
+which map each state/action pair to a utility value.
 }
 \details{
 Implemented functions are:
 \itemize{
-\item \code{q_values()} calculates (approximates)
-Q-values for a given model and value function using the Bellman
+\item \code{q_values()} approximates
+Q values for a given model and value function using the Bellman
 optimality equation:
 
-\deqn{q(s,a) = \sum_{s'} T(s'|s,a) [R(s,a) + \gamma U(s')]}
+\deqn{q_*(s,a) = \sum_{s'} p(s'|s,a) [r(s,a,s') + \gamma v_*(s')]}
 
-Q-values are calculated if \eqn{U = U^*}, the optimal value function
-otherwise we get an approximation.
-Q-values can be used as the input for several other functions.
-\item \code{greedy_action()} returns the action with the largest Q-value given a
+Exact Q values are calculated if \eqn{V = v_*}, the optimal value function,
+otherwise we get an approximation that might not
+be consistent with \eqn{V} or the implied policy.
+Q values can be used as the input for several other functions.
+\item \code{greedy_action()} returns the action with the largest Q value given a
 state.
 \item \code{greedy_policy()}
-generates a greedy policy using Q-values.
+generates a greedy policy using Q values.
 }
 }
 \examples{
@@ -67,17 +68,24 @@ Maze
 
 # create a random policy and calculate q-values
 pi_random <- random_policy(Maze)
-u <- policy_evaluation(Maze, pi_random)
-q <- q_values(Maze, U = u)
+pi_random
 
-# get the greedy policy form the q-values
-pi_greedy <- greedy_policy(q)
+V <- policy_evaluation(Maze, pi_random)
+V
+
+# calculate Q values
+Q <- q_values(Maze, V)
+Q
+
+# get the greedy policy form the Q values
+pi_greedy <- greedy_policy(Q)
 pi_greedy
 gw_plot(add_policy(Maze, pi_greedy), main = "Maze: Greedy Policy")
 
-greedy_action(q, "s(3,1)", epsilon = 0, prob = FALSE)
-greedy_action(q, "s(3,1)", epsilon = 0, prob = TRUE)
-greedy_action(q, "s(3,1)", epsilon = .1, prob = TRUE)
+# find the greedy/ epsilon-greedy action for the top-left corner state 
+greedy_action(Q, "s(1,1)", epsilon = 0, prob = FALSE)
+greedy_action(Q, "s(1,1)", epsilon = 0, prob = TRUE)
+greedy_action(Q, "s(1,1)", epsilon = .1, prob = TRUE)
 }
 \references{
 Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
@@ -88,7 +96,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
@@ -102,7 +109,6 @@ Other MDP:
 
 Other policy: 
 \code{\link{action}()},
-\code{\link{add_policy}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},

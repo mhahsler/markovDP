@@ -34,8 +34,8 @@ solve_MDP_sampling <-
     gamma <- discount
     model$discount <- discount
     
-    S <- model$states
-    A <- model$actions
+    S <- S(model)
+    A <- A(model)
     start <- start_vector(model, sparse = FALSE)
     
     method <-
@@ -47,7 +47,7 @@ solve_MDP_sampling <-
       if (is.null(model$solution$Q) || is.null(model$solution$N))
         stop("model solution does not contain a Q matrix or the N count matrix to continue from!")
       Q <- model$solution$Q
-      N <- model$solution$N
+      Q_N <- model$solution$Q_N
     } else if (is.null(Q)) {
       Q <-
         matrix(0,
@@ -55,7 +55,7 @@ solve_MDP_sampling <-
                ncol = length(A),
                dimnames = list(S, A)
         )
-      N <-
+      Q_N <-
         matrix(0L,
                nrow = length(S),
                ncol = length(A),
@@ -65,10 +65,16 @@ solve_MDP_sampling <-
     
     # return unconverged result when interrupted
     on.exit({
-      warning("MDP solver interrupted early.")
+      if (progress) {
+        pb$tick(0)
+        pb$terminate()
+      }
+      
+      if (t < n)
+        warning("Manual interupt: MDP solver stopped at try ", t)
       
       if (verbose) {
-        cat("\nTerminated during iteration:", t, "\n")
+        cat("\nTerminated after try:", t, "\n")
       }
       
       model$solution <- list(
@@ -76,7 +82,7 @@ solve_MDP_sampling <-
         alpha = alpha,
         n = n,
         Q = Q,
-        N = N,
+        Q_N = Q_N,
         converged = NA,
         policy = list(greedy_policy(Q))
       )
@@ -84,10 +90,12 @@ solve_MDP_sampling <-
     })
     
     if (progress)
-      pb <- my_progress_bar(n/PROGRESS_INTERVAL, name = "solve_MDP")
+      pb <- my_progress_bar(ceiling(n/PROGRESS_INTERVAL) + 1, name = "solve_MDP")
     
     # loop through tries
-    for (t in seq(n)) {
+    t <- 0L
+    while (t < n) {
+      t <- t + 1L
       if (!(t %% PROGRESS_INTERVAL) && progress)
         pb$tick()
       
@@ -104,11 +112,11 @@ solve_MDP_sampling <-
       #           sigma_TD is the sd of R+gamma max_a Q(s', a)
      
       
-      # update Q and N
-      N[s, a] <- N[s, a] + 1L
+      # update Q and Q_N
+      Q_N[s, a] <- Q_N[s, a] + 1L
       
       if (is.function(alpha))
-        alpha_val <- alpha(t, N[s, a])
+        alpha_val <- alpha(t, Q_N[s, a])
       
       if (verbose) 
         cat(s, "with", a, "(alpha:", signif(alpha_val, 3), ") Q:", signif(Q[s, a], 3))
@@ -121,17 +129,5 @@ solve_MDP_sampling <-
       
     }
     
-    on.exit()
-    
-    model$solution <- list(
-      method = method,
-      alpha = alpha,
-      n = n,
-      Q = Q,
-      N = N,
-      converged = NA,
-      policy = list(greedy_policy(Q))
-    )
-    
-    model
+    # return is handled by on.exit()
   }

@@ -96,7 +96,11 @@
 #' distribution over all states.
 #' 
 #' ## Accessing Elements of the MDP
-#' See [accessors].
+#' 
+#' The convenience functions `S()` and `A()` return the set of states and actions.
+#' 
+#' See [accessors] for accessing transition probabilities, rewards, and the 
+#' start state distribution.
 #'
 #' @family MDP
 #' @family MDP_examples
@@ -156,6 +160,8 @@
 #' str(car)
 #'
 #' # accessing elements
+#' S(car)
+#' A(car)
 #' start_vector(car, sparse = "states")
 #' transition_matrix(car)
 #' transition_matrix(car, sparse = TRUE)
@@ -163,6 +169,8 @@
 #' reward_matrix(car, sparse = TRUE)
 #'
 #' sol <- solve_MDP(car)
+#' sol
+#' 
 #' policy(sol)
 #' @export
 MDP <- function(states,
@@ -265,6 +273,14 @@ print.MDP <- function(x, ...) {
 
 
 #' @rdname MDP
+#' @export
+S <- function(model) model$states
+
+#' @rdname MDP
+#' @export
+A <- function(model) model$actions
+
+#' @rdname MDP
 #' @param stop logical; stop with an error.
 #' @export
 is_solved_MDP <- function(model, stop = FALSE) {
@@ -273,7 +289,7 @@ is_solved_MDP <- function(model, stop = FALSE) {
   }
   solved <- !is.null(model$solution)
   if (stop && !solved) {
-    stop("x needs to contain a policy. Use solve_MDP() or add_policy() first.")
+    stop("model needs to contain a policy. Use solve_MDP() or add_policy() first.")
   }
 
   solved
@@ -281,10 +297,20 @@ is_solved_MDP <- function(model, stop = FALSE) {
 
 #' @rdname MDP
 #' @export
-is_converged_MDP <- function(model) (
-  !is.null(model$solution$converged) &&
-    !is.na(model$solution$converged) &&
-    model$solution$converged)
+is_converged_MDP <- function(model, stop = FALSE) {
+  is_solved_MDP(model, stop = TRUE)
+  
+  converged <- ( 
+    !is.null(model$solution$converged) &&
+      !is.na(model$solution$converged) &&
+      model$solution$converged)
+  
+  if (stop && !converged)
+    stop("model needs to contain a converged MDP solution!")
+  
+  converged
+}
+
 
 ## this is .get_pg_index for MDPs
 .get_pol_index <- function(model, epoch) {
@@ -311,7 +337,7 @@ is_converged_MDP <- function(model) (
 
 # convert names or ids to ids!
 .get_state_id <- function(model, state) {
-  id <- structure(seq_along(model$states), names = model$states)[state]
+  id <- structure(seq_along(S(model)), names = S(model))[state]
   if (any(is.na(id))) {
     stop("Unknown state(s): ", paste(state[is.na(id)], collapse = ", "))
   }

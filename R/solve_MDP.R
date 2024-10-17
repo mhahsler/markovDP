@@ -9,7 +9,7 @@
 #' for finite-horizon problems.
 #'
 #' ## Dynamic Programming
-#' 
+#'
 #' Implemented are the following dynamic programming methods (following
 #' Russell and Norvig, 2010):
 #'
@@ -26,7 +26,7 @@
 #'   an arbitrary value function (by default all 0s) and iteratively
 #'   updates the value function for each state using the Bellman equation.
 #'   The iterations
-#'   are terminated either after `iter_max` iterations or when the solution converges.
+#'   are terminated either after `n` iterations or when the solution converges.
 #'   Approximate convergence is achieved
 #'   for discounted problems (with \eqn{\gamma < 1})
 #'   when the maximal value function change for any state \eqn{\delta} is
@@ -39,17 +39,17 @@
 #'   is calculated from the final value function. Value iteration can be seen as
 #'   policy iteration with truncated policy evaluation.
 #'
-#' * **Prioritized Sweeping** (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008) 
+#' * **Prioritized Sweeping** (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008)
 #'   approximate the optimal value
-#'   function by iteratively adjusting one state at a time. The state to be updated is chosen 
-#'   depending on its priority which reflects how much a state value may change 
-#'   given the most recently updated other states that can be directly reached via an action. 
+#'   function by iteratively adjusting one state at a time. The state to be updated is chosen
+#'   depending on its priority which reflects how much a state value may change
+#'   given the most recently updated other states that can be directly reached via an action.
 #'   This update order often lead to faster convergence compared
 #'   to sweeping the whole state state in regular value iteration.
-#'   
+#'
 #'   We implement the two priority update strategies described as __PS__ and
 #'   __GenPS__ by Li and Littman.
-#'   
+#'
 #'   * __PS__ (Moore and Atkeson, 1993) updates the priority of a state \eqn{H(s)}
 #'      using:
 #'      \deqn{
@@ -58,36 +58,36 @@
 #'          \Delta_t \max_{a \in A}(T(s_t|s,a) \text{ for } s = s_{t+1}
 #'          \end{cases}
 #'      }
-#'      
-#'      where \eqn{\Delta_t = |V_{t+1}(s_t) - V_t(s_t)| = |E(s_t; V_{t+1})|}, i.e., 
+#'
+#'      where \eqn{\Delta_t = |V_{t+1}(s_t) - V_t(s_t)| = |E(s_t; V_{t+1})|}, i.e.,
 #'      the Bellman error for the updated state.
-#'      
-#'   * __GenPS__ (Andre et al., 1997) updates all state priorities using their 
+#'
+#'   * __GenPS__ (Andre et al., 1997) updates all state priorities using their
 #'      current Bellman error:
-#'   
+#'
 #'      \deqn{\forall{s \in S}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})|}
-#'      
+#'
 #'      where \eqn{E(s; V_{t+1}) = \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} T(s'|s,a) V(s')\right] - V(s)}.
 #'      is a state's Bellman error.
-#'      
+#'
 #'   The update method can be chosen using the additional parameter `H_update`
-#'   as the character string `"PS_random"`, `"PS_error"` or `"GenPS"`. 
-#'   The default is `H_update = "GenPS"`. For PS, random means that the 
+#'   as the character string `"PS_random"`, `"PS_error"` or `"GenPS"`.
+#'   The default is `H_update = "GenPS"`. For PS, random means that the
 #'   priority vector is initialized with random values (larger than 0),
-#'   and error means they are initialized with the Bellman error as in 
+#'   and error means they are initialized with the Bellman error as in
 #'   GenPS. However, this requires one complete sweep over all states.
-#'   
+#'
 #'   This implementation stops updating when the largest priority values
 #'   over all states is less than the specified `error`.
-#'   
-#'   Since the logarithm does not sweep through the whole state space for each
-#'   iteration, `iter_max` is converted into an equivalent number of state updates 
-#'   \eqn{n = \text{iter_max} |S|}.
+#'
+#'   Since the algorithm does not sweep through the whole state space for each
+#'   iteration, `n` is converted into an equivalent number of state updates
+#'   \eqn{n = n |S|}.
 #'
 #' Note that policies converge earlier than value functions.
 #'
 #' ## Linear Programming
-#' 
+#'
 #' The following linear programming formulation (Manne 1960) is implemented. For the
 #' optimal value function, the Bellman equation holds:
 #'
@@ -112,29 +112,29 @@
 #'
 #'
 #' ## Monte Carlo Control
-#' 
-#' Monte Carlo control simulates a whole episode using the current behavior 
+#'
+#' Monte Carlo control simulates a whole episode using the current behavior
 #' policy and then updates the target policy before simulating the next episode.
 #' Implemented are the following temporal difference control methods
 #' described in Sutton and Barto (2020).
-#' 
+#'
 #' * **Monte Carlo Control with exploring Starts** uses the same greedy policy for
-#' behavior and target (on-policy). To make sure all states/action pairs are 
+#' behavior and target (on-policy). To make sure all states/action pairs are
 #' explored, it uses exploring starts meaning that new episodes are started at a randomly
 #' chosen state using a randomly chooses action.
-#' 
+#'
 #' * **On-policy Monte Carlo Control** uses for behavior and as the target policy
-#' an epsilon-greedy policy. 
-#' 
-#' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary policy 
-#' (we use an epsilon-greedy policy) and learns a greedy policy using 
+#' an epsilon-greedy policy.
+#'
+#' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary policy
+#' (we use an epsilon-greedy policy) and learns a greedy policy using
 #' importance sampling.
 #'
 #' ## Temporal Difference Control
 #'
 #' Implemented are several temporal difference control methods
 #' described in Sutton and Barto (2020).
-#' Note that the MDP transition and reward models are used 
+#' Note that the MDP transition and reward models are used
 #' for these reinforcement learning methods only to sample from
 #' the environment.
 #' The algorithms use a step size parameter \eqn{\alpha} (learning rate) for the
@@ -160,26 +160,26 @@
 #'   It moves deterministically in the same direction as Sarsa would
 #'   move in expectation. Because it uses the expectation, we can
 #'   set the step size \eqn{\alpha} to large values and 1 is common.
-#' 
+#'
 #' ## Planning by Sampling
-#' 
+#'
 #' A simple, not very effective, planning method proposed by Sutton and Barto (2020) in Chapter 8.
-#' 
-#' * **Random-sample one-step tabular Q-planning** randomly selects a 
-#' state/action pair and samples the resulting reward and next state from 
-#' the model. This 
+#'
+#' * **Random-sample one-step tabular Q-planning** randomly selects a
+#' state/action pair and samples the resulting reward and next state from
+#' the model. This
 #' information is used to update a single Q-table value.
 #'
 #' @family solver
 #' @family MDP
 #'
 #' @param model an MDP problem specification.
-#' @param method string; one of the following solution methods: 
+#' @param method string; one of the following solution methods:
 #'    `'value_iteration'`,
-#'    `'policy_iteration'`, 
-#'    `'lp'`, 
-#'    `'q_learning'`, 
-#'    `'sarsa'`, 
+#'    `'policy_iteration'`,
+#'    `'lp'`,
+#'    `'q_learning'`,
+#'    `'sarsa'`,
 #'    `'expected_sarsa'`,
 #'    `'MC_exploring_starts'`,
 #'    `'MC_on_policy'`,
@@ -199,7 +199,7 @@
 #' @return `solve_MDP()` returns an object of class MDP which is a list with the
 #'   model specifications (`model`), the solution (`solution`).
 #'   The solution is a list with the elements:
-#'   - `policy` a list representing the policy graph. The list only has one 
+#'   - `policy` a list representing the policy graph. The list only has one
 #'      element for converged solutions.
 #'   - `converged` did the algorithm converge (`NA`) for finite-horizon problems.
 #'   - `delta` final \eqn{\delta} (value iteration and infinite-horizon only)
@@ -208,13 +208,13 @@
 #' @author Michael Hahsler
 #' @references
 #' Andre, D., Friedman, N., and Parr, R. 1997. "Generalized prioritized sweeping." In Advances in Neural Information Processing Systems 10, pp. 1001-1007. [NeurIPS Proceedings](https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf)
-#' 
+#'
 #' Bellman, Richard. 1957. "A Markovian Decision Process." Indiana University Mathematics Journal 6: 679-84. [https://www.jstor.org/stable/24900506](https://www.jstor.org/stable/24900506).
 #'
 #' Howard, R. A. 1960. "Dynamic Programming and Markov Processes." Cambridge, MA: MIT Press.
 #'
 #' Li, Lihong, and Michael Littman. 2008. "Prioritized Sweeping Converges to the Optimal Value Function." DCS-TR-631. Rutgers University. \doi{10.7282/T3TX3JSX}
-#' 
+#'
 #' Manne, Alan. 1960. "On the Job-Shop Scheduling Problem." Operations Research 8 (2): 219-23. \doi{10.1287/opre.8.2.219}.
 #'
 #' Moore, Andrew, and C. G. Atkeson. 1993. "Prioritized Sweeping: Reinforcement Learning with Less Data and Less Real Time." Machine Learning 13 (1): 103–30. \doi{10.1007/BF00993104}.
@@ -222,7 +222,7 @@
 #' Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algorithms for Discounted Markov Decision Problems." Management Science 24: 1127-37. \doi{10.1287/mnsc.24.11.1127}.
 #'
 #' Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
-#' 
+#'
 #' Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. [http://aima.cs.berkeley.edu/](http://aima.cs.berkeley.edu/).
 #'
 #' Sutton, R. 1988. "Learning to Predict by the Method of Temporal Differences." Machine Learning 3: 9-44. [https://link.springer.com/article/10.1007/BF00115009](https://link.springer.com/article/10.1007/BF00115009).
@@ -294,19 +294,28 @@ solve_MDP <- function(model, method = "value_iteration", ...) {
   if (!inherits(model, "MDP")) {
     stop("x needs to be an MDP!")
   }
-
-  methods_DP <- c("value_iteration", "policy_iteration", "prioritized_sweeping")
+  
+  methods_DP <- c(
+    "value_iteration",
+    "policy_iteration",
+    "prioritized_sweeping",
+    "GenPS",
+    "PS_error",
+    "PS_random"
+  )
   methods_LP <- c("lp")
   methods_TD <- c("sarsa", "q_learning", "expected_sarsa")
   methods_MC <- c("MC_exploring_starts", "MC_on_policy", "MC_off_policy")
   methods_sampling <- c("q_planning")
-  method <- match.arg(method, c(methods_DP, 
-                                methods_LP, 
-                                methods_TD, 
-                                methods_MC,
-                                methods_sampling
-                                ))
-
+  method <- match.arg(method,
+                      c(
+                        methods_DP,
+                        methods_LP,
+                        methods_TD,
+                        methods_MC,
+                        methods_sampling
+                      ))
+  
   if (method %in% methods_DP) {
     return(solve_MDP_DP(model, method, ...))
   }
@@ -326,7 +335,7 @@ solve_MDP <- function(model, method = "value_iteration", ...) {
   if (method %in% methods_sampling) {
     return(solve_MDP_sampling(model, method, ...))
   }
-
+  
   # we should not get here!
   stop("Unknown method!")
 }

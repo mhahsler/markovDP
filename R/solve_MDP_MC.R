@@ -61,8 +61,6 @@ solve_MDP_MC <-
         cat(" done.\n")
     }
     
-    
-    
     switch(
       method,
       MC_exploring_starts = MC_on_policy(model, method, horizon, 
@@ -103,9 +101,8 @@ MC_on_policy <- function(model,
       warning("epsilon should be 0 for exploring starts!")
   }
   
-  S <- model$states
-  A <- model$actions
-  gamma <- discount
+  S <- S(model)
+  A <- A(model)
   
   # Start with arbitrary policy, we make it soft by specifying epsilon 
   # in the simulation.
@@ -139,13 +136,19 @@ MC_on_policy <- function(model,
   }
   
   if (progress)
-    pb <- my_progress_bar(n, name = "solve_MDP")
+    pb <- my_progress_bar(n + 1L, name = "solve_MDP")
   
-  on.exit({ 
-    warning("MDP solver interrupted early.")
+  on.exit({
+    if (progress) {
+      pb$tick(0)
+      pb$terminate()
+    }
+    
+    if (e < n)
+      warning("Manual interupt: MDP solver stopped at episode ", e)
     
     if (verbose) {
-      cat("\nTerminated during episode:", e, "\n")
+      cat("\nTerminated after episode:", e, "\n")
     }
     
     model$solution <- list(
@@ -161,7 +164,9 @@ MC_on_policy <- function(model,
   })
   
   # Loop through N episodes
-  for (e in seq(n)) {
+  e <- 0L
+  while (e < n) {
+    e <- e + 1L
     if (progress)
       pb$tick()
     
@@ -180,7 +185,7 @@ MC_on_policy <- function(model,
       horizon = horizon,
       epsilon = epsilon,
       exploring_starts = exploring_starts,
-      return_trajectories = TRUE,
+      trajectories = TRUE,
       progress = FALSE,
       verbose = FALSE
     )$trajectories
@@ -196,7 +201,7 @@ MC_on_policy <- function(model,
       s_t <- ep$s[i]
       a_t <- ep$a[i]
       
-      G <- gamma * G + r_t_plus_1
+      G <- discount * G + r_t_plus_1
       
       # Only update for first visit of a s/a combination
       if (!first_visit || i < 2L ||
@@ -235,18 +240,7 @@ MC_on_policy <- function(model,
     }
   }
   
-  on.exit()
-  
-  model$solution <- list(
-    method = method,
-    n = n,
-    Q = Q,
-    Q_N = Q_N,
-    converged = NA,
-    policy = list(greedy_policy(Q))
-  )
-  
-  model
+  # return is handeld by on.exit()
 }
 
 
@@ -263,8 +257,8 @@ MC_off_policy <- function(model,
   ## Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
   ## (RL book, Chapter 5)
   
-  S <- model$states
-  A <- model$actions
+  S <- S(model)
+  A <- A(model)
   gamma <- discount
   
   # Initialize
@@ -278,13 +272,19 @@ MC_off_policy <- function(model,
   C <- matrix(0L, nrow = length(S), ncol = length(A), dimnames = list(S, A))
   
   if (progress)
-    pb <- my_progress_bar(n, name = "solve_MDP")
+    pb <- my_progress_bar(n + 1L, name = "solve_MDP")
   
   on.exit({ 
-    warning("MDP solver interrupted early.")
+    if (progress) {
+      pb$tick(0)
+      pb$terminate()
+    }
+    
+    if (e < n)
+      warning("Manual interupt: MDP solver stopped at episode ", e)
     
     if (verbose) {
-      cat("\nTerminated during episode:", e, "\n")
+      cat("\nTerminated after episode:", e, "\n")
     }
     
     model$solution <- list(
@@ -298,8 +298,10 @@ MC_off_policy <- function(model,
     return(model)
   })
   
-  # Loop through N episodes
-  for (e in seq(n)) {
+  # Loop through episodes
+  e <- 0L
+  while (e < n) {
+    e <- e + 1L
     if (progress)
       pb$tick()
     
@@ -320,7 +322,7 @@ MC_off_policy <- function(model,
       n = 1,
       horizon = horizon,
       epsilon = epsilon,
-      return_trajectories = TRUE,
+      trajectories = TRUE,
       progress = FALSE,
       verbose = FALSE
     )$trajectories
@@ -363,15 +365,5 @@ MC_off_policy <- function(model,
     }
   }
   
-  on.exit()
-  
-  model$solution <- list(
-    method = method,
-    n = n,
-    Q = Q,
-    converged = NA,
-    policy = list(greedy_policy(Q))
-  )
-  
-  model
+  # return is handled by on.exit()
   }

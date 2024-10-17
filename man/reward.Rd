@@ -7,18 +7,20 @@
 \usage{
 reward(model, ...)
 
-\method{reward}{MDP}(model, start = NULL, epoch = 1L, ...)
+\method{reward}{MDP}(model, start = NULL, method = "solution", ...)
 }
 \arguments{
 \item{model}{a solved \link{MDP} object.}
 
-\item{...}{further arguments are passed on.}
+\item{...}{further arguments are passed on to \code{\link[=policy_evaluation]{policy_evaluation()}} or \code{\link[=sample_MDP]{sample_MDP()}}.}
 
 \item{start}{specification of the current state (see argument start
 in \link{MDP} for details). By default the start state defined in
 the model as start is used. Multiple states can be specified as rows in a matrix.}
 
-\item{epoch}{epoch for a finite-horizon solutions.}
+\item{method}{\code{"solution"} uses the converged value function stored in the solved model,
+\code{"policy_evaluation"} estimates the value function, and \code{"sample"}
+calculates the average reward by sampling episodes from the model.}
 }
 \value{
 \code{reward()} returns a vector of reward values, one for each belief if a matrix is specified.
@@ -28,8 +30,8 @@ state of model is used.}
 }
 \description{
 This function calculates the expected total reward for an MDP policy
-given a start state (distribution). The value is calculated using the value function stored
-in the MDP solution.
+given a start state (distribution). The value is calculated using the value
+function stored in the MDP solution.
 }
 \details{
 The reward is typically calculated using the value function
@@ -52,11 +54,12 @@ reward(sol, start = "s(1,3)")
 
 # expected reward when we start from a random state
 reward(sol, start = "uniform")
+
+reward(sol, method = "sample", start = "uniform", horizon = 100)
 }
 \seealso{
 Other policy: 
 \code{\link{action}()},
-\code{\link{add_policy}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},

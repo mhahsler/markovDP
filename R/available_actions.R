@@ -37,7 +37,7 @@ available_actions <- function(model,
                               state,
                               neg_inf_reward = TRUE,
                               stay_in_place = TRUE) {
-  acts <- model$actions
+  acts <- A(model)
   
   if (stay_in_place) {
     acts <- acts[transition_matrix(
@@ -50,7 +50,7 @@ available_actions <- function(model,
     
     # absorbing state 
     if (length(acts) < 1L)
-      acts <- model$actions
+      acts <- A(model)
   }
   
   if (neg_inf_reward) {

@@ -139,13 +139,13 @@ normalize_MDP <- function(model,
   }
   
   if (is.null(sparse))
-    sparse <- length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
+    sparse <- length(S(model)) ^ 2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT")
   if (!is.logical(sparse) || length(sparse) != 1L)
     stop("sparse needs to be a NULL or a logical scalar.")
   
   # start state vector + transitions matrix + reward matrix + check and fix
-  n_states <- length(model$states)
-  n_actions <- length(model$actions)
+  n_states <- length(S(model))
+  n_actions <- length(A(model))
   t_start <- n_states
   t_pass <- n_actions * n_states * n_states
   
@@ -179,7 +179,7 @@ normalize_MDP <- function(model,
     # w/progress
     # model$transition_prob <-
     #   sapply(
-    #     model$actions,
+    #     A(model),
     #     FUN = function(a) {
     #       tm <- transition_matrix(model, a, sparse = sparse)
     #       if (progress)
@@ -482,12 +482,12 @@ normalize_MDP <- function(model,
   if (is.numeric(state))
     return(factor(
       state,
-      levels = seq_along(model$states),
-      labels = model$states
+      levels = seq_along(S(model)),
+      labels = S(model)
     ))
   
   if (is.character(state))
-    return(factor(state, levels = model$states))
+    return(factor(state, levels = S(model)))
   
   stop("Unknown state label: ", sQuote(state))
 }
@@ -499,12 +499,12 @@ normalize_MDP <- function(model,
   if (is.numeric(action))
     return(factor(
       action,
-      levels = seq_along(model$actions),
-      labels = model$actions
+      levels = seq_along(A(model)),
+      labels = A(model)
     ))
   
   if (is.character(action))
-    return(factor(action, levels = model$actions))
+    return(factor(action, levels = A(model)))
   
   stop("Unknown action label: ", sQuote(action))
 }
@@ -524,7 +524,7 @@ start_vector <- function(model,
     start <- "uniform"
   }
   
-  .translate_distribution(start, model$states, sparse = sparse)
+  .translate_distribution(start, S(model), sparse = sparse)
 }
 
 
@@ -613,10 +613,10 @@ function2value <- function(model,
                            col = NULL,
                            sparse = NULL) {
   if (is.null(action))
-    action <- model$actions
+    action <- A(model)
   
   if (!is.character(action))
-    action <- model$actions[action]
+    action <- A(model)[action]
   
   if (length(action) > 1L)
     return(sapply(
@@ -631,14 +631,14 @@ function2value <- function(model,
   
   # Convert ids to names
   if (!is.null(row) && is.numeric(row))
-    row <- model$states[row]
+    row <- S(model)[row]
   
   # do we have an end.state argument? (makes it 4 formal arguments)
   if (length(formals(f)) == 4L) {
     ### with end.state ####################################################
     
     if (!is.null(col) && is.numeric(col))
-      col <- model$states[col]
+      col <- S(model)[col]
     
     # single value
     if (!is.null(row) &&
@@ -651,22 +651,22 @@ function2value <- function(model,
     # 1 row/no cols
     if (!is.null(row) && length(row) == 1L && is.null(col)) {
       fv <- Vectorize(f, vectorize.args = c("end.state"))
-      o <- fv(model, action, row, model$states)
-      return(.sparsify_vector(o, sparse = sparse, names = model$states))
+      o <- fv(model, action, row, S(model))
+      return(.sparsify_vector(o, sparse = sparse, names = S(model)))
     }
     
     # no rows/1 col
     if (is.null(row) && !is.null(col) && length(col) == 1L) {
       fv <- Vectorize(f, vectorize.args = c("start.state"))
-      o <- fv(model, action, model$states, col)
-      return(.sparsify_vector(o, sparse = sparse, names = model$states))
+      o <- fv(model, action, S(model), col)
+      return(.sparsify_vector(o, sparse = sparse, names = S(model)))
     }
     
     # no rows/no cols and n rows/ n columns
     if (is.null(row))
-      row <- model$states
+      row <- S(model)
     if (is.null(col))
-      col <- model$states
+      col <- S(model)
     
     f_v <- Vectorize(f, vectorize.args = c("start.state", "end.state"))
     o <- outer(
@@ -700,7 +700,7 @@ function2value <- function(model,
     
     # we default to sparse here or the matrices may become to big
     if (is.null(sparse) &&
-        length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
+        length(S(model)) ^ 2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
     
     o <- .sparsify(o, sparse)
@@ -718,19 +718,19 @@ function2value <- function(model,
       v <- f(model, action, row)
       
       # sparse or dense vector
-      if (length(v) == length(model$states))
+      if (length(v) == length(S(model)))
         return(v)
       
       # translate partial vector into a sparse vector
-      cols <- match(names(v), model$states)
+      cols <- match(names(v), S(model))
       sparseVector(x = unname(v),
                    i = cols,
-                   length = length(model$states))
+                   length = length(S(model)))
     }
     
     # we need col ids to subset sparse vectors
     if (!is.null(col) && !is.numeric(col))
-      col <- match(col, model$states)
+      col <- match(col, S(model))
     
     # single value
     if (!is.null(row) &&
@@ -743,13 +743,13 @@ function2value <- function(model,
     
     # 1 row /no cols
     if (!is.null(row) && length(row) == 1L &&  is.null(col)) {
-      return(.sparsify_vector(.f_wrapper(f, model, action, row), sparse, names = model$states))
-      #return(.sparsify_vector(f(model, action, row), sparse, names = model$states))
+      return(.sparsify_vector(.f_wrapper(f, model, action, row), sparse, names = S(model)))
+      #return(.sparsify_vector(f(model, action, row), sparse, names = S(model)))
     }
     
     # no rows or specified rows / cols or no cols
     if (is.null(row))
-      row <- model$states
+      row <- S(model)
     .f_wrapper_vec <- Vectorize(.f_wrapper,
                                 vectorize.args = c("row"),
                                 SIMPLIFY = FALSE)
@@ -764,22 +764,22 @@ function2value <- function(model,
           t(as(v, "CsparseMatrix"))
       )
     
-    if (any(lengths(o) != length(model$states)))
+    if (any(lengths(o) != length(S(model))))
       stop(
         "Function for ",
         field,
         " returns an incorrect number of values for action ",
         sQuote(action),
         " for start.state(s):\n\t",
-        paste(sQuote(model$states[which(lengths(o) != length(model$states))]), collapse = ", ")
+        paste(sQuote(S(model)[which(lengths(o) != length(S(model)))]), collapse = ", ")
       )
     
     o <- do.call("rbind", o)
-    dimnames(o) <- list(row, model$states)
+    dimnames(o) <- list(row, S(model))
     
     if (!is.null(col)) {
       o <- o[, col, drop = FALSE]
-      colnames(o) <- model$states[col]
+      colnames(o) <- S(model)[col]
       
       if (length(col) == 1L)
         return(.sparsify_vector(o, sparse = sparse, names = row))
@@ -787,7 +787,7 @@ function2value <- function(model,
     
     # we default to sparse here or the matrices may become to big
     if (is.null(sparse) &&
-        length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT"))
+        length(S(model)) ^ 2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
     
     o <- .sparsify(o, sparse = sparse)
@@ -813,10 +813,10 @@ matrix2value <-
       trans_keyword <- TRUE
     
     if (is.null(action))
-      action <- model$actions
+      action <- A(model)
     
     if (is.numeric(action))
-      action <- model$actions[action]
+      action <- A(model)[action]
     
     if (length(action) > 1L)
       return(sapply(
@@ -829,7 +829,7 @@ matrix2value <-
     
     # we have a single action from here on
     m <- model[[field]][[action]]
-    n_states <- length(model$states)
+    n_states <- length(S(model))
     
     # convert keywords
     if (trans_keyword && is.character(m)) {
@@ -849,7 +849,7 @@ matrix2value <-
         )
       )
       
-      dimnames(m) <- list(model$states, model$states)
+      dimnames(m) <- list(S(model), S(model))
       
     }
     
@@ -861,12 +861,12 @@ matrix2value <-
     
     # one column
     if (is.null(row) && length(col) == 1L) {
-      return(.sparsify_vector(t(m[, col, drop = FALSE]), sparse, names = model$states))
+      return(.sparsify_vector(t(m[, col, drop = FALSE]), sparse, names = S(model)))
     }
     
     # one rows
     if (is.null(col) && length(row) == 1L) {
-      return(.sparsify_vector(m[row, , drop = FALSE], sparse, names = model$states))
+      return(.sparsify_vector(m[row, , drop = FALSE], sparse, names = S(model)))
     }
     
     # single value
@@ -875,9 +875,9 @@ matrix2value <-
     
     # submatrix
     if (is.null(row))
-      row <- seq_along(model$states)
+      row <- seq_along(S(model))
     if (is.null(col))
-      col <- seq_along(model$states)
+      col <- seq_along(S(model))
     
     return(.sparsify(m[row, col, drop = FALSE], sparse = sparse))
   }
@@ -892,9 +892,9 @@ df2value <-
            sparse = NULL) {
     ## we use int indices for action here
     if (is.null(action))
-      action <- model$actions
+      action <- A(model)
     if (is.numeric(action))
-      action <- model$actions[action]
+      action <- A(model)[action]
     
     if (length(action) > 1L)
       return(sapply(
@@ -907,11 +907,11 @@ df2value <-
     
     # one action form here
     
-    if (!(action %in% model$actions))
+    if (!(action %in% A(model)))
       stop("unkown action: ", action)
     
-    rows <- seq_along(model$states)
-    cols <- seq_along(model$states)
+    rows <- seq_along(S(model))
+    cols <- seq_along(S(model))
     
     
     # return a single value fast
@@ -967,7 +967,7 @@ df2value <-
       }
       
       
-      return(.sparsify_vector(v, sparse, names = model$states))
+      return(.sparsify_vector(v, sparse, names = S(model)))
     }
     
     # return a col vector
@@ -996,9 +996,9 @@ df2value <-
       
       # we default to sparse
       if (is.null(sparse))
-        sparse <- length(model$states) ^ 2 * length(model$actions) > getOption("MDP_SPARSE_LIMIT")
+        sparse <- length(S(model)) ^ 2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT")
       
-      return(.sparsify_vector(v, sparse, names = model$states))
+      return(.sparsify_vector(v, sparse, names = S(model)))
     }
     
     # return the whole matrix or a submatrix
@@ -1036,7 +1036,7 @@ df2value <-
     }
     
     m <- .sparsify(m, sparse)
-    dimnames(m) <- list(model$states, model$states)
+    dimnames(m) <- list(S(model), S(model))
     
     if (!is.null(row))
       m <- m[row, , drop = FALSE]

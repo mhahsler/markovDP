@@ -3,6 +3,8 @@
 \name{value_function}
 \alias{value_function}
 \alias{plot_value_function}
+\alias{V_zero}
+\alias{V_random}
 \title{Value Function}
 \usage{
 value_function(model, drop = TRUE)
@@ -17,6 +19,10 @@ plot_value_function(
   main = NULL,
   ...
 )
+
+V_zero(model)
+
+V_random(model, min = 1e-06, max = 1)
 }
 \arguments{
 \item{model}{a solved \link{MDP}.}
@@ -32,6 +38,9 @@ plot_value_function(
 \item{main}{a main title for the plot. Defaults to the name of the problem.}
 
 \item{...}{further arguments are passed on to \code{\link[graphics:barplot]{graphics::barplot()}}`.}
+
+\item{min, max}{minimum and maximum for the uniformly distributed random
+state values.}
 }
 \value{
 the function as a numeric vector with one value for each state.
@@ -63,7 +72,6 @@ gw_plot(sol, epoch = 3)
 \seealso{
 Other policy: 
 \code{\link{action}()},
-\code{\link{add_policy}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
@@ -74,7 +82,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},

@@ -11,16 +11,16 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // QV_cpp
-NumericVector QV_cpp(NumericVector U, NumericMatrix P, NumericMatrix R, double GAMMA);
-RcppExport SEXP _markovDP_QV_cpp(SEXP USEXP, SEXP PSEXP, SEXP RSEXP, SEXP GAMMASEXP) {
+NumericVector QV_cpp(NumericVector V, NumericMatrix P, NumericMatrix R, double GAMMA);
+RcppExport SEXP _markovDP_QV_cpp(SEXP VSEXP, SEXP PSEXP, SEXP RSEXP, SEXP GAMMASEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type U(USEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type V(VSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type P(PSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type R(RSEXP);
     Rcpp::traits::input_parameter< double >::type GAMMA(GAMMASEXP);
-    rcpp_result_gen = Rcpp::wrap(QV_cpp(U, P, R, GAMMA));
+    rcpp_result_gen = Rcpp::wrap(QV_cpp(V, P, R, GAMMA));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -61,8 +61,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_MDP_cpp
-List sample_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool return_trajectories, const double epsilon, const bool exploring_starts, const bool verbose);
-RcppExport SEXP _markovDP_sample_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP return_trajectoriesSEXP, SEXP epsilonSEXP, SEXP exploring_startsSEXP, SEXP verboseSEXP) {
+List sample_MDP_cpp(const List& model, const int n, const NumericVector& start, const int horizon, const double disc, const bool trajectories, const double epsilon, const bool exploring_starts, const bool verbose);
+RcppExport SEXP _markovDP_sample_MDP_cpp(SEXP modelSEXP, SEXP nSEXP, SEXP startSEXP, SEXP horizonSEXP, SEXP discSEXP, SEXP trajectoriesSEXP, SEXP epsilonSEXP, SEXP exploring_startsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -71,11 +71,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericVector& >::type start(startSEXP);
     Rcpp::traits::input_parameter< const int >::type horizon(horizonSEXP);
     Rcpp::traits::input_parameter< const double >::type disc(discSEXP);
-    Rcpp::traits::input_parameter< const bool >::type return_trajectories(return_trajectoriesSEXP);
+    Rcpp::traits::input_parameter< const bool >::type trajectories(trajectoriesSEXP);
     Rcpp::traits::input_parameter< const double >::type epsilon(epsilonSEXP);
     Rcpp::traits::input_parameter< const bool >::type exploring_starts(exploring_startsSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_MDP_cpp(model, n, start, horizon, disc, return_trajectories, epsilon, exploring_starts, verbose));
+    rcpp_result_gen = Rcpp::wrap(sample_MDP_cpp(model, n, start, horizon, disc, trajectories, epsilon, exploring_starts, verbose));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -16,7 +16,7 @@ List sample_MDP_cpp(const List& model,
   const NumericVector& start,
   const int horizon,
   const double disc = 1.0,
-  const bool return_trajectories = false,
+  const bool trajectories = false,
   const double epsilon = 1.0,
   const bool exploring_starts = false,
   const bool verbose = false
@@ -112,7 +112,7 @@ List sample_MDP_cpp(const List& model,
       rews[i] += r * disc_pow;
       disc_pow *= disc;
       
-      if (return_trajectories) {
+      if (trajectories) {
        tr_episode.push_back(i + 1);
        tr_time.push_back(j);
        tr_s.push_back(s_prev + 1);
@@ -130,9 +130,9 @@ List sample_MDP_cpp(const List& model,
   //states.attr("class") = "factor";
   //states.attr("levels") = get_states(model);
   
-  DataFrame trajectories;
+  DataFrame the_trajectories;
   
-  if (return_trajectories) {
+  if (trajectories) {
     IntegerVector s_v = IntegerVector(tr_s.begin(), tr_s.end());
     s_v.attr("class") = "factor";
     s_v.attr("levels") = get_states(model);
@@ -145,7 +145,7 @@ List sample_MDP_cpp(const List& model,
     a_v.attr("class") = "factor";
     a_v.attr("levels") = get_actions(model);
     
-    trajectories = DataFrame::create(
+    the_trajectories = DataFrame::create(
       _["episode"] = tr_episode,
       _["time"] = tr_time,
       _["s"] = s_v,
@@ -160,7 +160,7 @@ List sample_MDP_cpp(const List& model,
     _["reward"] = rews,
     _["action_cnt"] = action_cnt,
     _["state_cnt"] = state_cnt,
-    _["trajectories"] = trajectories
+    _["trajectories"] = the_trajectories
   );
   
   return L;

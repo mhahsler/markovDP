@@ -50,7 +50,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{accessors}},
 \code{\link{act}()},
-\code{\link{add_policy}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
