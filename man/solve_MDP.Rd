@@ -33,6 +33,7 @@ solve_MDP_LP(
   method = "lp",
   horizon = NULL,
   discount = NULL,
+  inf = 1000,
   verbose = FALSE,
   ...
 )
@@ -62,7 +63,7 @@ solve_MDP_TD(
   alpha_expected_sarsa = 1,
   epsilon = 0.2,
   n = 1000,
-  Q = NULL,
+  Q = 0,
   matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
@@ -132,6 +133,10 @@ but removes the time and memory requirements needed to calculate the matrices.}
 \item{verbose}{logical, if set to \code{TRUE}, the function provides the
 output of the solver in the R console.}
 
+\item{inf}{value used for infinity when calling \code{lpSolve::lp()}. This
+should me much larger/smaller than the largest/smallest
+reward in the model.}
+
 \item{Q}{a state-action value matrix.}
 
 \item{epsilon}{used for \eqn{\epsilon}-greedy policies.}
@@ -142,8 +147,8 @@ in an episode is used to update Q, otherwise, every-visit update is used.}
 \item{alpha}{step size as a function of the time step \code{t} and the number of times
 the respective Q-value was updated \code{n} or a scalar.}
 
-\item{alpha_expected_sarsa}{step size for expected sarsa defaults to 1. Can be
-a funciton like for \code{alpha}.}
+\item{alpha_expected_sarsa}{step size for expected Sarsa defaults to 1. Can be
+a function like for \code{alpha}.}
 }
 \value{
 \code{solve_MDP()} returns an object of class MDP which is a list with the
@@ -420,17 +425,18 @@ Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Lear
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }
 \author{

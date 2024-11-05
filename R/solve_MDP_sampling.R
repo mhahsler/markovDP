@@ -49,17 +49,12 @@ solve_MDP_sampling <-
       Q <- model$solution$Q
       Q_N <- model$solution$Q_N
     } else if (is.null(Q)) {
-      Q <-
-        matrix(0,
-               nrow = length(S),
-               ncol = length(A),
-               dimnames = list(S, A)
-        )
+      Q <- Q_zero(model)
       Q_N <-
         matrix(0L,
-               nrow = length(S),
-               ncol = length(A),
-               dimnames = list(S, A)
+               nrow = nrow(Q),
+               ncol = ncol(Q),
+               dimnames = dimnames(Q)
         )
     }
     

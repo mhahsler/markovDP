@@ -40,10 +40,10 @@ table(replicate(100, action(sol, state = "s(1,3)", epsilon = 0.1)))
 }
 \seealso{
 Other policy: 
+\code{\link{Q_values}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{reward}()},
 \code{\link{value_function}()}
 }

@@ -13,9 +13,12 @@
 
 
 #' @rdname solve_MDP
+#' @param inf value used for infinity when calling `lpSolve::lp()`. This 
+#'            should me much larger/smaller than the largest/smallest 
+#'            reward in the model. 
 #' @export
 solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
-                         discount = NULL, verbose = FALSE, ...) {
+                         discount = NULL, inf = 1000, verbose = FALSE, ...) {
   # method is always "lp" and ignored
 
   ### horizon and discount rate
@@ -83,6 +86,12 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
 
   R <- reward_matrix(model, sparse = FALSE)
 
+  # lsSolve does not handle Inf
+  for (a in names(R)) {
+    R[[a]][R[[a]] == +Inf] <- inf
+    R[[a]][R[[a]] == -Inf] <- -inf
+  }
+  
   # lpSolve's simplex implementation requires all x > 0, but
   # state values can be negative! We add a second set of decision variables to
   # represent the negative values.
@@ -132,7 +141,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   }
 
 
-  pi <- greedy_policy(q_values(model, U))
+  pi <- greedy_policy(Q_values(model, U))
 
   model$solution <- list(
     method = "lp",

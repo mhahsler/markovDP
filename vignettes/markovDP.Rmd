@@ -312,14 +312,14 @@ gw_matrix(gw_init(dim = c(3, 4)))
 ```
 
 Then we initialize the grid world with start state, goal state,
-absorbing states and the wall is an unreachable state.
+absorbing states and the wall is a blocked state.
 
 ```{r }
 gw <- gw_init(dim = c(3, 4),
         start = "s(3,1)",
         goal = "s(1,4)",
         absorbing_states = c("s(1,4)", "s(2,4)"),
-        unreachable_states = "s(2,2)",
+        blocked_states = "s(2,2)",
         state_labels = list(
             "s(3,1)" = "Start",
             "s(2,4)" = "-1",
@@ -328,7 +328,7 @@ gw <- gw_init(dim = c(3, 4),
 gw_matrix(gw)
 ```
 
-We see that the unreachable state was automatically excluded from the state space.
+We see that the blocked state was automatically excluded from the state space.
 
 The initialization function also creates a deterministic transition function for a 
 grid world with deterministic movement in `gw$transition_prob`,

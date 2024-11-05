@@ -53,7 +53,6 @@ solve_MDP_MC <-
         model,
         sparse = FALSE,
         precompute_absorbing = TRUE,
-        precompute_unreachable = FALSE,
         progress = progress
       )
       
@@ -108,17 +107,15 @@ MC_on_policy <- function(model,
   # in the simulation.
   # Instead of returns we use a more efficient running average where Q_N is
   # the number of averaged values.
-   
+  
   if (is.null(Q)) {
-    Q <- matrix(0,
-                nrow = length(S),
-                ncol = length(A),
-                dimnames = list(S, A))
-    Q_N <- matrix(0L,
-                  nrow = length(S),
-                  ncol = length(A),
-                  dimnames = list(S, A))
-    
+    Q <- Q_zero(model)
+    Q_N <-
+      matrix(0L,
+             nrow = nrow(Q),
+             ncol = ncol(Q),
+             dimnames = dimnames(Q)
+      )
     pi <- random_policy(model, only_available_actions = TRUE)
   } else {
     pi <- greedy_policy(Q)
@@ -263,7 +260,7 @@ MC_off_policy <- function(model,
   
   # Initialize
   if (is.null(Q)) {
-    Q <- matrix(runif(length(S) * length(A)), nrow = length(S), ncol = length(A), dimnames = list(S, A))
+    Q <- Q_zero(model)
   }
   
   pi <- greedy_policy(Q)

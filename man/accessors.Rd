@@ -16,7 +16,6 @@ normalize_MDP(
   start = FALSE,
   sparse = NULL,
   precompute_absorbing = TRUE,
-  precompute_unreachable = TRUE,
   check_and_fix = FALSE,
   progress = TRUE
 )
@@ -58,8 +57,6 @@ start vector is created using the start stored in the model.}
 based on the memory it would take to store the faster dense representation.}
 
 \item{precompute_absorbing}{logical; should absorbing states be precalculated?}
-
-\item{precompute_unreachable}{logical; should unreachable states be precalculated?}
 
 \item{check_and_fix}{logical; checks the structure of the problem description.}
 
@@ -182,17 +179,18 @@ str(Maze_norm)
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }
 \author{

@@ -1,6 +1,6 @@
-#' Unreachable and Absorbing States
+#' Unreachable States
 #'
-#' Find unreachable and absorbing states using the transition model.
+#' Find or removes unreachable states using the transition model.
 #'
 #' The function `unreachable_states()` checks if states
 #' cannot be reached from any other state. It performs a depth-first
@@ -11,53 +11,43 @@
 #'
 #' The function `remove_unreachable_states()` simplifies a model by
 #' removing unreachable states from the model description.
-#'
-#' The function `absorbing_states()` checks if a state or a set of states are
-#' absorbing (terminal states). A state is absorbing
-#' if there is for all actions a probability of 1 for staying in the state.
-#'
-#' @name unreachable_and_absorbing
-#' @aliases unreachable_and_absorbing
+#' 
 #' @family MDP
 #'
 #' @param model a [MDP] object.
-#' @param state logical; check a single state. This can be much faster if
-#'   the model contains a transition model implemented as a function.
 #' @param horizon only states that can be reached within the
 #'    horizon are reachable.
 #' @param sparse logical; return a sparse logical vector?
-#' @param use_precomputed logical; should precomputed values in the MDP be used?
 #' @param progress logical; show a progress bar?
 #' @param ... further arguments are passed on.
+#' 
+#' @returns  `unreachable_states()` returns a
+#'  logical vector indicating the unreachable states.
 #'
 #' @author Michael Hahsler
 #' @examples
-#' data(Maze)
+#' # create a Maze with an unreachable state
+#' 
+#' maze_unreach <- gw_read_maze(
+#'     textConnection(c("XXXXXX", 
+#'                      "XS X X",
+#'                      "X  XXX",
+#'                      "X   GX",
+#'                      "XXXXXX")))
+#' gw_plot(maze_unreach)
 #'
-#' gw_matrix(Maze)
-#' gw_matrix(Maze, what = "labels")
-#'
-#' # -1 and +1 are absorbing states
-#' absorbing_states(Maze)
-#' absorbing_states(Maze, sparse = FALSE)
-#' absorbing_states(Maze, sparse = "states")
-#'
-#' # all states in the model are reachable
-#' unreachable_states(Maze)
-#' unreachable_states(Maze, sparse = FALSE)
-#' unreachable_states(Maze, sparse = "states")
+#' unreachable_states(maze_unreach)
+#' unreachable_states(maze_unreach, sparse = FALSE)
+#' 
+#' maze <- remove_unreachable_states(maze_unreach)
+#' unreachable_states(maze)
+#' gw_plot(maze)
 #' @importFrom Matrix colSums
 #' @importFrom fastmap fastmap faststack
-NULL
-
-#' @rdname unreachable_and_absorbing
-#' @returns  `unreachable_states()` returns a
-#'  logical vector indicating the unreachable states.
 #' @export
 unreachable_states <- function(model,
                                horizon = Inf,
                                sparse = "states",
-                               use_precomputed = TRUE,
                                progress = TRUE,
                                ...) {
   UseMethod("unreachable_states")
@@ -67,14 +57,8 @@ unreachable_states <- function(model,
 unreachable_states.MDP <- function(model,
                                    horizon = Inf,
                                    sparse = "states",
-                                   use_precomputed = TRUE,
                                    progress = TRUE,
                                    ...) {
-  if (use_precomputed &&
-      !is.null(model$unreachable_states) && !is.finite(horizon)) {
-    return(.translate_logical(model$unreachable_states, S(model), sparse = sparse))
-  }
-  
   if (is.null(sparse))
     sparse <- TRUE
   
@@ -86,7 +70,7 @@ unreachable_states.MDP <- function(model,
   sparse = sparse)
 }
 
-
+# depth-first search
 .reachable_states <- function(model,
                               horizon = Inf,
                               progress = TRUE) {
@@ -136,85 +120,14 @@ unreachable_states.MDP <- function(model,
   S(model) %in% names(reached$as_list())
 }
 
-
-
-#' @rdname unreachable_and_absorbing
-#' @returns  `absorbing_states()` returns a logical vector indicating
-#'    if the states are absorbing (terminal).
-#' @export
-absorbing_states <- function(model,
-                             state = NULL,
-                             sparse = "states",
-                             use_precomputed = TRUE,
-                             ...) {
-  UseMethod("absorbing_states")
-}
-
-#' @export
-absorbing_states.MDP <- function(model,
-                                 state = NULL,
-                                 sparse = "states",
-                                 use_precomputed = TRUE,
-                                 ...) {
-  # do it faster to check a single state
-  if (!is.null(state) &&
-      length(state) == 1L) {
-    if (use_precomputed && !is.null(model$absorbing_states)) {
-      if (is.character(model$absorbing_states)) {
-        if (!is.character(state))
-          state <- S(model)[state]
-        return(state %in% model$absorbing_states)
-      }
-      # must be a logical vector (for sparse we need a index)
-      if (is.character(state))
-        state <- match(state, S(model))
-      return(as(model$absorbing_states[state], "vector"))
-    } else
-      return(all(
-        transition_matrix(
-          model,
-          start.state = state,
-          end.state = state,
-          simplify = TRUE
-        ) == 1
-      ))
-  }
-  
-  # all states
-  if (is.null(state)) {
-    if (use_precomputed && !is.null(model$absorbing_states)) {
-      return(.translate_logical(model$absorbing_states, S(model), sparse))
-    } else {
-      absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(A(model))
-      if (is.null(sparse))
-        sparse <- "states"
-      return(.translate_logical(absorbing, S(model), sparse))
-    }
-  }
-  
-  # some states
-  if (is.character(state))
-    state <- match(state, S(model))
-  
-  if (use_precomputed && !is.null(model$absorbing_states)) {
-    absorbing <- .translate_logical(model$absorbing_states, S(model), sparse = TRUE)
-  } else {
-    absorbing <- rowSums(sapply(transition_matrix(model, sparse = NULL), diag)) == length(A(model))
-  }
-  
-  absorbing <- absorbing[state]
-  .translate_logical(absorbing, S(model)[state], sparse)
-}
-
-#' @rdname unreachable_and_absorbing
+#' @rdname unreachable_states
 #' @returns `remove_unreachable_states()` returns a model with all
 #'  unreachable states removed.
 #' @export
-remove_unreachable_states <- function(model, use_precomputed = TRUE, ...) {
+remove_unreachable_states <- function(model, ...) {
   # Use dense because we need a named vector!
   reachable <-  which(!unreachable_states(model, 
-                                    sparse = FALSE, 
-                                    use_precomputed = use_precomputed))
+                                    sparse = FALSE))
   
   if (length(reachable) == length(S(model))) {
     model$unreachable <- character(0)
@@ -284,8 +197,6 @@ remove_unreachable_states <- function(model, use_precomputed = TRUE, ...) {
   # update reachable and unreachable
   if (!is.null(model$absorbing_states))
     model$absorbing_states <- interaction(absorbing_states(model, sparse = "states"), names(reachable))
-  
-  model$unreachable_states <- character(0)
   
   # just check
   check_and_fix_MDP(model)

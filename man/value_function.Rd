@@ -20,7 +20,7 @@ plot_value_function(
   ...
 )
 
-V_zero(model)
+V_zero(model, value = 0)
 
 V_random(model, min = 1e-06, max = 1)
 }
@@ -38,6 +38,8 @@ V_random(model, min = 1e-06, max = 1)
 \item{main}{a main title for the plot. Defaults to the name of the problem.}
 
 \item{...}{further arguments are passed on to \code{\link[graphics:barplot]{graphics::barplot()}}`.}
+
+\item{value}{value to initialize the value function with. Default is 0.}
 
 \item{min, max}{minimum and maximum for the uniformly distributed random
 state values.}
@@ -71,27 +73,28 @@ gw_plot(sol, epoch = 3)
 }
 \seealso{
 Other policy: 
+\code{\link{Q_values}()},
 \code{\link{action}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{reward}()}
 
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}}
+\code{\link{unreachable_states}()}
 }
 \author{
 Michael Hahsler

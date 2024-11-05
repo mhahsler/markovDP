@@ -39,6 +39,11 @@ returns a named vector with the probabilities for the resulting end.states
 The function performs a (depth-limited) depth-first traversal of the
 search state space and returns a vector with the names of all encountered
 states. This vector can be used as the states for creating a MDP model.
+
+The transition function needs to be a function with the argument list
+\code{model}, \code{action}, \code{start.state} which returns  named vector only containing
+the non-zero probabilities named by the corresponding end state. A partial model
+that contains \code{actions} and \code{start.state} will be supplied to the function.
 }
 \examples{
 # define a MDP for Tic-Tac-Toe
@@ -67,12 +72,14 @@ ttt_result <- function(state, player, action) {
   
   if (state[action] != "_")
     stop("Illegal action.")
+  
   state[action] <- player
   state
 }
 
 ttt_terminal <- function(state) {
   if (length(state) == 1L) state <- ttt_label2state(state)
+  
   # Check the board for a win and return one of 
   # 'x', 'o', 'd' (draw), or 'n' (for next move)
   win_possibilities <- rbind(state, 
@@ -98,28 +105,27 @@ ttt_terminal <- function(state) {
   return('n')
 }
 
-ttt_other <- function(player) if (player == 'x') 'o' else 'x'
-
-# define the transition function
-T <- function(model, action, start.state) {
+# define the transition function: 
+#     * return a probability vector for an action in a start state
+#     * we define the special states 'win', 'loss', and 'draw'
+P <- function(model, action, start.state) {
   action <- as.integer(action)
   
   # absorbing states
-  if (start.state \%in\% c('win', 'loss', 'draw')) {
+  if (start.state \%in\% c('win', 'loss', 'draw', 'illegal')) {
     return(structure(1, names = start.state))
   }
   
-  # avoid illegal action by making them a loss
-  if (!(action \%in\% ttt_available_actions(ttt_label2state(start.state)))) {
-    return(structure(1, names = "loss"))
+  # avoid illegal action by going to the very expensive illegal state
+  if (!(action \%in\% ttt_available_actions(start.state))) {
+    return(structure(1, names = "illegal"))
   }
   
   # make x's move
-  next_state <- ttt_result(ttt_label2state(start.state), 'x', action)
+  next_state <- ttt_result(start.state, 'x', action)
   
-  # ttt_terminal?
+  # terminal?
   term <- ttt_terminal(next_state)
-  
   if (term == 'x') {
     return(structure(1, names = "win"))
   } else if (term == 'o') {
@@ -136,7 +142,7 @@ T <- function(model, action, start.state) {
       ttt_result(next_state, 'o', a)
   )
   
-  # fix ttt_terminal states
+  # fix terminal states
   term <- sapply(possible_end_states, ttt_terminal)
   possible_end_states <- sapply(possible_end_states, ttt_state2label)
   possible_end_states[term == 'x'] <- 'win'
@@ -145,9 +151,9 @@ T <- function(model, action, start.state) {
   
   possible_end_states <- unique(possible_end_states)
   
-  return(structure(rep(
-    1 / length(possible_end_states), length(possible_end_states)
-  ), names = possible_end_states))
+  return(structure(rep(1 / length(possible_end_states), 
+                      length(possible_end_states)), 
+                   names = possible_end_states))
 }
 
 # define the reward
@@ -156,20 +162,24 @@ R <- rbind(
   R_(end.state = 'win',  value = +1),
   R_(end.state = 'loss', value = -1),
   R_(end.state = 'draw', value = +.5),
+  R_(end.state = 'illegal', value = -Inf),
   # Note: there is no more reward once the agent is in a terminal state
   R_(start.state = 'win',  value = 0),
   R_(start.state = 'loss', value = 0),
-  R_(start.state = 'draw', value = 0)
+  R_(start.state = 'draw', value = 0),
+  R_(start.state = 'illegal', value = 0)
 )
 
 # start state
-start <- "_________"
+start <- ttt_state2label(ttt_empty_board())
+start
 
 # find the reachable state space
-S <- find_reachable_states(T, start_state = start, actions = A) 
+S <- union(c('win', 'loss', 'draw', 'illegal'),
+          find_reachable_states(P, start_state = start, actions = A))
 head(S)
 
-tictactoe <- MDP(S, A, T, R, discount = 1, start = start, name = "TicTacToe")
+tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")
 tictactoe
 }
 \author{

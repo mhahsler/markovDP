@@ -4,19 +4,27 @@
 \alias{available_actions}
 \title{Available Actions in a State}
 \usage{
-available_actions(model, state, neg_inf_reward = TRUE, stay_in_place = TRUE)
+available_actions(
+  model,
+  state = NULL,
+  neg_inf_reward = TRUE,
+  stay_in_place = FALSE,
+  drop = TRUE
+)
 }
 \arguments{
 \item{model}{a \link{MDP} object.}
 
-\item{state}{a character vector of length one specifying the state.}
+\item{state}{a character vector specifying the states.}
 
 \item{neg_inf_reward}{logical; consider an action that produced \code{-Inf} reward to all
 end states unavailable?}
 
 \item{stay_in_place}{logical; consider an action that results in the same state
-with a probability of 1 as unavailable. Note that this will mean that
+with a probability of 1 as unavailable. Note that this means that
 absorbing states have no available action!}
+
+\item{drop}{logical; drop to a vector if only one state is used.}
 }
 \value{
 a character vector with the available actions.
@@ -28,7 +36,8 @@ Determine the set of actions available in a state.
 }
 \details{
 Unavailable actions are modeled as actions that have an immediate
-reward of \code{-Inf} in the reward function.
+reward of \code{-Inf} in the reward function. For maze, also actions that
+do not change the state can be considered unavailable.
 }
 \examples{
 data(DynaMaze)
@@ -39,7 +48,7 @@ DynaMaze$actions
 
 # only right and down is unavailable for s(1,1) because they
 #   make the agent stay in place.
-available_actions(DynaMaze, state = "s(1,1)")
+available_actions(DynaMaze, state = "s(1,1)", stay_in_place = TRUE)
 
 # An action that leaves the grid currently is allowed but does not do
 # anything.
@@ -48,17 +57,18 @@ act(DynaMaze, "s(1,1)", "up")
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }
 \author{

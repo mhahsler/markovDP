@@ -59,11 +59,11 @@ reward(sol, method = "sample", start = "uniform", horizon = 100)
 }
 \seealso{
 Other policy: 
+\code{\link{Q_values}()},
 \code{\link{action}()},
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{value_function}()}
 }
 \author{

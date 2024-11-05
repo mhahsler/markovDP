@@ -77,7 +77,6 @@ solve_MDP_DP <- function(model,
       model,
       sparse = FALSE,
       precompute_absorbing = FALSE,
-      precompute_unreachable = FALSE,
       progress = progress
     )
     
@@ -565,7 +564,7 @@ MDP_PS_inf_horizon <-
         Q[s_update, ] <- Q[s_update, ] + discount * p_sa[s_update, ] * E_st
         Q[s_t, ] <- Q[s_t, ] - E_st
         
-        H[s_update] <- abs(apply(Q[s_update, ], MARGIN = 1, max))
+        H[s_update] <- abs(apply(Q[s_update, , drop = FALSE], MARGIN = 1, max))
       }
       
       err <- max(H)
@@ -617,7 +616,7 @@ MDP_policy_iteration_inf_horizon <-
     if (is.null(V))
       V <- V_zero(model)
     
-    pi <- greedy_policy(q_values(model, V))
+    pi <- greedy_policy(Q_values(model, V))
     V <- pi$V
     pi <- pi$action
     

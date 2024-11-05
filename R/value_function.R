@@ -110,10 +110,11 @@ plot_value_function.MDP <-
   }
 
 #' @rdname value_function
+#' @param value value to initialize the value function with. Default is 0.
 #' @export
-V_zero <- function(model) {
+V_zero <- function(model, value = 0) {
   S <- S(model)
-  structure(rep(0, times = length(S)), names = S)
+  structure(rep(value, times = length(S)), names = S)
 }
 
 #' @rdname value_function

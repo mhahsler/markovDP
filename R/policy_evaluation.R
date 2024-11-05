@@ -67,7 +67,7 @@
 #' # 4. an improved policy based on one policy evaluation and
 #' #   policy improvement step.
 #' V <- policy_evaluation(Maze, pi_random)
-#' Q <- q_values(Maze, V)
+#' Q <- Q_values(Maze, V)
 #' pi_greedy <- greedy_policy(Q)
 #' pi_greedy
 #'
@@ -112,7 +112,6 @@ policy_evaluation <-
         model,
         sparse = FALSE,
         precompute_absorbing = FALSE,
-        precompute_unreachable = FALSE,
         progress = progress
       )
       

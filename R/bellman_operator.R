@@ -69,6 +69,7 @@ bellman_update <- function(model, V) {
     R <- reward_matrix(model, a, sparse = FALSE)
    
     ### TODO: add a sparse version
+    #QV_R(V, P, R, gamma)
     QV_cpp(V, P, R, gamma) 
   })
 
@@ -109,7 +110,7 @@ bellman_update <- function(model, V) {
 # P and R are a matrix for a given action
 QV_R <- function(V, P, R, gamma) {
   sapply(seq_len(nrow(P)), FUN = function(s) {
-    sum(P[s, ] * (R[s, ] + gamma * V))
+    sum(P[s, ] * (R[s, ] + gamma * V), na.rm = TRUE)
   })
 }
   

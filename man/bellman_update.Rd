@@ -66,24 +66,25 @@ Second edition. The MIT Press.
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
 Other policy: 
+\code{\link{Q_values}()},
 \code{\link{action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{reward}()},
 \code{\link{value_function}()}
 }

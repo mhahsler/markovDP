@@ -121,7 +121,6 @@ NULL
 #' @param sparse logical; use sparse matrix representation? `NULL` decides the representation
 #'    based on the memory it would take to store the faster dense representation.
 #' @param precompute_absorbing logical; should absorbing states be precalculated?
-#' @param precompute_unreachable logical; should unreachable states be precalculated?
 #' @param check_and_fix logical; checks the structure of the problem description.
 #' @param progress logical; show a progress bar with estimated time for completion.
 #' @export
@@ -131,7 +130,6 @@ normalize_MDP <- function(model,
                           start = FALSE,
                           sparse = NULL,
                           precompute_absorbing = TRUE,
-                          precompute_unreachable = TRUE,
                           check_and_fix = FALSE,
                           progress = TRUE) {
   if (!inherits(model, "MDP")) {
@@ -154,8 +152,6 @@ normalize_MDP <- function(model,
     as.numeric(reward) * t_pass +
     as.numeric(precompute_absorbing &&
                  is.null(model$absorbing_states)) * t_pass +
-    as.numeric(precompute_unreachable &&
-                 is.null(model$unreachable_states)) * t_pass +
     as.numeric(check_and_fix) * t_pass
   
   if (progress) {
@@ -172,23 +168,23 @@ normalize_MDP <- function(model,
   
   # transition_prob
   if (transition_prob) {
-    model$transition_prob <- transition_matrix(model, sparse = sparse)
-    if (progress)
-      pb$tick(t_pass)
+    #model$transition_prob <- transition_matrix(model, sparse = sparse)
+    #if (progress)
+    #  pb$tick(t_pass)
     
     # w/progress
-    # model$transition_prob <-
-    #   sapply(
-    #     A(model),
-    #     FUN = function(a) {
-    #       tm <- transition_matrix(model, a, sparse = sparse)
-    #       if (progress)
-    #         pb$tick(n_states * n_states)
-    #       tm
-    #     },
-    #     simplify = FALSE,
-    #     USE.NAMES = TRUE
-    #   )
+    model$transition_prob <-
+      sapply(
+        A(model),
+        FUN = function(a) {
+          tm <- transition_matrix(model, a, sparse = sparse)
+          if (progress)
+            pb$tick(n_states * n_states)
+          tm
+        },
+        simplify = FALSE,
+        USE.NAMES = TRUE
+      )
   }
   
   # reward
@@ -205,15 +201,10 @@ normalize_MDP <- function(model,
       pb$tick(t_pass)
   }
   
-  # remember recalculated absorbing/unreachable states
+  # TODO: Normalize to state names if a different representation is used?
+  # remember recalculated absorbing states
   if (precompute_absorbing && is.null(model$absorbing_states)) {
     model$absorbing_states <- absorbing_states(model, sparse = "states")
-    if (progress)
-      pb$tick(t_pass)
-  }
-  if (precompute_unreachable &&
-      is.null(model$unreachable_states)) {
-    model$unreachable_states <- unreachable_states(model, sparse = "states")
     if (progress)
       pb$tick(t_pass)
   }
@@ -495,7 +486,13 @@ normalize_MDP <- function(model,
 .normalize_action <- function(action, model) {
   if (is.factor(action))
     return(action)
-  
+ 
+  if (is.logical(action)) {
+    if (length(action) != length(A(model)))
+      stop("Illegal action definition (logical)")
+    action <- which(action)
+  }
+   
   if (is.numeric(action))
     return(factor(
       action,

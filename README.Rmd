@@ -72,6 +72,11 @@ Solving the simple maze from [@Russell2020].
 library("markovDP")
 data("Maze")
 Maze
+```
+
+The maze is a gridworld and can be displayed directly.
+
+```{r display}
 gw_plot(Maze, state = TRUE)
 ```
 
@@ -85,6 +90,9 @@ Display the value function.
 ```{r value_function}
 plot_value_function(sol)
 ```
+
+The state values can be shown in the gridworld as heat col00L
+
 
 ```{r gridworld_plot}
 gw_plot(sol)

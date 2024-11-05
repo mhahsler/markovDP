@@ -89,7 +89,7 @@ action_discrepancy <- function(policy, benchmark, proportion = FALSE) {
   is_solved_MDP(policy)
   
   pi <- policy(policy)$action
-  Q <- q_values(benchmark)
+  Q <- Q_values(benchmark)
   
   # account for ties in the Q matrix
   discrepancy <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))

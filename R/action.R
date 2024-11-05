@@ -31,12 +31,15 @@ action <- function(model, ...) {
 #' @export
 action.MDP <-
   function(model, state, epsilon = 0, epoch = 1, ...) {
+    if (length(state) != 1)
+      stop("action() requires a single state!")
+    
     a <- policy(model, epoch)$action[.get_state_id(model, state)]
     
     if (epsilon == 0)
       return(a)
     
-    available_A <- available_actions(model, state) 
+    available_A <- which(available_actions(model, state)) 
       
     if (length(available_A) > 1L && runif(1) < epsilon) {
       a <- sample(available_A, size = 1L)

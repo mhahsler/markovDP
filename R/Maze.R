@@ -55,7 +55,7 @@
 #'         start = "s(3,1)",
 #'         goal = "s(1,4)",
 #'         absorbing_states = c("s(1,4)", "s(2,4)"),
-#'         unreachable_states = "s(2,2)",
+#'         blocked_states = "s(2,2)",
 #'         state_labels = list(
 #'             "s(3,1)" = "Start",
 #'             "s(2,4)" = "-1",

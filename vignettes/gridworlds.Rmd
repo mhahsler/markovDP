@@ -82,10 +82,10 @@ gw_plot_transition_graph(x)
 
 A more general way to create gridworlds is implemented in the function
 `gw_init()` which initializes a new gridworld creating a matrix of states 
-with given dimensions. Unreachable stats and absorbing state can be defined. 
+with given dimensions. Blocked states and absorbing state can be defined. 
 The returned information can be used to build a custom gridworld MDP.
 
-## Working wit Gridworld MDPs
+## Working with Gridworld MDPs
 
 The gridworld can be accessed as a matrix.
 

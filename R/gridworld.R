@@ -10,8 +10,10 @@
 #' `gw_init()` initializes a new gridworld creating a matrix
 #' of states with the given dimensions. Other action names
 #' can be specified, but they must have the same effects in the same order
-#' as above. Unreachable states (walls) and absorbing state can be defined.
-#' This information can be used to build a custom gridworld MDP.
+#' as above. Blocked states (walls) and absorbing state can be defined.
+#' This information can be used to build a custom gridworld MDP. Note that
+#' blocked states are removed from the model description using 
+#' [remove_unreachable_states()].
 #'
 #' Several helper functions are provided
 #' to use states, look at the state layout, and plot policies on the
@@ -25,7 +27,7 @@
 #' # Defines states, actions and a transition model for a standard gridworld
 #' gw <- gw_init(
 #'   dim = c(7, 7),
-#'   unreachable_states = c("s(2,2)", "s(7,3)", "s(3,6)"),
+#'   blocked_states = c("s(2,2)", "s(7,3)", "s(3,6)"),
 #'   absorbing_states = "s(4,4)",
 #'   state_labels = list("s(4,4)" = "Black Hole")
 #' )
@@ -37,7 +39,7 @@
 #' gw_matrix(gw)
 #' gw_matrix(gw, what = "label")
 #' gw_matrix(gw, what = "absorbing")
-#' gw_matrix(gw, what = "unreachable")
+#' gw_matrix(gw, what = "unreachable") # these are actually missing from the model
 #'
 #' # a transition function for regular moves in the gridworld is provided
 #' gw_transition_prob(gw, "right", "s(1,1)")
@@ -162,12 +164,10 @@
 #' @param dim vector of length two with the x and y extent of the gridworld.
 #' @param actions vector with four action labels that move the agent up, right, down,
 #'   and left.
-#' @param unreachable_states a vector with state labels for unreachable states.
+#' @param blocked_states a vector with state labels for unreachable states.
 #'     These states will be excluded.
 #' @param absorbing_states a vector with state labels for absorbing states.
 #' @param labels a list with labels for states.
-#' @param remove_unreachable_states logical; remove unreachable states from the
-#'     state space?
 #' @param state_labels a list with labels for states. The element names need
 #'   to be state names.
 #' @export
@@ -177,8 +177,7 @@ gw_init <-
            start = NULL,
            goal = NULL,
            absorbing_states = NULL,
-           unreachable_states = NULL,
-           remove_unreachable_states = TRUE,
+           blocked_states = NULL,
            state_labels = list()) {
     # create states
     S <- as.vector(outer(
@@ -191,8 +190,8 @@ gw_init <-
     
     # translate unreachable
     # TODO: remove all Matrix::which(...) once matrix implements the subsetting
-    if (!is.null(unreachable_states))
-      unreachable_states <- S[Matrix::which(.translate_distribution(unreachable_states, S) > 0)]
+    if (!is.null(blocked_states))
+      blocked_states <- S[Matrix::which(.translate_distribution(blocked_states, S) > 0)]
     if (!is.null(absorbing_states))
       absorbing_states <- S[Matrix::which(.translate_distribution(absorbing_states, S) > 0)]
     # translate start/goal
@@ -201,29 +200,10 @@ gw_init <-
     if (!is.null(start))
       start <- S[Matrix::which(.translate_distribution(start, S) > 0)]
     
-    if (remove_unreachable_states)
-      S <- setdiff(S, setdiff(unreachable_states, c(start, goal)))
+    S <- setdiff(S, setdiff(blocked_states, c(start, goal)))
      
     # Build reward data.frame to make unavailable action a reward of -Inf
     R <- R_(value = 0)
-    
-    if (!remove_unreachable_states) {
-      # add restrictions to R for unreachable states
-      for (s in unreachable_states) {
-        rc <- gw_s2rc(s)
-        dirs <- list(c(-1, 0), c(0, +1), c(+1, 0), c(0, -1))
-        acts <- actions[c(3, 4, 1, 2)]
-        
-        for (i in seq_along(dirs)) {
-          neighbor <- gw_rc2s(rc + dirs[[i]])
-          R <- rbind(R, R_(
-            action = acts[i],
-            start.state = neighbor,
-            value = -Inf
-          ))
-        }
-      }
-    }
     
     # Add inf reward to cross boundaries
     #   # boundaries
@@ -264,7 +244,6 @@ gw_init <-
       reward = R,
       start = start,
       absorbing_states = absorbing_states,
-      unreachable_states = if (remove_unreachable_states) character(0) else unreachable_states,
       info = list(
         gridworld = TRUE,
         dim = dim,
@@ -319,7 +298,7 @@ gw_maze_MDP <- function(dim,
       dim,
       start = start,
       goal = goal,
-      unreachable_states = walls,
+      blocked_states = walls,
       absorbing_states = goal
     )
   
@@ -375,12 +354,9 @@ gw_maze_MDP <- function(dim,
   }
   
   model$absorbing_states <- gw$absorbing_states
-  model$unreachable_states <- gw$unreachable_states
   
   if (normalize) {
-    model <- normalize_MDP(model,
-                           precompute_absorbing = FALSE,
-                           precompute_unreachable = FALSE)
+    model <- normalize_MDP(model)
   }
   
   model
@@ -437,7 +413,7 @@ gw_random_maze <- function(dim,
     )
     
     # random mazes may produce unreachable states and even unreachable goals
-    remove_unreachable_states(maze, use_precomputed = FALSE)
+    remove_unreachable_states(maze)
   }
   
   maze <- make_maze()
@@ -563,7 +539,6 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
       
       # X is for states that are unreachable (incl not in the model states)
       l[!(all_states %in% S(model))] <- "X"
-      l[Matrix::which(unreachable_states(model, sparse = TRUE))] <- "X"
       labels <- model$info$state_labels
       l[names(labels)] <- unlist(labels)
       
@@ -587,8 +562,8 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
       l
     },
     unreachable = {
-      l <- structure(rep(NA, length(all_states)), names = all_states)
-      l[S(model)] <- unreachable_states(model, sparse = FALSE)
+      l <- structure(rep(FALSE, length(all_states)), names = all_states)
+      l[!(all_states %in% S(model))] <- TRUE
       l
     }
   )
@@ -607,13 +582,13 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
 #' @param states logical; show state names.
 #' @param index logical; show the state indices.
 #' @param labels logical; show state labels.
-#' @param impossible_actions logical; show the value and the action for absorbing or unreachable states.
+#' @param impossible_actions logical; show the value and the action for absorbing states.
 #' @param main logical; main title.
 #' @param cex expansion factor for the action.
 #' @param offset move the state labels out of the way (in fractions of a character width).
 #' @param lines logical; draw lines to separate states.
 #' @param col a colors for the utility values.
-#' @param unreachable_col a color used for unreachable states. Use `NA` for no
+#' @param blocked_col a color used for blocked states. Use `NA` for no
 #'   color.
 #' @param ... further arguments are passed on to [graphics::image()].
 #'
@@ -633,7 +608,7 @@ gw_plot <-
            offset = .5,
            lines = TRUE,
            col = hcl.colors(100, "YlOrRd", rev = TRUE),
-           unreachable_col = "gray20",
+           blocked_col = "gray20",
            ...) {
     if (is.null(model$info$gridworld)) {
       stop("'model' does not seem to be a gridworld!")
@@ -667,8 +642,6 @@ gw_plot <-
     
     absorbing <- gw_matrix(model, what = "absorbing")
     unreachable <- gw_matrix(model, what = "unreachable")
-    unreachable[is.na(unreachable)] <- TRUE
-    
      
     # hide unreachable values for unreachable states
     m[unreachable] <- NA
@@ -689,11 +662,11 @@ gw_plot <-
     ))
     
     # draw NAs (missing/unreachable states)
-    if (!is.na(unreachable_col)) {
+    if (!is.na(blocked_col)) {
       m <- is.na(m)
       if (any(m)) {
         m[!m] <- NA
-        image(m, col = unreachable_col, add = TRUE)
+        image(m, col = blocked_col, add = TRUE)
       }
     }
     
@@ -789,7 +762,6 @@ gw_plot <-
 #' @details `gw_plot_transition_graph()` plots the transition graph
 #'   using the gridworld matrix as the layout.
 #'
-#' @param hide_unreachable_states logical; do not show unreachable states.
 #' @param remove.loops logical; do not show transitions from a state back to itself.
 #' @param vertex.color,vertex.shape,vertex.size,vertex.label,edge.arrow.size
 #'  see `igraph::igraph.plotting` for details. Set `vertex.label = NULL` to show the
@@ -801,7 +773,6 @@ gw_plot <-
 #' @export
 gw_plot_transition_graph <-
   function(x,
-           hide_unreachable_states = TRUE,
            remove.loops = TRUE,
            vertex.color = "gray",
            vertex.shape = "square",
@@ -815,12 +786,6 @@ gw_plot_transition_graph <-
     
     layout <- t(sapply(x$states, gw_s2rc))[, 2:1] *
       cbind(rep(1, length(x$states)), -1)
-    
-    if (hide_unreachable_states) {
-      reachable <- !unreachable_states(x, sparse = FALSE)
-      g <- induced_subgraph(g, V(g)[reachable])
-      layout <- layout[reachable, , drop = FALSE]
-    }
     
     V(g)$color <- vertex.color
     V(g)$shape <- vertex.shape

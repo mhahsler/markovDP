@@ -28,7 +28,7 @@ for (m in models_solve_no_chaching) {
   m$unreachable_states <- NULL
   if (verbose)
     cat(m$name, "\n")
-  tr <- unreachable_states(m, sparse = FALSE, use_precomputed = FALSE)
+  tr <- unreachable_states(m, sparse = FALSE)
   if (verbose)
     print(tr)
   expect_equal(names(which(tr)), s_unreach)
@@ -71,7 +71,7 @@ s_unreach <- "s2"
 for (m in ms) {
   if (verbose)
     cat(m$name, "\n")
-  tr <- unreachable_states(m, sparse = FALSE, use_precomputed = FALSE)
+  tr <- unreachable_states(m, sparse = FALSE)
   if (verbose)
     print(tr)
   expect_equal(names(which(tr)), s_unreach)

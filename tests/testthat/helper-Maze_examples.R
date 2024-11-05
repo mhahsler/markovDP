@@ -2,7 +2,7 @@
 
 # defines several versions of the Maze problem
 gw <- gw_init(dim = c(3, 4),  
-                     unreachable_states = "s(2,2)",
+                     blocked_states = "s(2,2)",
                      absorbing_states = c("s(1,4)", "s(2,4)"),
                      state_labels = list(
                          "s(3,1)" = "Start",
@@ -81,8 +81,7 @@ Maze_orig <- normalize_MDP(
   Maze_orig,
   transition_prob = FALSE,
   reward = FALSE,
-  precompute_absorbing = TRUE,
-  precompute_unreachable = TRUE
+  precompute_absorbing = TRUE
 )
 
 Maze_dense <- normalize_MDP(Maze_orig, sparse = FALSE)

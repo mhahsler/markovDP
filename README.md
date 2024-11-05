@@ -106,11 +106,13 @@ Maze
     ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states',
     ##     'unreachable_states'
 
+The maze is a gridworld and can be displayed directly.
+
 ``` r
 gw_plot(Maze, state = TRUE)
 ```
 
-![](inst/README_files/problem-1.png)<!-- -->
+![](inst/README_files/display-1.png)<!-- -->
 
 ``` r
 sol <- solve_MDP(model = Maze)
@@ -137,6 +139,8 @@ plot_value_function(sol)
 ```
 
 ![](inst/README_files/value_function-1.png)<!-- -->
+
+The state values can be shown in the gridworld as heat colors.
 
 ``` r
 gw_plot(sol)

@@ -125,17 +125,18 @@ table(sim$trajectories$s)
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }
 \author{

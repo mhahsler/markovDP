@@ -24,8 +24,7 @@ gw_init(
   start = NULL,
   goal = NULL,
   absorbing_states = NULL,
-  unreachable_states = NULL,
-  remove_unreachable_states = TRUE,
+  blocked_states = NULL,
   state_labels = list()
 )
 
@@ -70,13 +69,12 @@ gw_plot(
   offset = 0.5,
   lines = TRUE,
   col = hcl.colors(100, "YlOrRd", rev = TRUE),
-  unreachable_col = "gray20",
+  blocked_col = "gray20",
   ...
 )
 
 gw_plot_transition_graph(
   x,
-  hide_unreachable_states = TRUE,
   remove.loops = TRUE,
   vertex.color = "gray",
   vertex.shape = "square",
@@ -112,11 +110,8 @@ in the model are used.}
 
 \item{absorbing_states}{a vector with state labels for absorbing states.}
 
-\item{unreachable_states}{a vector with state labels for unreachable states.
+\item{blocked_states}{a vector with state labels for unreachable states.
 These states will be excluded.}
-
-\item{remove_unreachable_states}{logical; remove unreachable states from the
-state space?}
 
 \item{state_labels}{a list with labels for states. The element names need
 to be state names.}
@@ -157,7 +152,7 @@ faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
 \item{labels}{logical; show state labels.}
 
-\item{impossible_actions}{logical; show the value and the action for absorbing or unreachable states.}
+\item{impossible_actions}{logical; show the value and the action for absorbing states.}
 
 \item{main}{a main title for the plot. Defaults to the name of the problem.}
 
@@ -169,12 +164,10 @@ faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
 \item{col}{a colors for the utility values.}
 
-\item{unreachable_col}{a color used for unreachable states. Use \code{NA} for no
+\item{blocked_col}{a color used for blocked states. Use \code{NA} for no
 color.}
 
 \item{...}{further arguments are passed on to \code{igraph::plot.igraph()}.}
-
-\item{hide_unreachable_states}{logical; do not show unreachable states.}
 
 \item{remove.loops}{logical; do not show transitions from a state back to itself.}
 
@@ -220,8 +213,10 @@ The actions are \code{"up"}, \code{"right"},  \code{"down"}, and  \code{"left"}.
 \code{gw_init()} initializes a new gridworld creating a matrix
 of states with the given dimensions. Other action names
 can be specified, but they must have the same effects in the same order
-as above. Unreachable states (walls) and absorbing state can be defined.
-This information can be used to build a custom gridworld MDP.
+as above. Blocked states (walls) and absorbing state can be defined.
+This information can be used to build a custom gridworld MDP. Note that
+blocked states are removed from the model description using
+\code{\link[=remove_unreachable_states]{remove_unreachable_states()}}.
 
 Several helper functions are provided
 to use states, look at the state layout, and plot policies on the
@@ -264,7 +259,7 @@ provide the standard transition functions for a gridworld.
 # Defines states, actions and a transition model for a standard gridworld
 gw <- gw_init(
   dim = c(7, 7),
-  unreachable_states = c("s(2,2)", "s(7,3)", "s(3,6)"),
+  blocked_states = c("s(2,2)", "s(7,3)", "s(3,6)"),
   absorbing_states = "s(4,4)",
   state_labels = list("s(4,4)" = "Black Hole")
 )
@@ -276,7 +271,7 @@ str(gw)
 gw_matrix(gw)
 gw_matrix(gw, what = "label")
 gw_matrix(gw, what = "absorbing")
-gw_matrix(gw, what = "unreachable")
+gw_matrix(gw, what = "unreachable") # these are actually missing from the model
 
 # a transition function for regular moves in the gridworld is provided
 gw_transition_prob(gw, "right", "s(1,1)")
@@ -408,17 +403,18 @@ Other gridworld:
 
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }
 \concept{MDP}

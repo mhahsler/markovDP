@@ -3,8 +3,8 @@
 #' @rdname solve_MDP
 #' @param alpha step size as a function of the time step `t` and the number of times
 #'   the respective Q-value was updated `n` or a scalar.
-#' @param alpha_expected_sarsa step size for expected sarsa defaults to 1. Can be 
-#'  a funciton like for `alpha`.
+#' @param alpha_expected_sarsa step size for expected Sarsa defaults to 1. Can be 
+#'  a function like for `alpha`.
 #' @param epsilon used for \eqn{\epsilon}-greedy policies.
 #' @param n number of episodes used for learning.
 #' @param Q a state-action value matrix.
@@ -18,7 +18,7 @@ solve_MDP_TD <-
            alpha_expected_sarsa = 1,
            epsilon = 0.2,
            n = 1000,
-           Q = NULL,
+           Q = 0,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
@@ -55,7 +55,6 @@ solve_MDP_TD <-
         model,
         sparse = FALSE,
         precompute_absorbing = TRUE,
-        precompute_unreachable = FALSE,
         progress = progress
       )
       
@@ -70,7 +69,6 @@ solve_MDP_TD <-
       
     S <- S(model)
     A <- A(model)
-    #S_absorbing <- S[which(absorbing_states(model))]
     start <- start_vector(model, sparse = FALSE)
 
     # Initialize Q and Q_N
@@ -79,18 +77,13 @@ solve_MDP_TD <-
         stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
       Q_N <- model$solution$Q_N
-    } else if (is.null(Q)) {
-      Q <-
-        matrix(0,
-               nrow = length(S),
-               ncol = length(A),
-               dimnames = list(S, A)
-        )
+    } else {
+      Q <- init_Q(model, Q)
       Q_N <-
         matrix(0L,
-               nrow = length(S),
-               ncol = length(A),
-               dimnames = list(S, A)
+               nrow = nrow(Q),
+               ncol = ncol(Q),
+               dimnames = dimnames(Q)
         )
     }
     
@@ -157,7 +150,8 @@ solve_MDP_TD <-
         # update Q and Q_N and calculate alpha
         Q_N[s, a] <- Q_N[s, a] + 1L
         if (is.function(alpha))
-          alpha_val <- alpha(t, Q_N[s, a])
+          #alpha_val <- alpha(t, Q_N[s, a])
+          alpha_val <- alpha(t, sum(Q_N[s, ]))
         
         if (method == "sarsa") {
           # on-policy: is called Sarsa because it uses the sequence s, a, r, s', a'

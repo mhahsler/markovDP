@@ -16,7 +16,7 @@ the MDP model contains a policy, then the action is chosen according to the
 policy.}
 
 \item{...}{if action is unspecified, then the additional parameters are
-passed on to \code{action()} to determine the action.}
+passed on to \code{action()} to determine the action using the model's policy.}
 }
 \value{
 a names list with the \code{old_state}, the \code{action},
@@ -40,17 +40,18 @@ replicate(10, act(sol, "s(1,3)", epsilon = .2))
 \seealso{
 Other MDP: 
 \code{\link{MDP}()},
+\code{\link{Q_values}()},
+\code{\link{absorbing_states}()},
 \code{\link{accessors}},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
-\code{\link{q_values}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
-\code{\link{unreachable_and_absorbing}},
+\code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }
 \author{

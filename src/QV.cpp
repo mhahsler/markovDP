@@ -20,7 +20,12 @@ NumericVector QV_cpp(
   NumericVector V_prime(n);
   
   for (int s = 0; s < n; ++s) {
-    V_prime[s] = sum(P(s, _) * (R(s, _) + GAMMA * V));
+    //V_prime[s] = sum(P(s, _) * (R(s, _) + GAMMA * V));
+    
+    // 0 * Inf produces NaN
+    NumericVector prod = P(s, _) * (R(s, _) + GAMMA * V);
+    prod[is_nan(prod)] = 0;
+    V_prime[s] = sum(prod);
   }
  
   return(V_prime);

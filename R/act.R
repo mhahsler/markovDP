@@ -10,7 +10,7 @@
 #'   the MDP model contains a policy, then the action is chosen according to the
 #'   policy.
 #' @param ... if action is unspecified, then the additional parameters are 
-#'   passed on to `action()` to determine the action.
+#'   passed on to `action()` to determine the action using the model's policy.
 #' 
 #' @returns a names list with the `old_state`, the `action`, 
 #'  the next `reward` and `state`.
