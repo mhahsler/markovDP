@@ -515,7 +515,7 @@ MDP_PS_inf_horizon <-
         
         H[s_t] <- 0 # it will be updated with delta max... below
         
-        # find states that can get us to s, i.e., max_a((T(s_t|s, a)) > 0
+        # find states that can get us to s, i.e., max_a((P(s_t|s, a)) > 0
         max_a_T <- apply(
           transition_matrix(
             model,
@@ -670,7 +670,6 @@ MDP_policy_iteration_inf_horizon <-
         pi,
         V,
         k_backups = k_backups,
-        matrix = matrix,
         progress = FALSE
       )
       

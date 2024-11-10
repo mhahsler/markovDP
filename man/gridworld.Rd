@@ -409,6 +409,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},

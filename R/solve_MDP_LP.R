@@ -1,9 +1,11 @@
 # Solve MDPs using Linear Programming
 
 # For any given state, we have the assumption that the state's true value is:
-# V^*(s) = r + \gamma \max_{a \in A}\sum_{s' \in S} T(s' | s,a) \cdot V^*(s')
+# V^*(s) = r + \gamma \max_{a \in A}\sum_{s' \in S} P(s' | s,a) \cdot V^*(s')
 #
-#
+# The non-linear max operation can be rewritten as a minimization with a 
+# linear inequality.
+# 
 # min \sum_{s\in S} V(s)
 # s.t.
 # V(s) >=  R + \gamma\sum_{s' \in S} P(s' | s,a)*V(s'),\; \forall a\in A, s \in S
@@ -33,7 +35,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
     model$discount <- discount
   }
   if (is.null(model$discount)) {
-    message("No discount rate specified. Using .9!")
+    message("No discount factor specified. Using .9!")
     model$discount <- .9
   }
 
@@ -58,7 +60,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   n_a <- length(A(model))
 
   if (verbose) {
-    cat("creating constraints ...\n")
+    cat("creating", n_s * n_a, "constraints ...")
   }
 
   # objective is sum_s V(s)
@@ -67,49 +69,34 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
   # enforce the Bellman equation for each state
   # V(s) \geq r + \gamma\sum_{s' \in S} P(s' | s,a)*V(s'),\; \forall a\in A, s \in S
   #
-  # we can use the constraints V (I - gamma * T) >= TR for all a, s
+  # we can use the constraints V (I - gamma * P) >= PR for all a, s
 
-  # T(s,a, s'): maps actions + start states -> end states
-  T <- matrix(NA_real_, nrow = n_a * n_s, ncol = n_s)
-  i <- 1L
-  for (a in seq(n_a)) {
-    for (s in seq(n_s)) {
-      T[i, ] <- transition_matrix(model, action = a, start.state = s, sparse = FALSE)
-      i <- i + 1L
-    }
-  }
-  rownames(T) <- paste(rep(A(model), each = n_s), rep(S(model), n_a))
-  colnames(T) <- S(model)
-
-  const_mat <- do.call(rbind, replicate(n_a, diag(n_s), simplify = FALSE)) - gamma * T
-  const_dir <- rep(">=", n_a * n_s)
-
-  R <- reward_matrix(model, sparse = FALSE)
-
-  # lsSolve does not handle Inf
-  for (a in names(R)) {
-    R[[a]][R[[a]] == +Inf] <- inf
-    R[[a]][R[[a]] == -Inf] <- -inf
-  }
+  tm <- system.time({
+  P <- do.call(rbind, transition_matrix(model, sparse = FALSE))
   
+  # compute I - gamma * P for all a, s
+  const_mat <- do.call(rbind, replicate(n_a, diag(n_s), simplify = FALSE)) - gamma * P
+  
+  R <- do.call(rbind, reward_matrix(model, sparse = FALSE))
+  
+  # fix R for lpSolve
+  # lpSolve does not handle Inf
+  R[R == +Inf] <- inf
+  R[R == -Inf] <- -inf
   # lpSolve's simplex implementation requires all x > 0, but
   # state values can be negative! We add a second set of decision variables to
   # represent the negative values.
-  neg_r <- min(sapply(R, min)) < 0
+  neg_r <- any(R < 0)
   if (neg_r) {
     const_mat <- cbind(const_mat, -const_mat)
     obj <- c(rep(c(1, -1), each = n_s))
   }
 
-  # sum_sp (T * R): maps actions + start states -> expected reward
-  TR <- sapply(A(model), FUN = function(a) {
-    rowSums(transition_matrix(model, action = a) * R[[a]])
+  const_rhs <- rowSums(P*R)
   })
-  TR <- as.vector(TR)
-  names(TR) <- paste(rep(A(model), each = n_s), rep(S(model), n_a))
-  const_rhs <- TR
-
+  
   if (verbose) {
+    cat(" took", tm[1] + tm[2], "seconds.\n")
     cat("running LP solver ...")
   }
 
@@ -117,7 +104,7 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
     direction = "min",
     objective.in = obj,
     const.mat = const_mat,
-    const.dir = const_dir,
+    const.dir = rep(">=", length(const_rhs)),
     const.rhs = const_rhs,
     ...
   ))
@@ -132,14 +119,12 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
 
   U <- solution$solution
 
-  # use the positive or the negative decision variable.
+  # use the positive or the negative decision variable?
   if (neg_r) {
     U_neg <- U[-(1:n_s)]
     U <- U[1:n_s]
-    neg <- U_neg > U
-    U[neg] <- -U_neg[neg]
+    U <- ifelse(U_neg < U, U, -U_neg)
   }
-
 
   pi <- greedy_policy(Q_values(model, U))
 
@@ -152,3 +137,4 @@ solve_MDP_LP <- function(model, method = "lp", horizon = NULL,
 
   model
 }
+

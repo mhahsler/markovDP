@@ -6,6 +6,7 @@
 \alias{random_policy}
 \alias{manual_policy}
 \alias{induced_transition_matrix}
+\alias{induced_reward_matrix}
 \title{Extract, Create Add a Policy to a Model}
 \usage{
 policy(model, epoch = NULL, drop = TRUE)
@@ -23,6 +24,8 @@ random_policy(
 manual_policy(model, actions, V = NULL, estimate_V = FALSE)
 
 induced_transition_matrix(model, policy = NULL, epoch = 1L)
+
+induced_reward_matrix(model, policy = NULL, epoch = 1L)
 }
 \arguments{
 \item{model}{A solved \link{MDP} object.}
@@ -130,6 +133,7 @@ Other policy:
 \code{\link{Q_values}()},
 \code{\link{action}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{policy_evaluation}()},
 \code{\link{reward}()},
 \code{\link{value_function}()}

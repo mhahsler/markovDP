@@ -247,7 +247,23 @@ manual_policy <-
 #' @export
 induced_transition_matrix <- function(model, policy = NULL, epoch = 1L) {
   if (is.null(policy))
-    pi <- policy(model, epoch = epoch)$action
+    policy <- policy(model, epoch = epoch)
   
-  sapply(seq_along(S(model)), FUN = function(s) transition_matrix(model, pi[s], s))
+  if (is.data.frame(policy))
+    policy <- policy$action
+    
+  t(sapply(seq_along(S(model)), FUN = function(s) transition_matrix(model, policy[s], s)))
 }
+
+#' @rdname policy
+#' @export
+induced_reward_matrix <-
+  function(model, policy = NULL, epoch = 1L) {
+    if (is.null(policy))
+      policy <- policy(model, epoch = epoch)
+    
+    if (is.data.frame(policy))
+      policy <- policy$action
+    
+    t(sapply(seq_along(S(model)), FUN = function(s) reward_matrix(model, policy[s], s)))
+  }

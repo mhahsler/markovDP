@@ -42,6 +42,7 @@ table(replicate(100, action(sol, state = "s(1,3)", epsilon = 0.1)))
 Other policy: 
 \code{\link{Q_values}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{reward}()},

@@ -6,7 +6,7 @@
 \alias{A}
 \alias{is_solved_MDP}
 \alias{is_converged_MDP}
-\alias{T_}
+\alias{P_}
 \alias{R_}
 \alias{epoch_to_episode}
 \title{Define an MDP Problem}
@@ -31,7 +31,7 @@ is_solved_MDP(model, stop = FALSE)
 
 is_converged_MDP(model, stop = FALSE)
 
-T_(action = NA, start.state = NA, end.state = NA, probability)
+P_(action = NA, start.state = NA, end.state = NA, probability)
 
 R_(action = NA, start.state = NA, end.state = NA, value)
 
@@ -67,7 +67,7 @@ horizon.}
 
 \item{start.state, end.state}{state as a state label or an integer. The value \code{NA} matches any state.}
 
-\item{probability, value}{Values used in the helper functions \code{T_()} and \code{R_()}.}
+\item{probability, value}{Values used in the helper functions \code{P_()} and \code{R_()}.}
 
 \item{epoch}{integer; an epoch that should be converted to the
 corresponding episode in a time-dependent MDP.}
@@ -89,10 +89,10 @@ probabilities, and the rewards.
 
 In the following we use the following notation. The MDP is a 5-duple:
 
-\eqn{(S,A,T,R, \gamma)}.
+\eqn{(S,A,P,R, \gamma)}.
 
 \eqn{S} is the set of states; \eqn{A}
-is the set of actions; \eqn{T} are the conditional transition probabilities
+is the set of actions; \eqn{P} are the conditional transition probabilities
 between states; \eqn{R} is the reward function; and
 \eqn{\gamma} is the discount factor. We will use lower case letters to
 represent a member of a set, e.g., \eqn{s} is a specific state. To refer to
@@ -110,14 +110,14 @@ For the specification as data.frames below, \code{NA} can be used to mean
 any  \code{start.state}, \code{end.state} or \code{action}.
 }
 
-\subsection{Specification of transition model: \eqn{T(s' | s, a)}}{
+\subsection{Specification of transition model: \eqn{P(s' | s, a)}}{
 
 Transition probability to transition to state \eqn{s'} from given state \eqn{s}
 and action \eqn{a}. The transition probabilities can be
 specified in the following ways:
 \itemize{
-\item A data.frame with columns exactly like the arguments of \code{T_()}.
-You can use \code{rbind()} with helper function \code{T_()} to create this data
+\item A data.frame with columns exactly like the arguments of \code{P_()}.
+You can use \code{rbind()} with helper function \code{P_()} to create this data
 frame. Probabilities can be specified multiple times and the definition that
 appears last in the data.frame will take affect.
 \item A named list of matrices, one for each action. Each matrix is square with
@@ -245,6 +245,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},

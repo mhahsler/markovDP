@@ -146,8 +146,9 @@ The notation used in the package largely follows [@Sutton1998].
 | $s_0, S_0$ | `start`, `start_vector()` | single start state, start distribution over states |
 | $\pi$   | vector `pi`, `policy`  | a deterministic policy with an action for each state     |
 | $\pi(s)$   | | prescribed action for state $s$ in a deterministic policy   |
-| $v_\pi(s), v_*(s)$ | | value of state $s$ under policy  $\pi$ or under the optimal policy |  
-| $V$ | vector `V` | the tabular estimate of $v_\pi(s)$ or $v_*(s)$ | 
+| $\pi(a|s)$ | | probability of action $a$ in state $s$ in a stochastic policy   |
+| $v, v_\pi(s), v_*(s)$ | | a state value vector, the value of state $s$ under policy  $\pi$ or under the optimal policy |  
+| $V$ | vector `V` | the tabular estimate of $v_\pi$ or $v_*$ | 
 | $q_\pi(s,a), q_*(s,a)$| | value of taking action $a$ in state $s$ under policy $\pi$ or the optimal policy |
 | $Q$ | matrix `Q` | the tabular estimate of $q_\pi(s,a)$ or $q_*(s,a)$ |
 | $B_\pi$| `bellman_operator()` | Bellman operator | 

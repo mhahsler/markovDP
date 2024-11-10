@@ -62,6 +62,7 @@ Other policy:
 \code{\link{Q_values}()},
 \code{\link{action}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{value_function}()}

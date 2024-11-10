@@ -91,7 +91,7 @@ Display the value function.
 plot_value_function(sol)
 ```
 
-The state values can be shown in the gridworld as heat col00L
+The state values can be shown in the gridworld as colored map.
 
 
 ```{r gridworld_plot}

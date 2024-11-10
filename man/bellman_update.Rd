@@ -29,7 +29,7 @@ Update the value function with a Bellman update.
 The Bellman update updates a value function given the model
 by applying the Bellman equation as an update rule for each state:
 
-\deqn{V_{k+1}(s) \leftarrow \max_{a \in \mathcal{A}(s)} \sum_{s'} p(s' | s,a) [r(s,a, s') + \gamma V_k(s')]}
+\deqn{v_{k+1}(s) \leftarrow \max_{a \in \mathcal{A}(s)} \sum_{s'} p(s' | s,a) [r(s,a, s') + \gamma v_k(s')]}
 
 The Bellman update moves the estimated value function \eqn{V} closer to the
 optimal value function \eqn{v_*}.
@@ -37,13 +37,13 @@ optimal value function \eqn{v_*}.
 The Bellman operator \eqn{B_\pi} updates a value function given the model,
 and a policy \eqn{\pi}:
 
-\deqn{(B_\pi V)(s) = \sum_a \pi_{a|s} \sum_{s'} p(s' | s,a) [r(s,a, s') + \gamma V(s')]}
+\deqn{(B_\pi v)(s) = \sum_{a \in \mathcal{A}} \pi(a|s) \sum_{s'} p(s' | s,a) [r(s,a,s') + \gamma v(s')]}
 
-The Bellman error is \eqn{\delta = B_\pi V - V}.
+The Bellman error is \eqn{\delta = B_\pi v - v}.
 The Bellman operator reduces the Bellman error and moves the value function
-closer to the fixed point of the true value function \eqn{v_\pi}:
+closer to the fixed point of the true value function:
 
-\deqn{v_\pi = B_\pi v_\pi}.
+\deqn{v_\pi = B_\pi v_\pi.}
 }
 \examples{
 data(Maze)
@@ -71,6 +71,7 @@ Other MDP:
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
+\code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},
@@ -83,6 +84,7 @@ Other MDP:
 Other policy: 
 \code{\link{Q_values}()},
 \code{\link{action}()},
+\code{\link{greedy_action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{reward}()},

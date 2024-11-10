@@ -140,7 +140,7 @@ plot_value_function(sol)
 
 ![](inst/README_files/value_function-1.png)<!-- -->
 
-The state values can be shown in the gridworld as heat colors.
+The state values can be shown in the gridworld as colored map.
 
 ``` r
 gw_plot(sol)

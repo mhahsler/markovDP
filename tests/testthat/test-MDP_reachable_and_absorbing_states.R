@@ -40,7 +40,7 @@ for (m in models_solve_no_chaching) {
 
 m <- MDP(states = c("s1", "s2"), 
     actions = c("a1", "a2"), 
-    transition_prob = rbind(T_(end.state = "s1", probability = 1)),
+    transition_prob = rbind(P_(end.state = "s1", probability = 1)),
     reward = rbind(R_(value = -1)),
     start = "s1",
     name = "simple 2-state problem with absorbing start state"

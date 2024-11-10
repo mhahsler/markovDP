@@ -4,11 +4,14 @@
 #' model by repeatedly applying the Bellman operator.
 #' 
 #' The value function for a policy can be estimated (called policy evaluation)
-#' by repeatedly applying the Bellman operator \eqn{B_\pi} till convergence.
+#' by repeatedly applying the Bellman operator 
+#' \deqn{v \leftarrow B_\pi(v)}
+#' till convergence.
+#' 
 #' In each iteration, all state values are updated. In this implementation updating is
 #' stopped when the largest state Bellman error is below a threshold.
 #'
-#' \deqn{||V_{k+1} - V_k||_\infty < \theta.}
+#' \deqn{||v_{k+1} - v_k||_\infty < \theta.}
 #'
 #' Or if `k_backups` iterations have been completed.
 #'
@@ -27,12 +30,6 @@
 #'    \eqn{\theta} as the stopping criterion.
 #' @param theta stop when the largest state Bellman error (\eqn{\delta = V_{k+1} - V}) 
 #'    is less than \eqn{\theta}.
-#' @param matrix logical; if `TRUE` then matrices for the transition model and 
-#'    the reward function are taken from the model first. This can be slow if functions 
-#'    need to be converted or not fit into memory if the models are large. If these
-#'    components are already matrices, then this is very fast. For `FALSE`, the
-#'    transition probabilities and the reward is extracted when needed. This is slower, 
-#'    but removes the time to calculate the matrices and it saves memory.
 #' @param progress logical; show a progress bar with estimated time for completion.
 #' @param verbose logical; should progress and approximation errors be printed.
 #' @return a vector with (approximate)
@@ -86,7 +83,6 @@ policy_evaluation <-
            V = NULL,
            k_backups = 1000L,
            theta = 1e-3,
-           matrix = TRUE,
            progress = TRUE,
            verbose = FALSE) {
     if (!inherits(model, "MDP")) {
@@ -103,32 +99,12 @@ policy_evaluation <-
     
     S <- S(model)
     A <- A(model)
+    gamma <- model$discount %||% 1
     
-    # note for the many iterations, it is better to get the complete matrices
-    if (matrix) {
-      if (verbose)
-        cat("Precomputing dense matrices for R and T ...")
-      model <- normalize_MDP(
-        model,
-        sparse = FALSE,
-        precompute_absorbing = FALSE,
-        progress = progress
-      )
-      
-      if (verbose)
-        cat(" done.\n")
-    }
-    
-    if (is.data.frame(pi)) {
-      pi <- pi$action
-    }
-    names(pi) <- S
-
     # start with all 0s if no previous U is given
     if (is.null(V)) {
-      V <- rep(0, times = length(S))
+      V <- V_zero(model)
     }
-    names(V) <- S
     
     # we cannot count more than integer.max
     if (k_backups > .Machine$integer.max) {
@@ -136,12 +112,21 @@ policy_evaluation <-
       warning("Using the maximum number of backups of", k_backups)
     }
 
+    # use r_pi and p_pi to make it faster and not do a complete Bellman update
+    p_pi <- induced_transition_matrix(model, pi)
+    r_pi <- induced_reward_matrix(model, pi)
+    r_pi <- rowSums(p_pi * r_pi)
+    
     for (i in seq_len(k_backups)) {
       if (progress)
         pb$tick()
       
       v <- V
-      V <- bellman_operator(model, pi, V)
+
+      #V <- bellman_operator(model, pi, V)
+      # do this faster directly
+      V <- r_pi + gamma * p_pi %*% V
+       
       delta <- max(abs(v - V), na.rm = TRUE)
 
       if (verbose) {
@@ -156,6 +141,8 @@ policy_evaluation <-
     if (progress)
       pb$terminate()
     
+    V <- drop(V)
+    names(V) <- S(model)
     V
   }
 

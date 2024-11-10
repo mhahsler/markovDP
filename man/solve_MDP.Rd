@@ -215,9 +215,9 @@ We implement the two priority update strategies described as \strong{PS} and
 \item \strong{PS} (Moore and Atkeson, 1993) updates the priority of a state \eqn{H(s)}
 using:
 \deqn{
-       \forall{s \in S}: H_{t+1}(s)  \leftarrow \begin{cases}
-         \max(H_{t}(s), \Delta_t \max_{a \in A}(T(s_t|s,a)) \text{ for } s \ne s_{t+1} \\
-         \Delta_t \max_{a \in A}(T(s_t|s,a) \text{ for } s = s_{t+1}
+       \forall{s \in \mathcal{S}}: H_{t+1}(s)  \leftarrow \begin{cases}
+         \max(H_{t}(s), \Delta_t \max_{a \in \mathcal{A}}(p(s_t|s,a)) \text{ for } s \ne s_{t+1} \\
+         \Delta_t \max_{a \in A}(p(s_t|s,a) \text{ for } s = s_{t+1}
          \end{cases}
      }
 
@@ -226,9 +226,9 @@ the Bellman error for the updated state.
 \item \strong{GenPS} (Andre et al., 1997) updates all state priorities using their
 current Bellman error:
 
-\deqn{\forall{s \in S}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})|}
+\deqn{\forall{s \in \mathcal{S}}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})|}
 
-where \eqn{E(s; V_{t+1}) = \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} T(s'|s,a) V(s')\right] - V(s)}.
+where \eqn{E(s; V_{t+1}) = \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} p(s'|s,a) V(s')\right] - V(s)}
 is a state's Bellman error.
 }
 
@@ -252,28 +252,31 @@ Note that policies converge earlier than value functions.
 
 \subsection{Linear Programming}{
 
-The following linear programming formulation (Manne 1960) is implemented. For the
+A linear programming formulation was developed by Manne (1960) and further
+described by Puterman (1996). For the
 optimal value function, the Bellman equation holds:
 
 \deqn{
- V^*(s) = \max_{a \in A}\sum_{s' \in S} T(s, a, s') [ R(s, a, s') + \gamma V^*(s')]\; \forall a\in A, s \in S
+ v^*(s) = \max_{a \in \mathcal{A}}\sum_{s' \in  \mathcal{S}} p(s, a, s') [ r(s, a, s') + \gamma v^*(s')]\; \forall a\in \mathcal{A}, s \in \mathcal{S}
 }
 
-We can find the optimal value function by solving the following linear program:
-\deqn{\text{min} \sum_{s\in S} V(s)}
+The maximization problem can reformulate as a minimization with
+a linear constraint for each state action pair.
+The optimal value function can be found by solving the
+following linear program:
+\deqn{\text{min} \sum_{s\in S} v(s)}
 subject to
-\deqn{V(s) \ge \sum_{s' \in S} T(s, a, s') [R(s, a, s') + \gamma V(s')],\; \forall a\in A, s \in S
+\deqn{v(s) \ge r(s, a, s') + \gamma \sum_{s' \in \mathcal{S}} p(s, a, s')v(s'),\; \forall a\in \mathcal{A}, s \in \mathcal{S}
 }
+
+This optimization problem finds the optimal value function and the optimal policy.
 
 Note:
 \itemize{
 \item The discounting factor has to be strictly less than 1.
+\item The used solver does not support infinity and a sufficiently large
+value needs to be used instead (see parameter \code{inf}).
 \item Additional parameters to to \code{solve_MDP} are passed on to \code{\link[lpSolve:lp]{lpSolve::lp()}}.
-\item We use the solver in
-\code{\link[lpSolve:lp]{lpSolve::lp()}} which requires all decision variables (state values) to be non-negative.
-To ensure this, for negative rewards, all rewards as shifted so the
-smallest reward is
-0. This transformation does not change the optimal policy.
 }
 }
 
@@ -410,6 +413,8 @@ Manne, Alan. 1960. "On the Job-Shop Scheduling Problem." Operations Research 8 (
 
 Moore, Andrew, and C. G. Atkeson. 1993. "Prioritized Sweeping: Reinforcement Learning with Less Data and Less Real Time." Machine Learning 13 (1): 103–30. \doi{10.1007/BF00993104}.
 
+Puterman, Martin L. 1996. Markov decision processes: discrete stochastic dynamic programming. John Wiley & Sons.
+
 Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algorithms for Discounted Markov Decision Problems." Management Science 24: 1127-37. \doi{10.1287/mnsc.24.11.1127}.
 
 Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
@@ -431,6 +436,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},

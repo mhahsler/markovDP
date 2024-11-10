@@ -76,6 +76,7 @@ Other policy:
 \code{\link{Q_values}()},
 \code{\link{action}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
 \code{\link{reward}()}
@@ -88,6 +89,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},

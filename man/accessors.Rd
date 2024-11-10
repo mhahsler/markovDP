@@ -85,7 +85,7 @@ the fields \code{transition_prob}, \code{reward}, and \code{start} can be define
 keywords, or functions. See \link{MDP} for details.
 The functions provided here, provide unified access to the data in these fields
 to make writing code easier.
-\subsection{Transition Probabilities \eqn{T(s'|s,a)}}{
+\subsection{Transition Probabilities \eqn{p(s'|s,a)}}{
 
 \code{transition_matrix()} accesses the transition model. The complete model
 is a list with one element for each action. Each element contains a states x states matrix
@@ -94,7 +94,7 @@ Matrices with a density below 50\% can be requested in sparse format
 (as a \link[Matrix:dgCMatrix-class]{Matrix::dgCMatrix}).
 }
 
-\subsection{Reward \eqn{R(s,s',a)}}{
+\subsection{Reward \eqn{r(s,s',a)}}{
 
 \code{reward_matrix()} accesses the reward model.
 The preferred representation is a data.frame with the
@@ -184,6 +184,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},

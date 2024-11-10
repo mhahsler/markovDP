@@ -167,16 +167,16 @@ check_and_fix_MDP <- function(x) {
   }
   
   if (is.function(x$transition_prob)) {
-    check_func(x, x$transition_prob, T_)
+    check_func(x, x$transition_prob, P_)
   }
   
   else if (is.data.frame(x$transition_prob)) {
-    x$transition_prob <- check_and_fix_df(x, x$transition_prob, T_)
+    x$transition_prob <- check_and_fix_df(x, x$transition_prob, P_)
   }
   
   # list of matrices or keywords
   else {
-    x$transition_prob <- check_and_fix_list(x, x$transition_prob, T_, 
+    x$transition_prob <- check_and_fix_list(x, x$transition_prob, P_, 
                                             check_sum = TRUE)
   }
   

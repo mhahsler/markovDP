@@ -10,10 +10,10 @@
 #'
 #' In the following we use the following notation. The MDP is a 5-duple:
 #'
-#' \eqn{(S,A,T,R, \gamma)}.
+#' \eqn{(S,A,P,R, \gamma)}.
 #'
 #' \eqn{S} is the set of states; \eqn{A}
-#' is the set of actions; \eqn{T} are the conditional transition probabilities
+#' is the set of actions; \eqn{P} are the conditional transition probabilities
 #' between states; \eqn{R} is the reward function; and
 #' \eqn{\gamma} is the discount factor. We will use lower case letters to
 #' represent a member of a set, e.g., \eqn{s} is a specific state. To refer to
@@ -30,14 +30,14 @@
 #' For the specification as data.frames below, `NA` can be used to mean
 #' any  `start.state`, `end.state` or `action`.
 #'
-#' ## Specification of transition model: \eqn{T(s' | s, a)}
+#' ## Specification of transition model: \eqn{P(s' | s, a)}
 #'
 #' Transition probability to transition to state \eqn{s'} from given state \eqn{s}
 #' and action \eqn{a}. The transition probabilities can be
 #' specified in the following ways:
 #'
-#' * A data.frame with columns exactly like the arguments of `T_()`.
-#'   You can use `rbind()` with helper function `T_()` to create this data
+#' * A data.frame with columns exactly like the arguments of `P_()`.
+#'   You can use `rbind()` with helper function `P_()` to create this data
 #'   frame. Probabilities can be specified multiple times and the definition that
 #'   appears last in the data.frame will take affect.
 #'
@@ -356,10 +356,10 @@ is_converged_MDP <- function(model, stop = FALSE) {
 #' @rdname MDP
 #' @param action action as a action label or integer. The value `NA` matches any action.
 #' @param start.state,end.state state as a state label or an integer. The value `NA` matches any state.
-#' @param probability,value Values used in the helper functions `T_()` and `R_()`.
+#' @param probability,value Values used in the helper functions `P_()` and `R_()`.
 #'
 #' @export
-T_ <-
+P_ <-
   function(action = NA,
            start.state = NA,
            end.state = NA,

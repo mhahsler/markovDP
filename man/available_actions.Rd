@@ -62,6 +62,7 @@ Other MDP:
 \code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{bellman_update}()},
+\code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},
