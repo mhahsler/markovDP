@@ -79,7 +79,9 @@ Other policy:
 \code{\link{greedy_action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
-\code{\link{reward}()}
+\code{\link{regret}()},
+\code{\link{reward}()},
+\code{\link{visit_probability}()}
 
 Other MDP: 
 \code{\link{MDP}()},

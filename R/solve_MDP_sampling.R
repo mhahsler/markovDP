@@ -44,7 +44,7 @@ solve_MDP_sampling <-
     
     # Initialize Q
     if (continue) {
-      if (is.null(model$solution$Q) || is.null(model$solution$N))
+      if (is.null(model$solution$Q) || is.null(model$solution$Q_N))
         stop("model solution does not contain a Q matrix or the N count matrix to continue from!")
       Q <- model$solution$Q
       Q_N <- model$solution$Q_N

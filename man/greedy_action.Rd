@@ -83,8 +83,10 @@ Other policy:
 \code{\link{bellman_update}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
+\code{\link{regret}()},
 \code{\link{reward}()},
-\code{\link{value_function}()}
+\code{\link{value_function}()},
+\code{\link{visit_probability}()}
 }
 \author{
 Michael Hahsler

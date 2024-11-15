@@ -48,6 +48,7 @@ value_function.MDP <- function(model, drop = TRUE) {
     val <- val[[1]]
   }
 
+  names(val) <- S(model)
   val
 }
 

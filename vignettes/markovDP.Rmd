@@ -101,7 +101,7 @@ A discrete-time MDP can formally be described by
     $p(s'|s,a)$ is the probability for the state transition
     $s \rightarrow s'$ conditioned on the taken action $a$.
 
--   $\mathcal{R}$ is the set of all possible rewards. The reward is
+-   $r$ is the reward function
     defined by a reward function $r(s, a, s')$ returning the immediate reward 
     received when transitioning from state $s$ to $s'$ while using action $a$.
     $R_t$ is a random variable for the immediate reward at time $t$.

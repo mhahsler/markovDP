@@ -59,8 +59,13 @@ greedy_action.matrix <-
            epsilon = 0,
            prob = FALSE) {
     Q <- x
+    
+    A <- colnames(Q)
+    if (is.null(A))
+      stop("Q matrix needs actions as column names.")
+    
     # R = -Inf means unavailable action
-    available_A <- colnames(Q)[Q[s, ] != -Inf]
+    available_A <- which(Q[s, ] != -Inf)
     
     if (!prob) {
       if (epsilon == 0 ||
@@ -70,7 +75,7 @@ greedy_action.matrix <-
         a <- sample(available_A, size = 1L)
       }
      
-      a <- factor(a, levels = colnames(Q)) 
+      a <- factor(a, levels = seq_along(A), labels = A) 
       return(a)
     }
     

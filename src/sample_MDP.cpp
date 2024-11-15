@@ -79,8 +79,9 @@ List sample_MDP_cpp(const List& model,
     Rcout << "--- Replication " << i << " ---\n";
 #endif
     rews[i] = 0.0;
-    s = sample(nstates, 1, false, start, false)[0]; // last false if for 0-based index
     disc_pow = 1.0;
+    s = sample(nstates, 1, false, start, false)[0]; // last false if for 0-based index
+    state_cnt[s]++;
     
     // horizon epochs  
     for (int j = 0; j < horizon; ++j) {

@@ -13,39 +13,53 @@
 #' Implemented are the following dynamic programming methods (following
 #' Russell and Norvig, 2010):
 #'
-#' * **Modified Policy Iteration** (Howard 1960; Puterman and Shin 1978)
+#' * **(Modified) Policy Iteration** (Howard 1960; Puterman and Shin 1978)
 #' starts with a random policy and iteratively performs
 #' a sequence of
-#'   1. approximate policy evaluation (estimate the value function for the
-#' current policy using `k_backups` and function [`policy_evaluation()`], and
-#'   2. policy improvement (calculate a greedy policy given the value function).
+#'   1. (Approximate) policy evaluation to estimate the value function for the
+#'      current policy. Iterative policy evaluation can be approximated by 
+#'      stopping early after `k_backups` iterations 
+#'      (see [`policy_evaluation()`]. In this case the algorithm is called 
+#'      _modified_ policy iteration.
+#'   2. Policy improvement is performed by updating the policy to be greedy 
+#'      (see [`greedy_policy()`])
+#'      with respect to the new value function.
 #' The algorithm stops when it converges to a stable policy (i.e., no changes
-#' between two iterations).
+#' between two iterations). Note that the policy typically stabilizes before 
+#' the value function converges. 
 #'
 #' * **Value Iteration** (Bellman 1957) starts with
 #'   an arbitrary value function (by default all 0s) and iteratively
-#'   updates the value function for each state using the Bellman equation.
-#'   The iterations
-#'   are terminated either after `n` iterations or when the solution converges.
+#'   updates the value function for each state using the Bellman update 
+#'   equation (see [`bellman_update()`]).
+#'   
+#'   \deqn{v(s) \leftarrow \max_{a \in \mathcal{A}(s)} \sum_{s'} p(s' | s,a) [r(s,a, s') + \gamma v(s')]}
+#'   
+#'   The iteration
+#'   is terminated when the solution converges or the maximum of `n` iterations
+#'   has been reached.
 #'   Approximate convergence is achieved
 #'   for discounted problems (with \eqn{\gamma < 1})
 #'   when the maximal value function change for any state \eqn{\delta} is
-#'   \eqn{\delta \le error (1-\gamma) / \gamma}. It can be shown that this means
+#'   \deqn{\delta \le \frac{error (1-\gamma)}{\gamma}.}
+#'   It can be shown that this means
 #'   that no state value is more than
 #'   \eqn{error} from the value in the optimal value function. For undiscounted
 #'   problems, we use \eqn{\delta \le error}.
 #'
 #'   A greedy policy
-#'   is calculated from the final value function. Value iteration can be seen as
-#'   policy iteration with truncated policy evaluation.
+#'   is extracted from the final value function. Value iteration can be seen as
+#'   policy iteration with policy evaluation truncated to one step.
 #'
 #' * **Prioritized Sweeping** (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008)
 #'   approximate the optimal value
-#'   function by iteratively adjusting one state at a time. The state to be updated is chosen
-#'   depending on its priority which reflects how much a state value may change
+#'   function by iteratively adjusting one state at a time. While value and policy iteration
+#'   sweep in every iteration through all states, prioritized sweeping 
+#'   updates states in the order given by their priority.
+#'   The priority reflects how much a state value may change
 #'   given the most recently updated other states that can be directly reached via an action.
 #'   This update order often lead to faster convergence compared
-#'   to sweeping the whole state state in regular value iteration.
+#'   to sweeping the whole state space in regular value iteration.
 #'
 #'   We implement the two priority update strategies described as __PS__ and
 #'   __GenPS__ by Li and Littman.
@@ -82,7 +96,7 @@
 #'
 #'   Since the algorithm does not sweep through the whole state space for each
 #'   iteration, `n` is converted into an equivalent number of state updates
-#'   \eqn{n = n |S|}.
+#'   \eqn{n = n\ |S|}.
 #'
 #' Note that policies converge earlier than value functions.
 #'
@@ -116,22 +130,42 @@
 #'
 #' ## Monte Carlo Control
 #'
+#' The idea is to estimate the action value function for a policy as the 
+#' average of sampled returns.
+#' 
+#' \deqn{q_\pi(s,a) = \mathbb{E}_\pi[R_i|S_0=s,A_0=a] \approx \frac{1}{n} \sum_{i=1}^n R_i}
+#' 
 #' Monte Carlo control simulates a whole episode using the current behavior
-#' policy and then updates the target policy before simulating the next episode.
+#' policy and uses the sampled reward to update the Q values. For on-policy 
+#' methods, the behavior policy is updated to be greedy (i.e., optimal) with 
+#' respect to the new Q values. Then the next episode is simulated till 
+#' the predefined number of episodes is completed.  
+#' 
 #' Implemented are the following temporal difference control methods
 #' described in Sutton and Barto (2020).
 #'
-#' * **Monte Carlo Control with exploring Starts** uses the same greedy policy for
-#' behavior and target (on-policy). To make sure all states/action pairs are
+#' * **Monte Carlo Control with exploring Starts** learns the optimal greedy policy. 
+#' It uses the same greedy policy for
+#' behavior and target (on-policy learning).
+#' After each episode, the policy is updated to be greedy with respect to the 
+#' current Q values. 
+#' To make sure all states/action pairs are
 #' explored, it uses exploring starts meaning that new episodes are started at a randomly
 #' chosen state using a randomly chooses action.
 #'
-#' * **On-policy Monte Carlo Control** uses for behavior and as the target policy
-#' an epsilon-greedy policy.
+#' * **On-policy Monte Carlo Control** learns an epsilon-greedy policy
+#' which it uses for behavior and as the target policy
+#' (on-policy learning). An epsilon-greedy policy is used to provide 
+#' exploration.  
 #'
-#' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary policy
-#' (we use an epsilon-greedy policy) and learns a greedy policy using
-#' importance sampling.
+#' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary soft policy
+#' (a soft policy has in each state a probability greater than 0 for all 
+#' possible actions). 
+#' We use an epsilon-greedy policy and the method learns a greedy policy using
+#' importance sampling. Note: This method can only learn from the tail of the 
+#' sampled runs where greedy actions are chosen. This means that it is very
+#' inefficient in learning the beginning portion of long episodes. This problem 
+#' is especially problematic when larger values for \eqn{\epsilon} are used. 
 #'
 #' ## Temporal Difference Control
 #'

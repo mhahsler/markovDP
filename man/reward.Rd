@@ -65,7 +65,9 @@ Other policy:
 \code{\link{greedy_action}()},
 \code{\link{policy}()},
 \code{\link{policy_evaluation}()},
-\code{\link{value_function}()}
+\code{\link{regret}()},
+\code{\link{value_function}()},
+\code{\link{visit_probability}()}
 }
 \author{
 Michael Hahsler

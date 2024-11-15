@@ -509,7 +509,8 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
       "values",
       "actions",
       "absorbing",
-      "unreachable"
+      "unreachable",
+      "visit_probability"
     )
   )
   
@@ -564,6 +565,11 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
     unreachable = {
       l <- structure(rep(FALSE, length(all_states)), names = all_states)
       l[!(all_states %in% S(model))] <- TRUE
+      l
+    },
+    visit_probability = {
+      l <- structure(rep(NA, length(all_states)), names = all_states)
+      l[S(model)] <- visit_probability(model) 
       l
     }
   )

@@ -87,4 +87,5 @@ Collate:
     'transition_graph.R'
     'unreachable_states.R'
     'value_function.R'
+    'visit_probability.R'
     'zzz.R'

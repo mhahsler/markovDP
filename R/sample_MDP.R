@@ -135,9 +135,9 @@ sample_MDP <-
         horizon <-
           ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
       } else { 
+        horizon <- length(S(model)) * length(A(model))
         warning("Simulation for undiscounted problems need a finite simulation horizon.\n",
-                "Using 10000.")
-        horizon <- 10000
+                "Using a maximum horizon of |S| x |A| = ", horizon, "to avoid infinite loops.")
       }
     }
     horizon <- as.integer(horizon)
@@ -161,7 +161,7 @@ sample_MDP <-
     
     if (engine == "cpp") {
       if (foreach::getDoParWorkers() == 1 || n * horizon < 100000) {
-        return(
+        samp <-
           sample_MDP_cpp(
             model,
             n,
@@ -173,7 +173,10 @@ sample_MDP <-
             exploring_starts,
             verbose = verbose
           )
-        )
+        
+        samp$avg_episode_length = sum(samp$state_cnt) / n
+        
+        return(samp)
       }
       
       ns <- foreach_split(n)
@@ -213,15 +216,16 @@ sample_MDP <-
       
       rew <- Reduce(c, lapply(sim, "[[", "reward"))
       
-      return(
-        list(
-          avg_reward = mean(rew, na.rm = TRUE),
-          reward = rew,
-          action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
-          state_cnt = Reduce("+", lapply(sim, "[[", "state_cnt")),
-          trajectories = Reduce(rbind, lapply(sim, "[[", "trajectories"))
-        )
+      samp <- list(
+        avg_reward = mean(rew, na.rm = TRUE),
+        reward = rew,
+        action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
+        state_cnt = Reduce("+", lapply(sim, "[[", "state_cnt")),
+        trajectories = Reduce(rbind, lapply(sim, "[[", "trajectories"))
       )
+      samp$avg_episode_length = sum(samp$state_cnt) / n
+      
+      return(samp)
     }
     
     # R implementation starts here ##############
@@ -269,14 +273,15 @@ sample_MDP <-
       if (progress)
         pb$tick()
       
-      # find a initial state
-      s <- sample.int(length(states), 1L, prob = start)
-      
       action_cnt <- rep(0L, length(actions))
       names(action_cnt) <- actions
       state_cnt <- rep(0L, length(states))
       names(state_cnt) <- states
       rew <- 0
+      
+      # find a initial state
+      s <- sample.int(length(states), 1L, prob = start)
+      state_cnt[s] <- state_cnt[s] + 1L
       
       if (trajectories) {
         trajectory <- data.frame(
@@ -355,11 +360,15 @@ sample_MDP <-
       the_trajectories$s_prime <- .normalize_state(the_trajectories$s_prime, model)
     }
     
-    list(
+    samp <- list(
       avg_reward = mean(rew, na.rm = TRUE),
       reward = rew,
       action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
       state_cnt = Reduce("+", lapply(sim, "[[", "state_cnt")),
       trajectories = the_trajectories
     )
-  }
+    samp$avg_episode_length = sum(samp$state_cnt) / n
+    
+    return(samp)  
+    
+}
