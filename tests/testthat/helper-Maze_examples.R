@@ -152,7 +152,7 @@ Maze_function2_named$transition_prob <- function(model, action, start.state) {
 Maze_function3 <- Maze_orig
 
 models <- list(Maze_dense,
-               Maze_sparse,
+#               Maze_sparse,  # sparse has now a different reward where P == 0 is zeroed out
                Maze_function2,
                Maze_function2_sparse,
                Maze_function2_named,

@@ -26,15 +26,6 @@ solutions <- list()
 # benchmark
 bench <- solve_MDP(models_solve[[1]], method = "value")
 
-different_actions <- function(policy, benchmark) {
-  pi <- policy(policy)$action
-  
-  # benchmark is VI and uses a greedy policy
-  Q <- q_values(benchmark)
-  sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
-}
-
-
 # need no parameters
 for (model in models_solve) {
   for (m in methods_DP) {

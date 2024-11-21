@@ -23,7 +23,7 @@ random_policy(
 
 manual_policy(model, actions, V = NULL, estimate_V = FALSE)
 
-induced_transition_matrix(model, policy = NULL, epoch = 1L)
+induced_transition_matrix(model, policy = NULL, epoch = 1L, sparse = FALSE)
 
 induced_reward_matrix(model, policy = NULL, epoch = 1L)
 }
@@ -54,6 +54,8 @@ numeric id) for each state.}
 
 \item{V}{a vector representing the value function for the policy. If \code{TRUE}, then
 the it is estimated using \code{policy_evaluation()}.}
+
+\item{sparse}{logical; should a sparse transition matrix be returned?}
 }
 \value{
 \itemize{
@@ -118,6 +120,9 @@ pi_manual <- manual_policy(Maze, acts, estimate_V = TRUE)
 pi_manual
 
 gw_plot(add_policy(Maze, pi_manual))
+
+# Transition matrix induced by the policy
+induced_transition_matrix(Maze, pi_manual, sparse = TRUE)
 
 ## Finite horizon (we use incremental pruning because grid does not converge)
 sol <- solve_MDP(model = Maze, horizon = 3)

@@ -4,7 +4,7 @@
 \alias{visit_probability}
 \title{State Visit Probability}
 \usage{
-visit_probability(model, pi = NULL, start = NULL, method = "matrix", ...)
+visit_probability(model, pi = NULL, start = NULL, method = "power", ...)
 }
 \arguments{
 \item{model}{a solved \link{MDP} object.}
@@ -15,11 +15,11 @@ visit_probability(model, pi = NULL, start = NULL, method = "matrix", ...)
 \item{start}{specification of the start distribution. If missing the specification in
 \code{model} is used.}
 
-\item{method}{calculate the modified stationary distribution using \code{"matrix"}
-(matrix multiplication) or \code{"sample"} (trajectory sampling).}
+\item{method}{calculate the modified stationary distribution using \code{"power"}
+(power iteration) or \code{"sample"} (trajectory sampling).}
 
-\item{min_err}{repeats multiplying till the largest difference between
-two consecutive vectors is less then \code{min_err}.}
+\item{...}{further arguments are passed on to the internal implementations
+(see Details section).}
 }
 \value{
 a visit probability vector over all states.
@@ -33,7 +33,7 @@ The visit probability is the stationary distribution for the transition matrix
 induced by the policy. To account for absorbing states, we modify the
 transition matrix by setting all outgoing probabilities from absorbing states
 to 0.
-\subsection{Matrix method}{
+\subsection{Power iteration}{
 
 The stationary distribution can be estimated as the sum of multiplying the
 start distribution repeatedly with the modified transition matrix
@@ -42,6 +42,8 @@ the largest difference between entries in the two consecutive vectors is
 less then the extra parameter:
 \itemize{
 \item \code{min_err} stop criterion for the power iteration (default: \code{1e-6}).
+\item \code{sparse} logical; should a sparse transition matrix be used for the
+power iteration?
 }
 
 The resulting vector is normalized to probabilities.

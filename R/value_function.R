@@ -9,7 +9,8 @@
 #' @param drop logical; drop the list for converged, epoch-independent value functions.
 #' @param ... further arguments are passed on to [graphics::barplot()]`.
 #'
-#' @returns the function as a numeric vector with one value for each state.
+#' @returns Returns the value function as a numeric vector with one value for each state or 
+#'  as a matrix with rows for states and columns for epochs.
 #'
 #' @author Michael Hahsler
 #' @keywords hplot
@@ -42,13 +43,13 @@ value_function <- function(model, drop = TRUE) {
 #' @export
 value_function.MDP <- function(model, drop = TRUE) {
   is_solved_MDP(model, stop = TRUE)
-  val <- lapply(policy(model, drop = FALSE), "[[", "V")
-
-  if (drop && length(val) == 1L) {
-    val <- val[[1]]
+  val <- sapply(policy(model, drop = FALSE), "[[", "V")
+  rownames(val) <- S(model)
+  
+  if (drop && ncol(val) == 1L) {
+    val <- val[, 1, drop = TRUE]
   }
 
-  names(val) <- S(model)
   val
 }
 
@@ -59,7 +60,7 @@ value_function.MDP <- function(model, drop = TRUE) {
 #' @param main a main title for the plot. Defaults to the name of the problem.
 #' @export
 plot_value_function <- function(model,
-                                epoch = 1,
+                                epoch = 1L,
                                 legend = TRUE,
                                 col = NULL,
                                 ylab = "Value",

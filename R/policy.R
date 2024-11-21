@@ -63,6 +63,9 @@
 #'
 #' gw_plot(add_policy(Maze, pi_manual))
 #'
+#' # Transition matrix induced by the policy
+#' induced_transition_matrix(Maze, pi_manual, sparse = TRUE)
+#'
 #' ## Finite horizon (we use incremental pruning because grid does not converge)
 #' sol <- solve_MDP(model = Maze, horizon = 3)
 #' sol
@@ -214,6 +217,7 @@ random_policy <-
 #'  numeric id) for each state.
 #' @param V a vector representing the value function for the policy. If `TRUE`, then
 #'    the it is estimated using `policy_evaluation()`.
+#' @param sparse logical; should a sparse transition matrix be returned?
 #' @export
 manual_policy <-
   function(model,
@@ -245,14 +249,18 @@ manual_policy <-
 
 #' @rdname policy
 #' @export
-induced_transition_matrix <- function(model, policy = NULL, epoch = 1L) {
+induced_transition_matrix <- function(model, policy = NULL, epoch = 1L, sparse = FALSE) {
   if (is.null(policy))
     policy <- policy(model, epoch = epoch)
   
   if (is.data.frame(policy))
     policy <- policy$action
     
-  t(sapply(seq_along(S(model)), FUN = function(s) transition_matrix(model, policy[s], s)))
+  P <- t(sapply(seq_along(S(model)), FUN = function(s) transition_matrix(model, policy[s], s)))
+  dimnames(P) <- list(S(model), S(model))
+ 
+  P <- .sparsify(P, sparse)
+  P
 }
 
 #' @rdname policy

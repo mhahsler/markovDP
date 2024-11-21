@@ -6,7 +6,7 @@
 \alias{value_error}
 \title{Regret of a Policy and Related Measures}
 \usage{
-regret(policy, benchmark, start = NULL, ...)
+regret(policy, benchmark, start = NULL, relative = FALSE, ...)
 
 action_discrepancy(policy, benchmark, weighted = FALSE, proportion = FALSE)
 
@@ -20,6 +20,9 @@ policy.}
 
 \item{start}{start state distribution. If NULL then the start state of the \code{benchmark} is used.}
 
+\item{relative}{logical; should the relative regret (regret divided by the reward of the benchmark)
+be calculated?}
+
 \item{...}{further arguments are passed on to \code{\link[=reward]{reward()}}.}
 
 \item{weighted}{logical; should mismatched actions or state value errors
@@ -31,9 +34,6 @@ of states with a different action.}
 
 \item{type}{type of error root mean square value error (\code{"RMSVE"}), mean square value error (\code{"MSVE"}),
 mean absolute value error (\code{"MAVE"}), absolute value error vector (\code{"AVE"}),  value error vector (\code{"VE"}).}
-
-\item{relative}{logical; should the relative regret (regret divided by the reward of the benchmark)
-be calculated?}
 }
 \value{
 \itemize{
@@ -128,7 +128,7 @@ action_discrepancy(sol_manual, benchmark = sol_optimal)
 action_discrepancy(sol_manual, benchmark = sol_optimal, proportion = TRUE)
 
 # Weighted by the probability that a state will be visited shows that
-only 2.3\% of the time a different action would be used.
+# only 2.3\% of the time a different action would be used.
 action_discrepancy(sol_manual, benchmark = sol_optimal, weighted = TRUE)
 
 value_error(sol_manual, benchmark = sol_optimal, type = "VE")

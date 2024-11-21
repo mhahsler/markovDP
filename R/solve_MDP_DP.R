@@ -243,7 +243,6 @@ MDP_value_iteration_inf_horizon <-
            error,
            n = 1000L,
            V = NULL,
-           matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
@@ -349,7 +348,6 @@ MDP_PS_inf_horizon <-
            n = 1000L,
            V = NULL,
            H_update = "GenPS",
-           matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
@@ -595,7 +593,6 @@ MDP_policy_iteration_inf_horizon <-
            n = 1000,
            k_backups = 10,
            V = NULL,
-           matrix = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {

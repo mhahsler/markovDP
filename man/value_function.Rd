@@ -11,7 +11,7 @@ value_function(model, drop = TRUE)
 
 plot_value_function(
   model,
-  epoch = 1,
+  epoch = 1L,
   legend = TRUE,
   col = NULL,
   ylab = "Value",
@@ -45,7 +45,8 @@ V_random(model, min = 1e-06, max = 1)
 state values.}
 }
 \value{
-the function as a numeric vector with one value for each state.
+Returns the value function as a numeric vector with one value for each state or
+as a matrix with rows for states and columns for epochs.
 }
 \description{
 Extracts the value function from a solved MDP.

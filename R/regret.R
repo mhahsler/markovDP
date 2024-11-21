@@ -95,7 +95,7 @@
 #' action_discrepancy(sol_manual, benchmark = sol_optimal, proportion = TRUE)
 #' 
 #' # Weighted by the probability that a state will be visited shows that
-#' only 2.3% of the time a different action would be used.
+#' # only 2.3% of the time a different action would be used.
 #' action_discrepancy(sol_manual, benchmark = sol_optimal, weighted = TRUE)
 #'
 #' value_error(sol_manual, benchmark = sol_optimal, type = "VE")
@@ -109,6 +109,7 @@
 regret <- function(policy,
                    benchmark,
                    start = NULL,
+                   relative = FALSE,
                    ...) {
   UseMethod("regret")
 }

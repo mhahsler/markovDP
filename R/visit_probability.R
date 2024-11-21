@@ -16,7 +16,9 @@
 #' the largest difference between entries in the two consecutive vectors is 
 #' less then the extra parameter:
 #' 
-#' *  `min_err` stop criterion for the power iteration (default: `1e-6`).  
+#' * `min_err` stop criterion for the power iteration (default: `1e-6`). 
+#' * `sparse` logical; should a sparse transition matrix be used for the 
+#'      power iteration? 
 #' 
 #' The resulting vector is normalized to probabilities.
 #'
@@ -38,8 +40,8 @@
 #'    `model` is used.
 #' @param method calculate the modified stationary distribution using `"power"` 
 #'     (power iteration) or `"sample"` (trajectory sampling).  
-#' @param min_err repeats multiplying till the largest difference between 
-#'     two consecutive vectors is less then `min_err`.
+#' @param ... further arguments are passed on to the internal implementations 
+#'     (see Details section).
 #'
 #' @returns a visit probability vector over all states.
 #'
@@ -54,23 +56,23 @@
 #' # gw_matrix also can calculate the visit_probability.
 #' gw_matrix(sol, what = "visit_probability")
 #'
-# @export
+#' @export
 visit_probability <- function(model, pi = NULL, start = NULL, method = "power", ...) {
-    method <- match.arg(method, c("matrix", "sample")) 
+    method <- match.arg(method, c("power", "sample")) 
   
     switch(method,
-      matrix = visit_probability_power(model, pi, start, ...),
+      power = visit_probability_power(model, pi, start, ...),
       sample = visit_probability_sample(model, pi, start, ...),
     )
   }
 
-visit_probability_power <- function(model, pi = NULL, start = NULL, max_err = 1e-6) {
+visit_probability_power <- function(model, pi = NULL, start = NULL, max_err = 1e-6, sparse = FALSE) {
   if (is.null(pi))
     pi <- policy(model)
   
   start <- start_vector(model, start = start, sparse = FALSE)
   
-  P <- induced_transition_matrix(model, pi)
+  P <- induced_transition_matrix(model, pi, sparse = sparse)
   absorbing <- absorbing_states(model, sparse = "index")
   
   P[absorbing, ] <- 0
@@ -85,8 +87,11 @@ visit_probability_power <- function(model, pi = NULL, start = NULL, max_err = 1e
     X <- Xp
     S <- S + X 
   }
+ 
+  S <- as.vector(S) 
+  names(S) <- S(model)
   
-  drop(S/sum(S))
+  S/sum(S)
 }
 
 visit_probability_sample <- function(model, pi = NULL, start = NULL, n = 1000, horizon = NULL) {

@@ -100,15 +100,15 @@ Matrices with a density below 50\% can be requested in sparse format
 The preferred representation is a data.frame with the
 columns \code{action}, \code{start.state}, \code{end.state},
 and \code{value}. This is a sparse representation.
+
 The dense representation is a list of lists of matrices.
 The list levels are \eqn{a} (\code{action})  and \eqn{s} (\code{start.state}).
 The matrices are column vectors with rows representing \eqn{s'} (\code{end.state}).
-The accessor converts the column vectors automatically into matrices with
-start states as rows and end states as columns. This conversion can be suppressed
-by calling \code{reward_matrix(..., state_matrix = FALSE)}
-Note that the reward structure cannot be efficiently stored using a standard sparse matrix
-since there might be a fixed cost for each action
-resulting in no entries with 0.
+
+To represent the rewards as a sparse matrix, rewards that correspond to a transition
+with probability zero are zeroed out if the transition model is stored as a list
+of matrices. This makes the reward matrices as sparse as the transition matrices.
+The function \code{normalize_MDP()} with \code{sparse = TRUE} will perform this representation.
 }
 
 \subsection{Start state}{
@@ -175,6 +175,10 @@ start_vector(Maze, sparse = "index")
 # Normalize the whole model using sparse representation
 Maze_norm <- normalize_MDP(Maze, sparse = TRUE)
 str(Maze_norm)
+
+# Note to make the reward matrix sparse, all rewards 
+# for transitions with probability of 0 are zeroed out.
+reward_matrix(Maze_norm)
 }
 \seealso{
 Other MDP: 
