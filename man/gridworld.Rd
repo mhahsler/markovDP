@@ -86,7 +86,7 @@ gw_plot_transition_graph(
   ...
 )
 
-gw_animate(model, method, n, zlim = NULL, ...)
+gw_animate(model, method, n, zlim = NULL, continue = FALSE, ...)
 
 gw_read_maze(file, discount = 1, restart = FALSE, name = "Maze")
 
@@ -182,6 +182,8 @@ graph does not fit inside the plotting area.}
 \item{n}{number of iterations to animate.}
 
 \item{zlim}{limits for visualizing the state value.}
+
+\item{continue}{logical; continue solving a solution.}
 
 \item{file}{filename for a maze text file.}
 
@@ -405,7 +407,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{Q_values}()},
 \code{\link{absorbing_states}()},
-\code{\link{accessors}},
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
@@ -415,6 +416,7 @@ Other MDP:
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }

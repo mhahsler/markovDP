@@ -1,6 +1,8 @@
 # dense get all
 correct <- transition_matrix(Maze_orig, sparse = FALSE)
 
+models <- c(models_matrix, models_trans_function)
+
 for (m in models) {
   tr <- transition_matrix(m, sparse = FALSE)
   expect_equal(tr, correct)

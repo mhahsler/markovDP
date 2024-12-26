@@ -2,7 +2,7 @@
 
 #' @rdname solve_MDP
 #' @param first_visit if `TRUE` then only the first visit of a state/action pair
-#'   in an episode is used to update Q, otherwise, every-visit update is used. 
+#'   in an episode is used to update Q, otherwise, every-visit update is used.
 #' @export
 solve_MDP_MC <-
   function(model,
@@ -22,13 +22,15 @@ solve_MDP_MC <-
     method <-
       match.arg(method,
                 c("MC_exploring_starts", "MC_on_policy", "MC_off_policy"))
- 
+    
     ### default is infinite horizon, but we use 1000 to guarantee termination
     if (is.null(horizon)) {
       horizon <- model$horizon
     }
     if (is.null(horizon) || is.infinite(horizon)) {
-      warning("No finite horizon defined. Using a maximum horizon of 1000 to guarantee termination. Specify horizon to remove this warning.")
+      warning(
+        "No finite horizon defined. Using a maximum horizon of 1000 to guarantee termination. Specify horizon to remove this warning."
+      )
       model$horizon <- horizon <- 1000
     }
     
@@ -45,7 +47,7 @@ solve_MDP_MC <-
       if (is.null(model$solution$Q))
         stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
-    } 
+    }
     
     if (matrix) {
       if (verbose)
@@ -63,33 +65,65 @@ solve_MDP_MC <-
     
     switch(
       method,
-      MC_exploring_starts = MC_on_policy(model, method, horizon, 
-                                  discount, n, Q, exploring_starts = TRUE,
-                                  epsilon = epsilon, alpha = alpha, first_visit = first_visit, 
-                                  progress = progress, verbose = verbose, ...),
-      MC_on_policy = MC_on_policy(model, method, horizon, 
-                                  discount, n, Q, exploring_starts = FALSE,
-                                  epsilon = epsilon, alpha = alpha, first_visit = first_visit, 
-                                  progress = progress, verbose = verbose, ...),
-      MC_off_policy = MC_off_policy(model, method, horizon, 
-                                  discount, n, Q, 
-                                  epsilon = epsilon, alpha = alpha, first_visit = first_visit, 
-                                  progress = progress, verbose = verbose, ...)
+      MC_exploring_starts = MC_on_policy(
+        model,
+        method,
+        horizon,
+        discount,
+        n,
+        Q,
+        exploring_starts = TRUE,
+        epsilon = epsilon,
+        alpha = alpha,
+        first_visit = first_visit,
+        progress = progress,
+        verbose = verbose,
+        ...
+      ),
+      MC_on_policy = MC_on_policy(
+        model,
+        method,
+        horizon,
+        discount,
+        n,
+        Q,
+        exploring_starts = FALSE,
+        epsilon = epsilon,
+        alpha = alpha,
+        first_visit = first_visit,
+        progress = progress,
+        verbose = verbose,
+        ...
+      ),
+      MC_off_policy = MC_off_policy(
+        model,
+        method,
+        horizon,
+        discount,
+        n,
+        Q,
+        epsilon = epsilon,
+        alpha = alpha,
+        first_visit = first_visit,
+        progress = progress,
+        verbose = verbose,
+        ...
+      )
     )
   }
 
 MC_on_policy <- function(model,
-                                method,
-                                horizon,
-                                discount,
-                                n,
-                                Q = NULL,
-                                exploring_starts,
-                                epsilon = NULL,
-                                alpha = NULL,
-                                first_visit = TRUE,
-                                progress = TRUE,
-                                verbose = FALSE) {
+                         method,
+                         horizon,
+                         discount,
+                         n,
+                         Q = NULL,
+                         exploring_starts,
+                         epsilon = NULL,
+                         alpha = NULL,
+                         first_visit = TRUE,
+                         progress = TRUE,
+                         verbose = FALSE) {
   ## exploring starts: Learns a greedy policy. In order to still keep exploring it uses the
   ## idea of exploring starts: All state-action pairs have a non-zero
   ## probability of being selected as the start of an episode.
@@ -108,10 +142,10 @@ MC_on_policy <- function(model,
   
   S <- S(model)
   A <- A(model)
- 
+  
   alpha_param <- alpha
-   
-  # Start with arbitrary policy, we make it soft by specifying epsilon 
+  
+  # Start with arbitrary policy, we make it soft by specifying epsilon
   # in the simulation.
   # Instead of returns we use a more efficient running average where Q_N is
   # the number of averaged values.
@@ -122,8 +156,7 @@ MC_on_policy <- function(model,
       matrix(0L,
              nrow = nrow(Q),
              ncol = ncol(Q),
-             dimnames = dimnames(Q)
-      )
+             dimnames = dimnames(Q))
     pi <- random_policy(model, only_available_actions = TRUE)
   } else {
     pi <- greedy_policy(Q)
@@ -186,11 +219,9 @@ MC_on_policy <- function(model,
     
     # add faster without checks
     #model <- add_policy(model, policy = pi)
-    model$solution <- list(
-      method = "manual",
-      policy = list(pi),
-      converged = NA
-    )
+    model$solution <- list(method = "manual",
+                           policy = list(pi),
+                           converged = NA)
     
     # use epsilon-soft policy!
     ep <- sample_MDP(
@@ -205,7 +236,11 @@ MC_on_policy <- function(model,
     )$trajectories
     
     if (verbose) {
-      cat(paste("\n****************** Episode", e, "******************\n"))
+      cat(paste(
+        "\n****************** Episode",
+        e,
+        "******************\n"
+      ))
       print(ep)
       cat("\n")
     }
@@ -219,47 +254,55 @@ MC_on_policy <- function(model,
       G <- discount * G + r_t_plus_1
       
       # Only update for first visit of a s/a combination
-      if (!first_visit || i < 2L ||
-          !any(s_t == ep$s[1:(i - 1L)] &
-               a_t == ep$a[1:(i - 1L)])) {
-        if (verbose)
-          cat(paste0(
-            "Update at step ",
-            i,
-            ":\n",
-            "  - Q(",
-            s_t,
-            ", ",
-            a_t,
-            "): ",
-            round(Q[s_t, a_t], 3)
-          ))
-        
-        # running average instead of averaging Returns lists.
-        # Q <- Q + 1/n (G - Q) ... 1/n is alpha
-        Q_N[s_t, a_t] <- Q_N[s_t, a_t] + 1L
-        
-        if (is.null(alpha_param))
-          alpha <- 1 / Q_N[s_t, a_t]
-            
-        err <- G - Q[s_t, a_t]
-        if (!is.nan(err))
-          Q[s_t, a_t] <- Q[s_t, a_t] + alpha * (err)
-        
-        if (verbose)
-          cat(paste0(" -> ", round(Q[s_t, a_t], 3), 
-                     " (G = ", round(G, 3), 
-                     "; alpha = ", signif(alpha,3), ")\n"))
-        
-        if (verbose)
-          cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
-        
-        # the simulation takes care of the epsilon
-        pi$action[s_t] <- greedy_action(Q, s_t)
-        
-        if (verbose)
-          cat(paste0(" -> ", pi[s_t, "action"], "\n"))
-      }
+      if (first_visit && i < 2L &&
+          (any(s_t == ep$s[1:(i - 1L)] &
+               a_t == ep$a[1:(i - 1L)])))
+        next
+      
+      if (verbose)
+        cat(paste0(
+          "Update at step ",
+          i,
+          ":\n",
+          "  - Q(",
+          s_t,
+          ", ",
+          a_t,
+          "): ",
+          round(Q[s_t, a_t], 3)
+        ))
+      
+      # running average instead of averaging Returns lists.
+      # Q <- Q + 1/n (G - Q) ... 1/n is alpha
+      Q_N[s_t, a_t] <- Q_N[s_t, a_t] + 1L
+      
+      if (is.null(alpha_param))
+        alpha <- 1 / Q_N[s_t, a_t]
+      
+      err <- G - Q[s_t, a_t]
+      if (!is.nan(err))
+        Q[s_t, a_t] <- Q[s_t, a_t] + alpha * (err)
+      
+      if (verbose)
+        cat(paste0(
+          " -> ",
+          round(Q[s_t, a_t], 3),
+          " (G = ",
+          round(G, 3),
+          "; alpha = ",
+          signif(alpha, 3),
+          ")\n"
+        ))
+      
+      if (verbose)
+        cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
+      
+      # the simulation takes care of the epsilon
+      pi$action[s_t] <- greedy_action(Q, s_t)
+      
+      if (verbose)
+        cat(paste0(" -> ", pi[s_t, "action"], "\n"))
+      
     }
   }
   
@@ -278,8 +321,7 @@ MC_off_policy <- function(model,
                           first_visit = TRUE,
                           progress = TRUE,
                           verbose = FALSE,
-                          ...
-                          ) {
+                          ...) {
   ## Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
   ## (RL book, Chapter 5)
   
@@ -295,8 +337,12 @@ MC_off_policy <- function(model,
   # Initialize
   if (is.null(Q)) {
     Q <- Q_zero(model)
-    C <- matrix(0L, nrow = nrow(Q), ncol = ncol(Q), dimnames = dimnames(Q))
-  } else { # we get Q for continuation
+    C <- matrix(0L,
+                nrow = nrow(Q),
+                ncol = ncol(Q),
+                dimnames = dimnames(Q))
+  } else {
+    # we get Q for continuation
     C <- model$solution$C
     if (is.null(C))
       stop("C missing in previous solution. Cannot continue!")
@@ -326,7 +372,7 @@ MC_off_policy <- function(model,
   if (progress)
     pb <- my_progress_bar(n + 1L, name = "solve_MDP")
   
-  on.exit({ 
+  on.exit({
     if (progress) {
       pb$tick(0)
       pb$terminate()
@@ -364,11 +410,9 @@ MC_off_policy <- function(model,
     
     # add faster without checks
     #model <- add_policy(model, policy = b)
-    model$solution <- list(
-      method = "manual",
-      policy = list(b),
-      converged = NA
-    )
+    model$solution <- list(method = "manual",
+                           policy = list(b),
+                           converged = NA)
     
     ep <- sample_MDP(
       model,
@@ -379,9 +423,13 @@ MC_off_policy <- function(model,
       progress = FALSE,
       verbose = FALSE
     )$trajectories
-     
+    
     if (verbose) {
-      cat(paste("\n****************** Episode", e, "******************\n"))
+      cat(paste(
+        "\n****************** Episode",
+        e,
+        "******************\n"
+      ))
       print(ep)
       cat("\n")
     }
@@ -390,11 +438,10 @@ MC_off_policy <- function(model,
     W <- 1
     
     for (i in rev(seq_len(nrow(ep)))) {
-      
       r_t_plus_1 <- ep$r[i]
       s_t <- ep$s[i]
       a_t <- ep$a[i]
-        
+      
       if (verbose)
         cat(paste0(
           "Update at step ",
@@ -413,11 +460,17 @@ MC_off_policy <- function(model,
       # increase cumulative sum of W and update Q with weighted G
       C[s_t, a_t] <- C[s_t, a_t] + W
       Q[s_t, a_t] <- Q[s_t, a_t] + (W / C[s_t, a_t]) * (G - Q[s_t, a_t])
-        
+      
       if (verbose)
-        cat(paste0(" -> ", round(Q[s_t, a_t], 3), 
-                   " (G = ", round(G, 3), 
-                   "; W/C = ", signif(W / C[s_t, a_t], 3), ")\n"))
+        cat(paste0(
+          " -> ",
+          round(Q[s_t, a_t], 3),
+          " (G = ",
+          round(G, 3),
+          "; W/C = ",
+          signif(W / C[s_t, a_t], 3),
+          ")\n"
+        ))
       
       if (verbose)
         cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
@@ -437,16 +490,16 @@ MC_off_policy <- function(model,
       }
       
       # update the weight W = pi(A_t|S_t)/b(A_t|S_t) using pi = 1 and  b(A_t|S_t)
-      # Note, we could used available_actions(model, s_t), but that is expensive 
-      if (a_t == b$action[s_t]) 
+      # Note, we could used available_actions(model, s_t), but that is expensive
+      if (a_t == b$action[s_t])
         b_at_st <- 1 - epsilon + epsilon / length(A)
       else
         b_at_st <- epsilon / length(A)
-       
+      
       
       W <- W * 1 / b_at_st
     }
   }
   
   # return is handled by on.exit()
-  }
+}

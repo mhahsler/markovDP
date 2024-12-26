@@ -11,10 +11,10 @@ verb <- FALSE
 # add some solved models where sample used the optimal policy
 
 Maze_sparse_sol <- solve_MDP(Maze_sparse)
-Maze_orig_sol <- solve_MDP(Maze_orig)  ### will fallback to R
+Maze_function2_sol <- solve_MDP(Maze_function2)  ### will fallback to R
 
 models_solved <- list(Maze_sparse_sol,
-                      Maze_orig_sol)
+                      Maze_function2_sol)
 
 
 models_solved <- 

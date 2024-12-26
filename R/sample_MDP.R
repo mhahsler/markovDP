@@ -137,7 +137,7 @@ sample_MDP <-
       } else { 
         horizon <- length(S(model)) * length(A(model))
         warning("Simulation for undiscounted problems need a finite simulation horizon.\n",
-                "Using a maximum horizon of |S| x |A| = ", horizon, "to avoid infinite loops.")
+                "Using a maximum horizon of |S| x |A| = ", horizon, " to avoid infinite loops.")
       }
     }
     horizon <- as.integer(horizon)

@@ -13,7 +13,6 @@
 # sparse = NULL translates functions/data frames/strings
 #
 
-#' @include accessors.R
 #' @rdname accessors
 #' @param trans_keyword logical; translate keywords like "uniform" into matrices.
 #' @export

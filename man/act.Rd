@@ -42,7 +42,6 @@ Other MDP:
 \code{\link{MDP}()},
 \code{\link{Q_values}()},
 \code{\link{absorbing_states}()},
-\code{\link{accessors}},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
 \code{\link{greedy_action}()},
@@ -52,6 +51,7 @@ Other MDP:
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
 \code{\link{transition_graph}()},
+\code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 }

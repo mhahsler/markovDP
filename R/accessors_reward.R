@@ -10,7 +10,6 @@
 
 
 ### Note: Sparse is a data.frame for rewards
-#' @include accessors.R
 #' @rdname accessors
 #' @export
 reward_matrix <- function(model,
@@ -44,7 +43,6 @@ reward_matrix.MDP <-
       trans_keyword = FALSE
     )
   }
-# TODO: sparsify reward matrix using a sparse transition matrix!
 
 # TODO: This is currently unused!
 # try to convert a reward matrix into a sparse data.frame

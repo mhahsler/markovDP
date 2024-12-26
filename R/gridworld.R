@@ -775,6 +775,7 @@ gw_plot <-
 #' @param margin a single number specifying the margin of the plot. Can be used if the
 #'   graph does not fit inside the plotting area.
 #' @param main a main title for the plot. Defaults to the name of the problem.
+#' @param continue logical; continue solving a solution.
 #' @param ... further arguments are passed on to `igraph::plot.igraph()`.
 #' @export
 gw_plot_transition_graph <-
@@ -836,7 +837,7 @@ gw_plot_transition_graph <-
 #' @returns `gw_animate()` returns the final solution invisibly.
 #' 
 #' @export
-gw_animate <- function(model, method, n, zlim = NULL, ...) {
+gw_animate <- function(model, method, n, zlim = NULL, continue = FALSE, ...) {
   if (is.null(model$info$gridworld)) {
     stop("'model' does not seem to be a gridworld!")
   }
@@ -848,7 +849,7 @@ gw_animate <- function(model, method, n, zlim = NULL, ...) {
       sol,
       n = 1,
       method = method,
-      continue = i != 1,
+      continue = continue || (i != 1),
       ...
     ))
     
