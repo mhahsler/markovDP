@@ -1,6 +1,8 @@
 ## context("solve_MDP")
 
-# models_solve <- list(gw_random_maze(20))
+#models_solve <- list(gw_random_maze(20))
+models_solve <- list(normalize_MDP(gw_random_maze(20), transition_prob = TRUE, reward = FALSE, sparse = TRUE))
+
 # gw_plot(models_solve[[1]])
 
 verbose <- interactive()

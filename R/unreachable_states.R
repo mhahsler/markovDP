@@ -62,12 +62,9 @@ unreachable_states.MDP <- function(model,
   if (is.null(sparse))
     sparse <- TRUE
   
-  .translate_logical(as(
-    !.reachable_states(model, horizon = horizon, progress = progress),
-    "sparseVector"
-  ),
-  S(model),
-  sparse = sparse)
+  .translate_logical(!.reachable_states(model, horizon = horizon, progress = progress),
+                     S(model),
+                     sparse = sparse)
 }
 
 # depth-first search

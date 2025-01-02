@@ -1,5 +1,3 @@
-# test_file(path = "tests/testthat/test-translate_distribution_and_logical.R")
-
 verbose <- FALSE
 # verbose <- TRUE
 
@@ -39,15 +37,15 @@ for (test_case in list(states_empty, states_single, states_single)) {
       
       if(verbose) {
         cat("--------------------\n")
-        cat("input =\n"); print(s); cat("\n")
+        cat("input = "); print(s)
         cat("sparse = ", sparse_lvl[[sl]], "\n")
-        cat("expected =\n"); print(test_case[[sl]]); cat("\n")
+        cat("expected = "); print(test_case[[sl]]); cat("\n")
       }
       
       tr <- .translate_logical(s, state_labels, sparse = sparse_lvl[[sl]])
       
       if(verbose) {
-        cat("output =\n"); print(tr); cat("\n\n")
+        cat("output = "); print(tr); cat("\n")
       }
       
       expect_equal(tr, test_case[[sl]])

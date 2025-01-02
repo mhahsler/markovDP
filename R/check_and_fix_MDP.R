@@ -86,7 +86,7 @@ check_and_fix_MDP <- function(x) {
       }
       
       # we can have a dense or a sparse matrix
-      if (is.matrix(field[[a]]) || inherits(x, "dgCMatrix")) {
+      if (is.matrix(field[[a]]) || inherits(x, "sparseMatrix")) {
         if (!identical(dim(field[[a]]), c(length(x$states), length(x$states)))) {
           stop(deparse(substitute(field)), ": matrix for action ",
                a,

@@ -65,7 +65,7 @@ int get_horizon(const List& model) {
 }  
 
 // Transitions
-// Can be a dense matrix or a dgCMatrix
+// Can be a dense matrix or a dgRMatrix
 // Available functions are: x_matrix returns a dense matrix, x_prob returns double, and x_row returns a vector
 NumericMatrix transition_matrix(const List& model, int action, int episode) {
   RObject acts;
@@ -87,9 +87,9 @@ NumericMatrix transition_matrix(const List& model, int action, int episode) {
   if (is<NumericMatrix>(acts)) 
     return as<NumericMatrix>(acts); 
  
-  // dgCMatrix
+  // dgRMatrix
   if (is<S4>(acts))
-    return dgCMatrix(as<S4>(acts)).dense();
+    return dgRMatrix(as<S4>(acts)).dense();
   
   // uniform/identity
   if (is<CharacterVector>(acts)) {
@@ -131,9 +131,9 @@ double transition_prob(const List& model, int action, int start_state,
   if (is<NumericMatrix>(acts)) 
     return as<NumericMatrix>(acts)(start_state, end_state); 
   
-  // dgCMatrix
+  // dgRMatrix
   if (is<S4>(acts))
-    return dgCMatrix(as<S4>(acts)).at(start_state, end_state);
+    return dgRMatrix(as<S4>(acts)).at(start_state, end_state);
   
   // uniform/identity
   if (is<CharacterVector>(acts)) {
@@ -175,9 +175,9 @@ NumericVector transition_row(const List& model, int action, int start_state,
   if (is<NumericMatrix>(acts)) 
     return as<NumericMatrix>(acts).row(start_state); 
   
-  // dgCMatrix
+  // dgRMatrix
   if (is<S4>(acts))
-    return dgCMatrix(as<S4>(acts)).row(start_state);
+    return dgRMatrix(as<S4>(acts)).row(start_state);
   
   // uniform/identity
   if (is<CharacterVector>(acts)) {
@@ -234,9 +234,9 @@ NumericMatrix reward_matrix_MDP(const List& model, int action) {
     return rew;
   }
   
-  // dgCMatrix
+  // dgRMatrix
   if (is<S4>(reward))
-    return dgCMatrix(as<S4>(reward)).dense();
+    return dgRMatrix(as<S4>(reward)).dense();
   
   // it is a matrix
   return as<NumericMatrix>(as<List>(reward)[action]);
@@ -289,9 +289,9 @@ double reward_val_MDP(const List& model, int action,
  if (is<NumericMatrix>(acts)) 
    return as<NumericMatrix>(acts)(start_state, end_state); 
  
- // dgCMatrix
+ // dgRMatrix
  if (is<S4>(acts))
-   return dgCMatrix(as<S4>(acts)).at(start_state, end_state);
+   return dgRMatrix(as<S4>(acts)).at(start_state, end_state);
  
  stop("reward_val: model needs to be normalized with normalize_MDP().");
 

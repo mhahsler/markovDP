@@ -1,7 +1,7 @@
-#ifndef DGCMATRIX_H_
-#define DGCMATRIX_H_
+#ifndef dGRMATRIX_H_
+#define dGRMATRIX_H_
 
-// Sources: 
+//  This is based on the dgCMatrix implementations at:
 //  * https://gallery.rcpp.org/articles/sparse-matrix-class/
 //  * https://codereview.stackexchange.com/questions/259594/rcpp-sparse-csc-matrix-class
 //  * https://github.com/zdebruine/RcppSparse
@@ -10,14 +10,14 @@
 
 namespace Rcpp {
 
-class dgCMatrix {
+class dgRMatrix {
 public:
   IntegerVector i, p, Dim;
   NumericVector x;
   List Dimnames;
   
   // constructor
-  dgCMatrix(S4 mat) {
+  dgRMatrix(S4 mat) {
     i = mat.slot("i");
     p = mat.slot("p");
     x = mat.slot("x");
@@ -31,27 +31,27 @@ public:
   int cols() { return Dim[1]; };
   
   double at(int row, int col) const {
-    for (int j = p[col]; j < p[col + 1]; ++j) {
-      if (i[j] == row) return x[j];
-      else if (i[j] > row) break;
+    for (int j = p[row]; j < p[row + 1]; ++j) {
+      if (i[j] == col) return x[j];
+      else if (i[j] > col) break;
     }
     return 0.0;
   }
   double operator()(int row, int col) { return at(row, col); };
   
-  NumericVector col(int col) const {
+  NumericVector row(int row) const {
     NumericVector c(Dim[0], 0.0);
-    for (int j = p[col]; j < p[col + 1]; ++j)
+    for (int j = p[row]; j < p[row + 1]; ++j)
       c[i[j]] = x[j];
     return c;
   }
   
-  NumericVector row(int row) const {
+  NumericVector col(int col) const {
     NumericVector r(Dim[1], 0.0);
-    for (int col = 0; col < Dim[1]; ++col) {
-      for (int j = p[col]; j < p[col + 1]; ++j) {
-        if (i[j] == row) r[col] = x[j];
-        else if (i[j] > row) break;
+    for (int row = 0; row < Dim[1]; ++row) {
+      for (int j = p[row]; j < p[row + 1]; ++j) {
+        if (i[j] == col) r[row] = x[j];
+        else if (i[j] > col) break;
       }
     }
     return r;
@@ -67,10 +67,10 @@ public:
     
 };
 
-// template <> dgCMatrix as(SEXP mat) { return dgCMatrix(mat); }
+// template <> dgRMatrix as(SEXP mat) { return dgRMatrix(mat); }
 // 
-// template <> SEXP wrap(const dgCMatrix& sm) {
-//   S4 s(std::string("dgCMatrix"));
+// template <> SEXP wrap(const dgRMatrix& sm) {
+//   S4 s(std::string("dgRMatrix"));
 //   s.slot("i") = sm.i;
 //   s.slot("p") = sm.p;
 //   s.slot("x") = sm.x;

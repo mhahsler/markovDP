@@ -14,8 +14,9 @@
 #' `transition_matrix()` accesses the transition model. The complete model
 #' is a list with one element for each action. Each element contains a states x states matrix
 #' with \eqn{s} (`start.state`) as rows and \eqn{s'} (`end.state`) as columns.
-#' Matrices with a density below 50% can be requested in sparse format
-#' (as a [Matrix::dgCMatrix-class]).
+#' Matrices with a low density can be requested in sparse format
+#' (as a [Matrix::dgRMatrix-class]). It is recommended to load package `MatrixExtra`
+#' to work with sparse matrices. 
 #'
 #' ## Reward \eqn{r(s,s',a)}
 #'
@@ -238,384 +239,6 @@ normalize_MDP <- function(model,
   model
 }
 
-# Translate a probability distribution like the start distribution in MDPs
-.translate_distribution <- function(prob,
-                                    state_labels,
-                                    sparse = NULL,
-                                    check = TRUE) {
-  if (is.null(prob))
-    stop("No probabilities provided (NULL)!")
-  
-  # NAs are an issue
-  if (any(is.na(prob))) {
-    warning("Some probabilities are NA!")
-    return(prob)
-  }
-  
-  if (is.matrix(prob) || is(prob, "dgCMatrix")) {
-    if (ncol(prob) != length(state_labels)) {
-      stop("Number of column is not the number of states.")
-    }
-    colnames(prob) <- state_labels
-    return(.sparsify(prob, sparse = sparse))
-  }
-  
-  # general checks for state names
-  if (is.character(prob)) {
-    if (any(is.na(match(
-      prob, c(as.character(state_labels), "-", "uniform")
-    )))) {
-      stop(
-        "Illegal probability format.\n",
-        "[",
-        paste(prob, collapse = ", "),
-        "]",
-        "\nUnrecognized state name."
-      )
-    }
-  }
-  
-  # dense probability vector
-  # start: 0.3 0.1 0.0 0.2 0.5
-  if (is.numeric(prob) &&
-      length(prob) == length(state_labels) &&
-      sum1(prob)) {
-    if (!is.null(names(prob)) && !all(names(prob) == state_labels)) {
-      names(prob) <- state_labels
-    }
-  }
-  
-  # sparse or dense probability vector
-  else if (is(prob, "sparseVector") || is.logical(prob)) {
-    # nothing to do
-  }
-  
-  # start: uniform
-  else if (is.character(prob) &&
-           length(prob) == 1 &&
-           prob[1] == "uniform") {
-    prob <- rep(1 / length(state_labels), times = length(state_labels))
-    names(prob) <- state_labels
-  }
-  
-  # start: 5
-  # start include: 1 3
-  # start: first-state
-  # start include: first-state third state
-  else if (is.character(prob) &&
-           (prob[1] != "-" || length(prob) == 0L) ||
-           is.numeric(prob) && all(prob > 0)) {
-    if (is.character(prob))
-      prob <- match(prob, state_labels)
-    
-    if (length(prob) > length(state_labels)) {
-      stop(
-        "Illegal probability format.\n",
-        "[",
-        paste(prob, collapse = ", "),
-        "]",
-        "\nToo many states specified."
-      )
-    }
-    
-    i <- as.integer(prob)
-    
-    if (any(prob != i))
-      stop(
-        "Illegal probability format.\n",
-        "[",
-        paste(prob, collapse = ", "),
-        "]",
-        "\nProbabilities do not sum up to one."
-      )
-    
-    prob <- sparseVector(
-      x = rep.int(1 / length(i), length(i)),
-      i = i,
-      length = length(state_labels)
-    )
-    
-    # start exclude: -1 -3
-    # start exclude: "-", "state_1", "state_2"
-  } else if (is.character(prob) && prob[1] == "-" ||
-             is.numeric(prob) && all(prob < 0)) {
-    if (is.character(prob))
-      prob <- match(prob[-1L], state_labels)
-    else
-      prob <- -as.integer(prob)
-    
-    if (any(is.na(prob)) ||
-        any(prob < 1) ||
-        any(prob > length(state_labels))) {
-      stop(
-        "Illegal probability format.\n",
-        "[",
-        paste(prob, collapse = ", "),
-        "]",
-        "\nState names need to exist or IDs need to be in [1, # of states]."
-      )
-    }
-    
-    prob <- seq_along(state_labels)[-prob]
-    prob <- sparseVector(
-      x = 1 / length(prob),
-      i = prob,
-      length = length(state_labels)
-    )
-  }
-  
-  else {
-    stop("Illegal probability format.\n", prob)
-  }
-  
-  v <- .sparsify_vector(prob, sparse, names = state_labels)
-  
-  if (check && !is.character(v) && !is.integer(v)) {
-    if (!sum1(v))
-      stop(
-        "Illegal probability format.\n",
-        "[",
-        paste(prob, collapse = ", "),
-        "]",
-        "\nProbabilities do not sum up to one."
-      )
-    
-    if (length(v) != length(state_labels))
-      stop("Distribution does not have the correct number of entries!")
-  }
-  
-  return(v)
-}
-
-# we could get a sparse/dense vector a set of state names, a set of state ids
-.translate_logical <- function(x, state_labels, sparse = NULL) {
-  # state names
-  if (is.character(x)) {
-    if (is.null(sparse)) {
-      sparse <- "states"
-    }
-    
-    m <- pmatch(sparse, c("states", "index"))
-    if (!is.na(m)) {
-      if (m == 2L)
-        x <- match(x, state_labels)
-      
-      return(x)
-    } else {
-      v <- structure(logical(length(state_labels)), names = state_labels)
-      v[x] <- TRUE
-      return (.sparsify_vector(v, sparse, state_labels))
-    }
-  }
-  
-  # dense/sparse vector
-  if (is.logical(x) || is(x, "lsparseVector"))
-    return(.sparsify_vector(x, sparse, state_labels))
-  
-  # index vector
-  .sparsify_vector(sparseVector(rep.int(TRUE, times = length(x)), x, length = length(state_labels)),
-                   sparse,
-                   state_labels)
-  
-  # x <- .translate_distribution(x, state_labels, sparse, check = FALSE)
-  #
-  # if(is(x, "sparseVector"))
-  #   x <- as(x, "lsparseVector")
-  # else if(is.numeric(x) && !is.integer(x))
-  #   x <- as.logical(x)
-  #
-  # x
-}
-
-# make a matrix sparse if it has low density
-.sparsify <- function(x, sparse = TRUE) {
-  # NULL means as is
-  if (is.null(sparse))
-    return(x)
-  
-  # we also keep special keywords
-  if (is.character(x))
-    return(x)
-  
-  if (!sparse) {
-    if (is.matrix(x)) {
-      return(x)
-    } else {
-      return(as.matrix(x))
-    }
-  }
-  
-  # sparse (make it a dgCMatrix)
-  if (!inherits(x, "CsparseMatrix")) {
-    x <- as(as(x, "CsparseMatrix"), "generalMatrix")
-  }
-  
-  x
-}
-
-# TODO: sparseVector currently does not have names
-# accepts a sparse or dense vector
-.sparsify_vector <- function(x, sparse = TRUE, names = NULL) {
-  if (is.matrix(x))
-    x <- drop(x)
-  if (is(x, "sparseMatrix"))
-    x <- as(x, "sparseVector")
-  
-  # NULL means as is
-  if (is.null(sparse))
-    return(x)
-  
-  if (is.logical(sparse)) {
-    if (sparse)
-      return(as(x, "sparseVector"))
-    else
-      return(structure(as(x, "vector"), names = names))
-  }
-  
-  # state labels or indices
-  if (is.character(sparse)) {
-    sparse <- match.arg(sparse, c("states", "index"))
-    if (sparse == "states") {
-      if (is(x, "sparseVector")) {
-        if (is.null(names))
-          stop("state names needed to return states.")
-        return(names[which(x > 0)])
-      } else
-        return(names(x)[x > 0])
-    } else {
-      ### index
-      return(unname(which(x > 0)))
-    }
-  }
-  
-  stop("Unknown setting for sparse.")
-  
-}
-
-# make sure it is a factor
-.normalize_state <- function(state, model) {
-  if (is.null(state) || is.factor(state))
-    return(state)
-  
-  if (is.numeric(state)) {
-    s <- factor(state, levels = seq_along(S(model)), labels = S(model))
-    if (any(is.na(s)))
-      stop("Unknown state ", paste(sQuote(state[is.na(s)]), collapse = ", "))
-    return(s)
-  }
-  
-  if (is.character(state)) {
-    s <- factor(state, levels = S(model))
-    if (any(is.na(s)))
-      stop("Unknown state ", paste(sQuote(state[is.na(s)]), collapse = ", "))
-    return(s)
-  }
-  stop("Unknown state label: ", sQuote(state))
-}
-
-.normalize_state_id <- function(state, model) {
-  if (is.null(state) || is.integer(state))
-    return(state)
-  
-  s <- state
-  if (is.character(s))
-    s <- match(s, S(model))
-  
-  if (!is.integer(s))
-    s <- as.integer(s)
-  
-  problem <- is.na(s) | s < 1L | s > length(S(model))
-  if (any(problem))
-    stop("Unknown state ", paste(sQuote(state[problem]), collapse = ", "))
-  
-  return(s)
-}
-
-.normalize_state_label <- function(state, model) {
-  if (is.null(state) || is.character(state))
-    return(state)
-  
-  if (is.factor(state))
-    return(as.character(state))
-  
-  return(S(model)[state])
-}
-
-.normalize_action <- function(action, model) {
-  if (is.null(action) || is.factor(action))
-    return(action)
-  
-  if (is.logical(action)) {
-    if (length(action) != length(A(model)))
-      stop("Illegal action definition (logical)")
-    action <- which(action)
-  }
-  
-  if (is.numeric(action)) {
-    a <- factor(action, levels = seq_along(A(model)), labels = A(model))
-    if (any(is.na(a)))
-      stop("Unknown action ", paste(sQuote(action[is.na(a)]), collapse = ", "))
-    return(a)
-  }
-  
-  if (is.character(action)) {
-    a <- factor(action, levels = A(model))
-    if (any(is.na(a)))
-      stop("Unknown action ", paste(sQuote(action[is.na(a)]), collapse = ", "))
-    return(a)
-  }
-  
-  if (is.null(action))
-    return(NULL)
-  
-  stop("Unknown action label: ", sQuote(action))
-}
-
-.normalize_action_id <- function(action, model) {
-  if (is.null(action) || is.integer(action))
-    return(action)
-  
-  a <- action
-  if (is.character(a))
-    a <- match(a, A(model))
-  
-  if (!is.integer(a))
-    a <- as.integer(a)
-  
-  problem <- is.na(a) | a < 1L | a > length(A(model))
-  if (any(problem))
-    stop("Unknown action ", paste(sQuote(action[problem]), collapse = ", "))
-  
-  return(a)
-}
-
-.normalize_action_label <- function(action, model) {
-  if (is.null(action) || is.character(action))
-    return(action)
-  
-  if (is.factor(action))
-    return(as.character(action))
-  
-  return(A(model)[action])
-}
-
-### check if a field/action has a matrix
-.action_is_matrix <- function(model, field, action) {
-  f <- model[[field]]
-  
-  if (is.null(f))
-    stop("field ", field, " does not exist in the model!")
-  
-  if (is.function(f))
-    return(FALSE)
-  
-  m <- model[[field]][[action]]
-  if (is.matrix(m) || inherits(m, "Matrix"))
-    return(TRUE)
-  
-  return(FALSE)
-}
-
 value_matrix <-
   function(model,
            field,
@@ -623,35 +246,56 @@ value_matrix <-
            row = NULL,
            col = NULL,
            sparse = NULL,
+           drop = TRUE,
            simplify = FALSE,
            trans_keyword = TRUE) {
-    value <- model[[field]]
-    
-    # from functions
-    if (is.function(value)) {
-      action <- .normalize_action_label(action, model)
-      row <- .normalize_state_label(row, model)
-      col <- .normalize_state_label(col, model)
-      m <- function2value(model, field, action, row, col, sparse)
+    if (is.null(action))
+        action <- A(model)
+    if(!is.character(action)) 
+        action <- .normalize_action_label(action, model)
+      
+    # multiple actions
+    if (length(action) > 1L) {
+      m <- sapply(
+        action,
+        FUN = function(a)
+          value_matrix(model, field, a, row, col, sparse, drop, simplify, trans_keyword),
+        simplify = FALSE,
+        USE.NAMES = TRUE
+      )
+    } else {
+      # single action
+      value <- model[[field]]
+      
+      # from functions
+      if (is.function(value)) {
+        action <- .normalize_action_label(action, model)
+        row <- .normalize_state_label(row, model)
+        col <- .normalize_state_label(col, model)
+        m <- function2value(model, field, action, row, col, sparse, drop)
+        return(m)
+      }
+      
+      # from data.frame
+      else if (is.data.frame(value)) {
+        action <- .normalize_action_id(action, model)
+        row <- .normalize_state_id(row, model)
+        col <- .normalize_state_id(col, model)
+        m <- df2value(model, field, action, row, col, sparse, drop)
+        return(m)
+      }
+      
+      # from a list of matrices
+      else {
+        action <- .normalize_action_id(action, model)
+        row <- .normalize_state_id(row, model)
+        col <- .normalize_state_id(col, model)
+        m <- matrix2value(model, field, action, row, col, sparse, trans_keyword, drop)
+        return(m)
+      }
     }
     
-    # from data.frame
-    else if (is.data.frame(value)) {
-      action <- .normalize_action_id(action, model)
-      row <- .normalize_state_id(row, model)
-      col <- .normalize_state_id(col, model)
-      m <- df2value(model, field, action, row, col, sparse)
-    }
-    
-    # from a list of matrices
-    else {
-      action <- .normalize_action_id(action, model)
-      row <- .normalize_state_id(row, model)
-      col <- .normalize_state_id(col, model)
-      m <- matrix2value(model, field, action, row, col, sparse, trans_keyword)
-    }
-    
-    
+    # multiple actions from here
     if (simplify && is.list(m)) {
       if (length(row) == 1L && length(col) == 1L)
         m <- unlist(m)
@@ -703,54 +347,47 @@ value_matrix <-
 # Note: action, row and col need to be labels not ids!
 function2value <- function(model,
                            field,
-                           action = NULL,
+                           action,
                            row = NULL,
                            col = NULL,
-                           sparse = NULL) {
-  if (is.null(action))
-    action <- A(model)
+                           sparse = NULL,
+                           drop = TRUE) {
   
-  if (length(action) > 1L)
-    return(sapply(
-      action,
-      FUN = function(a)
-        function2value(model, field, a, row, col, sparse),
-      simplify = FALSE,
-      USE.NAMES = TRUE
-    ))
+  if (length(action) != 1L)
+    stop("Only single action allowed!")
   
-  # we have a single action from here on
+  # we default to sparse here or the matrices may become to big
+  if (is.null(sparse) &&
+      length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
+    sparse <- TRUE
+  
   f <- model[[field]]
   
   # Note: if we have a transition matrix with many 0s, then we can evaluate fewer
   # rewards resulting in a sparser matrix. We bypass this for single values!
   if (!(length(row) == 1L && length(col) == 1L) &&
       field == "reward" &&
-      is.list(model$transition_prob)) {
+      .action_is_matrix(model, "transition_prob", action)) {
     # V is a copy of T and we replace only the non-zero entries
     V <- model$transition_prob[[action]]
-    if (inherits(V, "sparseMatrix") || is.matrix(V)) {
-      if (is.null(row))
-        row <- S(model)
-      if (is.null(col))
-        col <- S(model)
-      
-      V <- V[row, col, drop = FALSE]
-      do <- which(V > 0, arr.ind = TRUE)
-      for (i in seq_len(nrow(do)))
-        V[do[i, 1L], do[i, 2L]] <- function2value(model, field, action, row[do[i, 1L]], col[do[i, 2L]])
-      return(V)
-    }
+    if (is.null(row))
+      row <- S(model)
+    if (is.null(col))
+      col <- S(model)
+    
+    V <- V[row, col, drop = FALSE]
+    do <- which(V > 0, arr.ind = TRUE)
+    for (i in seq_len(nrow(do)))
+      V[do[i, 1L], do[i, 2L]] <- function2value(model, field, action, row[do[i, 1L]], col[do[i, 2L]])
+    return(V)
   }
   
   # Convert to names
   if (!is.null(row))
     row <- as.character(row)
   
-  # do we have an end.state argument? (makes it 4 formal arguments)
+  ## do we have an end.state argument? (makes it 4 formal arguments)
   if (length(formals(f)) == 4L) {
-    ## with end.state
-    
     if (!is.null(col))
       col <- as.character(col)
     
@@ -762,16 +399,33 @@ function2value <- function(model,
     
     # 1 row/no cols
     if (length(row) == 1L && is.null(col)) {
-      fv <- Vectorize(f, vectorize.args = c("end.state"))
-      o <- fv(model, action, row, S(model))
-      return(.sparsify_vector(o, sparse = sparse, names = S(model)))
+      f_v <- Vectorize(f, vectorize.args = c("end.state"))
+      o <- f_v(model, action, row, S(model))
+      if (drop)
+        o <- .sparsify_vector(o, sparse = sparse, names = S(model))
+      else {
+        o <- rbind(o)
+        rownames(o) <- row
+        o <- .sparsify(o, sparse = sparse)
+      }
+      
+      return(o)
     }
     
     # no rows/1 col
     if (is.null(row) && length(col) == 1L) {
-      fv <- Vectorize(f, vectorize.args = c("start.state"))
-      o <- fv(model, action, S(model), col)
-      return(.sparsify_vector(o, sparse = sparse, names = S(model)))
+      f_v <- Vectorize(f, vectorize.args = c("start.state"))
+      o <- f_v(model, action, S(model), col)
+      
+      if (drop)
+        o <- .sparsify_vector(o, sparse = sparse, names = S(model))
+      else {
+        o <- cbind(o)
+        colnames(o) <- col
+        o <- .sparsify(o, sparse = sparse)
+      }
+      
+      return(o)
     }
     
     f_v <- Vectorize(f, vectorize.args = c("start.state", "end.state"))
@@ -811,11 +465,6 @@ function2value <- function(model,
     
     dimnames(o) <- list(row, col)
     
-    # we default to sparse here or the matrices may become to big
-    if (is.null(sparse) &&
-        length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
-      sparse <- TRUE
-    
     o <- .sparsify(o, sparse)
     
     return(o)
@@ -826,21 +475,6 @@ function2value <- function(model,
     # * dense probability vector
     # * a sparseVector
     # * a short named vector with only values > 0
-    # Convert it appropriately
-    .f_wrapper <- function(f, model, action, row) {
-      v <- f(model, action, row)
-      
-      # sparse or dense vector
-      if (length(v) == length(S(model)))
-        return(v)
-      
-      # translate partial vector into a sparse vector
-      cols <- match(names(v), S(model))
-      sparseVector(x = unname(v),
-                   i = cols,
-                   length = length(S(model)))
-    }
-    
     # we need col ids to subset sparse vectors
     if (!is.null(col) && !is.numeric(col))
       col <- match(col, S(model))
@@ -848,33 +482,41 @@ function2value <- function(model,
     # single value
     if (length(row) == 1L &&
         length(col) == 1L) {
-      return(as.numeric(.f_wrapper(f, model, action, row)[col]))
-      #return(as.numeric(f(model, action, row)[col]))
+      return(as.numeric(f(model, action, row)[col]))
     }
     
     # 1 row /no cols
     if (length(row) == 1L &&  is.null(col)) {
-      return(.sparsify_vector(.f_wrapper(f, model, action, row), sparse, names = S(model)))
-      #return(.sparsify_vector(f(model, action, row), sparse, names = S(model)))
+      o <- f(model, action, row)
+      if (drop)
+        o <- .sparsify_vector(o, sparse = sparse, names = S(model))
+      else {
+        o <- rbind(o)
+        rownames(o) <- row
+        o <- .sparsify(o, sparse = sparse)
+      }
+      
+      return(o)
     }
-    
+   
+    # 1 col: No advantage for function with 2 arguments
+     
     # no rows or specified rows / cols or no cols
     if (is.null(row))
       row <- S(model)
+    
+    # Convert vector appropriately
+    .f_wrapper <- function(f, model, action, row, sparse = NULL) {
+      .sparsify_vector(f(model, action, row),
+                       sparse = sparse,
+                       names = S(model))
+    }
     .f_wrapper_vec <- Vectorize(.f_wrapper,
                                 vectorize.args = c("row"),
                                 SIMPLIFY = FALSE)
-    o <- .f_wrapper_vec(f, model, action, row)
     
-    # TODO: Matrix::rbind currently does not work with sparse Vector!
-    # otherwise we could use simplify = TRUE above
-    if (is(o[[1]], "sparseVector"))
-      o <- lapply(
-        o,
-        FUN = function(v)
-          t(as(v, "CsparseMatrix"))
-      )
-    
+    o <- .f_wrapper_vec(f, model, action, row, sparse)
+     
     if (any(lengths(o) != length(S(model))))
       stop(
         "Function for ",
@@ -885,24 +527,41 @@ function2value <- function(model,
         paste(sQuote(S(model)[which(lengths(o) != length(S(model)))]), collapse = ", ")
       )
     
+    # Matrix/MatrixExtra has issues with rbind!
+    if (is(o[[1]], "sparseVector")) {
+      if (length(o) == 1L) {
+        o <- o[[1]]
+        
+        if (drop) {
+          if(!is.null(col))
+            o <- o[col]
+          o <- .sparsify_vector(o, sparse = sparse, names = S(model)[col])
+        } else {
+          o <- as.csr.matrix(o)[, col, drop = FALSE]
+        }
+        return(o)
+      }
+      #o <- Reduce(rbind2, o)
+      # rbind for dsparseVectors -> dgRMatrix
+      o <- do.call(MatrixExtra::rbind_csr, o)
+      
+      # js <- unname(lapply(o, FUN = function(x) x@i))
+      # ps <- c(0L, cumsum(lengths(js)))
+      # js <- unlist(js) - 1L
+      # xs <- unlist(unname(lapply(o, FUN = function(x) x@x)))
+      # o <- new("dgRMatrix", j = js, p = ps, x = xs, Dim = 
+      #       c(length(o), length(S(model))))
+    } else
     o <- do.call("rbind", o)
+  
     dimnames(o) <- list(row, S(model))
     
     if (!is.null(col)) {
-      o <- o[, col, drop = FALSE]
-      colnames(o) <- S(model)[col]
-      
+      o <- o[, col, drop = drop]
+      #colnames(o) <- S(model)[col]
       if (length(col) == 1L)
-        return(.sparsify_vector(o, sparse = sparse, names = row))
+        o <- .sparsify_vector(o, sparse = sparse, names = row)
     }
-    
-    # we default to sparse here or the matrices may become to big
-    if (is.null(sparse) &&
-        length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
-      sparse <- TRUE
-    
-    o <- .sparsify(o, sparse = sparse)
-    
     
     return(o)
   }
@@ -914,30 +573,19 @@ function2value <- function(model,
 matrix2value <-
   function(model,
            field,
-           action = NULL,
+           action,
            row = NULL,
            col = NULL,
            sparse = NULL,
-           trans_keyword = TRUE) {
+           trans_keyword = TRUE,
+           drop = TRUE) {
     ## TODO: It would be faster to not translate the keywords.
     if (!trans_keyword && !(is.null(row) && is.null(row)))
       trans_keyword <- TRUE
     
-    if (is.null(action))
-      action <- seq_along(A(model))
+    if (length(action) != 1L)
+      stop("Only single action allowed!")
     
-    if (length(action) > 1L) {
-      l <- sapply(
-        action,
-        FUN = function(a)
-          matrix2value(model, field, a, row, col, sparse),
-        simplify = FALSE
-      )
-      names(l) <- A(model)[action]
-      return(l)
-    }
-    
-    # we have a single action from here on
     m <- model[[field]][[action]]
     n_states <- length(S(model))
     
@@ -947,7 +595,7 @@ matrix2value <-
         m,
         identity = {
           if (sparse %||% TRUE) {
-            as(Matrix::Diagonal(n_states), "dgCMatrix")
+            as.csr.matrix(Matrix::Diagonal(n_states))
           } else {
             diag(n_states)
           }
@@ -968,21 +616,32 @@ matrix2value <-
       return(.sparsify(m, sparse = sparse))
     }
     
+    # single value
+    if (length(row) == 1L && length(col) == 1L)
+      return(as.numeric(m[row, col, drop = TRUE]))
+    
     # one column
     if (is.null(row) && length(col) == 1L) {
-      return(.sparsify_vector(t(m[, col, drop = FALSE]), sparse, names = S(model)))
+      m <- m[, col, drop = drop]
+      if (drop)
+        m <- .sparsify_vector(m, sparse, names = S(model))
+      else 
+        m <- .sparsify(m , sparse)
+      return(m)
     }
     
-    # one rows
-    if (is.null(col) && length(row) == 1L) {
-      return(.sparsify_vector(m[row, , drop = FALSE], sparse, names = S(model)))
+    # one row
+    # TODO: Make this more memory efficient
+    if (length(row) == 1L && is.null(col)) {
+      m <- m[row, , drop = drop]
+      if (drop)
+        m <- .sparsify_vector(m, sparse, names = S(model))
+      else 
+        m <- .sparsify(m , sparse)
+      return(m)
     }
     
-    # single value
-    if (length(col) == 1L && length(row) == 1L)
-      return(m[row, col, drop = TRUE])
-    
-    # submatrix
+    # submatrix (no drop)
     if (is.null(row))
       row <- seq_along(S(model))
     if (is.null(col))
@@ -995,30 +654,17 @@ matrix2value <-
 df2value <-
   function(model,
            field,
-           action = NULL,
+           action,
            row = NULL,
            col = NULL,
-           sparse = NULL) {
-    ## we use int indices for action here
-    if (is.null(action))
-      action <- seq_along(A(model))
-    
-    if (length(action) > 1L) {
-      r <- sapply(
-        action,
-        FUN = function(a)
-          df2value(model, field, a, row, col, sparse),
-        simplify = FALSE
-      )
-      names(r) <- A(model)[action]
-      
-      return(r)
-    }
-    
-    # one action form here
+           sparse = NULL,
+           drop = TRUE) {
+    if (length(action) != 1L)
+      stop("Only single action allowed!")
+   
     df <- model[[field]]
     
-    # we default to sparse
+    # we default to sparse for larger models
     if (is.null(sparse))
       sparse <- length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT")
     
@@ -1047,29 +693,51 @@ df2value <-
       return(tail(val, 1L))
     }
     
+    # this is slow!!!
     # Note: if we have a sparse transition matrix, then we can evaluate
     #       just P != 0
-    if (field == "reward" &&
-        is.list(model$transition_prob)) {
-      # we copy P and replace the non-0 entries to get V
-      V <- model$transition_prob[[action]]
-      if (inherits(V, "sparseMatrix") || is.matrix(V)) {
-        if (is.null(row))
-          row <- seq_along(S(model))
-        if (is.null(col))
-          col <- seq_along(S(model))
-        
-        V <- V[row, col, drop = FALSE]
-        do <- which(V > 0, arr.ind = TRUE)
-        for (i in seq_len(nrow(do)))
-          V[do[i, 1L], do[i, 2L]] <- df2value(model, field, action, row[do[i, 1L]], col[do[i, 2L]])
-        return(.sparsify(V, sparse = sparse))
-      }
-    }
-    
-    # TODO: Maybe use sparse unless dense operation is faster
+    # if (field == "reward" &&
+    #     is.list(model$transition_prob)) {
+    #   # we copy P and replace the non-0 entries to get V
+    #   V <- model$transition_prob[[action]]
+    #   # we can do sparse matrix faster ([ is slow!)
+    #   if (is.matrix(V)) {
+    #     if (is.null(row))
+    #       row <- seq_along(S(model))
+    #     if (is.null(col))
+    #       col <- seq_along(S(model))
+    #
+    #     V <- V[row, col, drop = FALSE]
+    #     do <- which(V > 0, arr.ind = TRUE)
+    #     for (i in seq_len(nrow(do))) {
+    #         V[do[i, 1L], do[i, 2L]] <- df2value(model, field, action, row[do[i, 1L]], col[do[i, 2L]])
+    #     }
+    #     return(.sparsify(V, sparse = sparse))
+    #   } else if(inherits(V, "sparseMatrix")) {
+    #     if (is.null(row))
+    #       row <- seq_along(S(model))
+    #     if (is.null(col))
+    #       col <- seq_along(S(model))
+    #
+    #     V <- V[row, col, drop = FALSE]
+    #     V <- drop0(V)
+    #     #do <- which(V > 0, arr.ind = TRUE)
+    #     tspm <- as(V, "TsparseMatrix")
+    #     do <- cbind(tspm@i + 1L, tspm@j + 1L)
+    #
+    #     for (i in seq_len(nrow(do))) {
+    #         #V[do[i, 1L], do[i, 2L]] <- df2value(model, field, action, row[do[i, 1L]], col[do[i, 2L]])
+    #         V@x[i] <- df2value(model, field, action, row[do[i, 1L]], col[do[i, 2L]])
+    #         cat("")
+    #     }
+    #     V <- drop0(V)
+    #
+    #     return(.sparsify(V, sparse = sparse))
+    #   }
+    # }
     
     # return a row vector
+    # TODO: do this more memory efficient for sparse = TRUE!
     if (is.null(col) && length(row) == 1L) {
       df <- df[(is.na(df$action) | as.integer(df$action) == action) &
                  (is.na(df[[2L]]) |
@@ -1079,7 +747,7 @@ df2value <-
       cs <- as.integer(df[[3L]])
       
       v <-
-        structure(numeric(length(cols)), names = cols)
+        setNames(numeric(length(cols)), cols)
       
       for (i in seq_along(cs)) {
         c <- cs[i]
@@ -1090,7 +758,21 @@ df2value <-
         v[c] <- value[i]
       }
       
-      return(.sparsify_vector(v, sparse, names = S(model)))
+      # reward does not return values for P == 0
+      if (field == "reward" &&
+          .action_is_matrix(model, "transition_prob", action)) {
+        v[model[["transition_prob"]][[action]][row, , drop = TRUE] == 0] <- 0
+      }
+      
+      if (drop) {
+        v <- .sparsify_vector(v, sparse, names = S(model))
+      } else {
+        v <- rbind(v)
+        rownames(v) <- S(model)[row]
+        v <- .sparsify(v, sparse)
+      }
+      
+      return(v)
     }
     
     # return a col vector
@@ -1103,7 +785,7 @@ df2value <-
       rs <- as.integer(df[[2L]])
       
       v <-
-        structure(numeric(length(rows)), names = rows)
+        setNames(numeric(length(rows)), rows)
       
       for (i in seq_along(rs)) {
         r <- rs[i]
@@ -1114,10 +796,24 @@ df2value <-
         v[r] <- value[i]
       }
       
-      return(.sparsify_vector(v, sparse, names = S(model)))
+      # reward does not return values for P == 0
+      if (field == "reward" &&
+          .action_is_matrix(model, "transition_prob", action)) {
+        v[model[["transition_prob"]][[action]][, col, drop = TRUE] == 0] <- 0
+      }
+      
+      if (drop) {
+        v <- .sparsify_vector(v, sparse, names = S(model))
+      } else {
+        v <- cbind(v)
+        colnames(v) <- S(model)[col]
+        v <- .sparsify(v, sparse)
+      }
+      
+      return(v)
     }
     
-    # return the whole matrix or a submatrix
+    # return the whole matrix or a submatrix there is no more drop!
     df <-
       df[(is.na(df$action) |
             as.integer(df$action) == action), , drop = FALSE]
@@ -1159,8 +855,9 @@ df2value <-
     
     # sparse reward matrix is more efficient if we zero out entries with P of 0
     if (field == "reward" &&
-        sparse &&
+        #sparse &&
         .action_is_matrix(model, "transition_prob", action)) {
+      # which is for Matrix
       m[which(model[["transition_prob"]][[action]] == 0)] <- 0
     }
     

@@ -4,7 +4,7 @@
 #include <Rcpp.h>
 #include <numeric>
 
-#include "dgCMatrix.h"
+#include "dgRMatrix.h"
 #include "math.h"
 
 using namespace Rcpp;
@@ -33,7 +33,7 @@ double get_discount(const List& model);
 int get_horizon(const List& model);
 
 // Transitions
-// Can be a dense matrix or a dgCMatrix
+// Can be a dense matrix or a dgRMatrix
 // Available functions are: x_matrix returns a dense matrix, x_prob returns double, and x_row returns a vector
 NumericMatrix transition_matrix(const List& model, int action, int episode = -1);
 double transition_prob(const List& model, int action, int start_state, 

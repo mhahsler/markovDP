@@ -1,148 +1,191 @@
 # Maze_orig contains a data.frame
-# TODO: Add tests for functions
 
-P <- transition_matrix(Maze_dense)
+(R1_full <- reward_matrix(Maze_function2, 1, sparse = FALSE))
+(R1_non_zero <- (Maze_dense$transition_prob[[1]] != 0) * R1_full)
 
-# dense
+# Translation rules:
+# * if trans dense ->  dense (P == 0 missing).    Example: Maze_orig
+# * if trans sparse ->  sparse (P == 0 missing)   
+# * if trans not matrix (function/DF) -> sparse/dense (complete)
+#                       Example: Maze_function2, Maze_reward_trans_function
+
+### Full matrix
+# sparse = NULL
+(r_orig <- reward_matrix(Maze_orig, sparse = NULL))
+expect_equal(r_orig[[1]], R1_non_zero)
+
+(r_dense <- reward_matrix(Maze_dense, sparse = NULL))
+expect_true(is.matrix(r_dense[[1]]))
+expect_equal(r_dense[[1]], R1_non_zero)
+
+(r_sparse <- reward_matrix(Maze_sparse, sparse = NULL))
+expect_s4_class(r_sparse[[1]], "dgRMatrix")
+expect_equal(as.matrix(r_sparse[[1]]), R1_non_zero)
+
+# small problems -> dense
+(r_func <- reward_matrix(Maze_function2, sparse = NULL))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, sparse = NULL))
+expect_equal(r_func[[1]], R1_full)
+expect_equal(r_func, r_all_func)
+
+# sparse = FALSE
+(r_orig <- reward_matrix(Maze_orig, sparse = FALSE))
 (r_dense <- reward_matrix(Maze_dense, sparse = FALSE))
 (r_sparse <- reward_matrix(Maze_sparse, sparse = FALSE))
-expect_true(inherits(r_dense[[1]], "matrix"))
-expect_equal(r_dense, r_sparse)
+expect_equal(r_sparse[[1]], R1_non_zero)
+expect_equal(r_sparse, r_dense)
+expect_equal(r_sparse, r_orig)
 
-# only compare for P>0
-(r <- reward_matrix(Maze_dense, sparse = FALSE))
-r <- mapply("*", lapply(P, ">", 0), r, SIMPLIFY = FALSE)
-expect_equal(r, r_dense)
+(r_func <- reward_matrix(Maze_function2, sparse = FALSE))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, sparse = FALSE))
+expect_equal(r_func[[1]], R1_full)
+expect_equal(r_func, r_all_func)
 
-# sparse
-(r_dense <- reward_matrix(Maze_dense, 1, sparse = TRUE))
-(r_sparse <- reward_matrix(Maze_sparse, 1, sparse = TRUE))
-expect_s4_class(r_dense, "dgCMatrix")
-expect_equal(r_dense, r_sparse)
+# sparse = TRUE
+(r_orig <- reward_matrix(Maze_orig, sparse = TRUE))
+(r_dense <- reward_matrix(Maze_dense, sparse = TRUE))
+(r_sparse <- reward_matrix(Maze_sparse, sparse = TRUE))
+expect_s4_class(r_sparse[[1]], "dgRMatrix")
+expect_equal(as.matrix(r_sparse[[1]]), R1_non_zero)
+expect_equal(r_sparse, r_dense)
+expect_equal(r_sparse, r_orig)
 
-(r <- reward_matrix(Maze_dense, 1, sparse = TRUE))
-non_zeroes <-  which(P[[1]] > 0, arr.ind = TRUE)
-expect_s4_class(r, "dgCMatrix")
-expect_equal(r[non_zeroes] , r_dense[non_zeroes])
+(r_func <- reward_matrix(Maze_function2, sparse = TRUE))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, sparse = TRUE))
+expect_s4_class(r_func[[1]], "dgRMatrix")
+expect_equal(as.matrix(r_func[[1]]), R1_full)
+expect_equal(r_func, r_all_func)
 
+### just action is too simple to test
 
-### action/row (we use sparse = NULL)
-(r_dense <- reward_matrix(Maze_dense, "up", 1, sparse = FALSE))
-(r_sparse <- reward_matrix(Maze_sparse, "up", 1, sparse = FALSE))
+### action/row 
+# sparse = NULL
 
+(r_orig <- reward_matrix(Maze_orig, 1, 1, sparse = NULL))
+expect_equal(r_orig, R1_non_zero[1,])
+
+(r_dense <- reward_matrix(Maze_dense, 1, 1, sparse = NULL))
 expect_true(is.vector(r_dense))
-expect_equal(r_dense, r_sparse)
+expect_equal(r_dense, R1_non_zero[1,])
 
-(r <- reward_matrix(Maze_dense, "up", 1, sparse = FALSE))   ## should be df -> sparse
-expect_true(is.vector(r))
-non_zeroes <-  which(P[["up"]][1, ] > 0)
-expect_equal(r_dense[non_zeroes], r[non_zeroes])
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1, sparse = NULL))
+expect_s4_class(r_sparse, "dsparseVector")
+expect_equal(as.vector(r_sparse), unname(R1_non_zero[1,]))
+
+# small problems -> dense
+(r_func <- reward_matrix(Maze_function2, 1, 1, sparse = NULL))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1, sparse = NULL))
+expect_equal(r_func, R1_full[1, ])
+expect_equal(r_func, r_all_func)
+
+# sparse = FALSE
+(r_orig <- reward_matrix(Maze_orig, 1, 1, sparse = FALSE))
+expect_equal(r_orig, R1_non_zero[1,])
+
+(r_dense <- reward_matrix(Maze_dense, 1, 1, sparse = FALSE))
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1, sparse = FALSE))
+expect_equal(r_sparse, R1_non_zero[1, ])
+expect_equal(r_sparse, r_dense)
+
+(r_func <- reward_matrix(Maze_function2, 1, 1, sparse = FALSE))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1, sparse = FALSE))
+expect_equal(r_func, R1_full[1,])
+expect_equal(r_func, r_all_func)
+
+# sparse = TRUE
+(r_orig <- reward_matrix(Maze_orig, 1, 1, sparse = TRUE))
+(r_dense <- reward_matrix(Maze_dense, 1, 1, sparse = TRUE))
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1, sparse = TRUE))
+expect_s4_class(r_sparse, "dsparseVector")
+expect_equal(as.vector(r_sparse), unname(R1_non_zero[1, ]))
+expect_equal(r_sparse, r_dense)
+expect_equal(r_sparse, r_orig)
+
+(r_func <- reward_matrix(Maze_function2, 1, 1, sparse = TRUE))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1, sparse = TRUE))
+expect_s4_class(r_func, "dsparseVector")
+expect_equal(as.vector(r_func), unname(R1_full[1,]))
+expect_equal(r_func, r_all_func)
 
 ### action/row/col
-(r <- reward_matrix(Maze_dense, "up", 1, 1))
-(r_dense <- reward_matrix(Maze_dense, "up", 1, 1))
-(r_sparse <- reward_matrix(Maze_sparse, "up", 1, 1))
+# all return the same
+(r_orig <- reward_matrix(Maze_orig, 1, 1, 1))
+(r_dense <- reward_matrix(Maze_dense, 1, 1, 1))
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1, 1))
+(r_func <- reward_matrix(Maze_function2, 1, 1, 1))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1, 1))
 
-expect_length(r, 1)
-expect_equal(r, r_sparse)
-expect_equal(r, r_dense)
+expect_length(r_dense, 1)
+expect_equal(r_dense, r_orig)
+expect_equal(r_dense, r_sparse)
+expect_equal(r_dense, r_func)
+expect_equal(r_dense, r_all_func)
 
+# ranges
+(r_orig <- reward_matrix(Maze_orig, 1, 1:2, 1:2))
+(r_dense <- reward_matrix(Maze_dense, 1, 1:2, 1:2))
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1:2, 1:2))
+(r_func <- reward_matrix(Maze_function2, 1, 1:2, 1:2))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1:2, 1:2))
+expect_equal(dim(r_dense), c(2L, 2L))
+expect_equal(r_dense,  R1_non_zero[1:2,1:2])
+expect_equal(r_dense, as.matrix(r_sparse))
+expect_equal(r_dense, r_orig)
 
-# No simplify (when action is missing)
+expect_equal(dim(r_func), c(2L, 2L))
+expect_equal(r_func,  R1_full[1:2,1:2])
+expect_equal(r_func, r_all_func)
 
-models <- c(models_matrix, list(Maze_orig, Maze_reward_function))
+(r_orig <- reward_matrix(Maze_orig, 1, 1:2, 1))
+(r_dense <- reward_matrix(Maze_dense, 1, 1:2, 1))
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1:2, 1))
+(r_func <- reward_matrix(Maze_function2, 1, 1:2, 1))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1:2, 1))
+expect_equal(dim(r_dense), c(2L, 1L))
+expect_equal(r_dense,  R1_non_zero[1:2,1,drop = FALSE])
+expect_equal(r_dense, as.matrix(r_sparse))
+expect_equal(r_dense, r_orig)
 
-res <- models[[1]]$reward
-for (m in models)
-  expect_equal(reward_matrix(m, sparse = FALSE), res)
+expect_equal(dim(r_func), c(2L, 1L))
+expect_equal(r_func,  R1_non_zero[1:2,1, drop = FALSE])
+expect_equal(r_func, r_all_func)
 
-res <- lapply(models[[1]]$reward, "[", 1, 1)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1, 1), res)
+(r_orig <- reward_matrix(Maze_orig, 1, 1, 1:2))
+(r_dense <- reward_matrix(Maze_dense, 1, 1, 1:2))
+(r_sparse <- reward_matrix(Maze_sparse, 1, 1, 1:2))
+(r_func <- reward_matrix(Maze_function2, 1, 1, 1:2))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, 1, 1, 1:2))
+expect_equal(dim(r_dense), c(1L, 2L))
+expect_equal(r_dense,  R1_non_zero[1,1:2, drop = FALSE])
+expect_equal(r_dense, as.matrix(r_sparse))
+expect_equal(r_dense, r_orig)
 
-res <- lapply(models[[1]]$reward, "[", 1:2, 1, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1:2, 1, sparse = FALSE), res)
+expect_equal(dim(r_func), c(1L, 2L))
+expect_equal(r_func,  R1_full[1,1:2, drop = FALSE])
+expect_equal(r_func, r_all_func)
 
-res <- lapply(models[[1]]$reward, "[", 1:2, , drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1:2, NULL, sparse = FALSE), res)
+# action is missing
+(r_orig <- reward_matrix(Maze_orig, NULL, 1, 1, ))
+(r_dense <- reward_matrix(Maze_dense, NULL, 1, 1, ))
+(r_sparse <- reward_matrix(Maze_sparse, NULL, 1, 1, ))
+(r_func <- reward_matrix(Maze_function2, NULL, 1, 1))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, NULL, 1, 1))
 
-res <- lapply(models[[1]]$reward, "[", 1, 1:2, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1, 1:2, sparse = FALSE), res)
+expect_true(is.list(r_dense))
+expect_equal(r_dense, r_orig)
+expect_equal(r_dense, r_sparse)
+expect_equal(r_dense, r_func)
+expect_equal(r_dense, r_all_func)
 
-res <- lapply(models[[1]]$reward, "[", , 1:2, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, NULL, 1:2, sparse = FALSE), res)
+(r_orig <- reward_matrix(Maze_orig, NULL, 1, 1, simplify = TRUE))
+(r_dense <- reward_matrix(Maze_dense, NULL, 1, 1, simplify = TRUE))
+(r_sparse <- reward_matrix(Maze_sparse, NULL, 1, 1, simplify = TRUE))
+(r_func <- reward_matrix(Maze_function2, NULL, 1, 1, simplify = TRUE))
+(r_all_func <- reward_matrix(Maze_reward_trans_function, NULL, 1, 1, simplify = TRUE))
 
-res <- lapply(models[[1]]$reward, "[", 1:2, 1:2, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1:2, 1:2, sparse = FALSE), res)
-
-
-# With simplify
-
-# simplify does not fo anything if matrices are returned!
-res <- models[[1]]$reward
-for (m in models)
-  expect_equal(reward_matrix(m, simplify = TRUE, sparse = FALSE), res)
-
-res <- sapply(models[[1]]$reward, "[", 1, 1)
-expect_true(is.vector(res))
-for (m in models)
-  expect_identical(reward_matrix(m, NULL, 1, 1, simplify = TRUE), res)
-
-res <- sapply(models[[1]]$reward, "[", 1:2, 1)
-expect_true(inherits(res, "matrix"))
-for (m in models)
-  expect_identical(reward_matrix(m, NULL, 1:2, 1, simplify = TRUE, sparse = FALSE), res)
-
-res <- t(sapply(models[[1]]$reward, "[", 1, 1:2))
-expect_true(inherits(res, "matrix"))
-for (m in models)
-  expect_identical(reward_matrix(m, NULL, 1, 1:2, simplify = TRUE, sparse = FALSE), res)
-
-# simplify does not fo anything if matrices are returned!
-res <- reward_matrix(models[[1]], NULL, 1:2, 1:2, simplify = TRUE, sparse = FALSE)
-expect_true(inherits(res, "list"))
-for (m in models)
-  expect_identical(reward_matrix(m, NULL, 1:2, 1:2, simplify = TRUE, sparse = FALSE),
-                   res)
-
-
-# If trans is a function, reward is returned even if P = 0!
-
-models <- c(models_trans_function, list(Maze_reward_trans_function))
-
-rew <- reward_matrix(models[[1]], sparse = FALSE)
-
-res <- rew
-for (m in models)
-  expect_equal(reward_matrix(m, sparse = FALSE), res)
-
-res <- lapply(rew, "[", 1, 1)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1, 1), res)
-
-res <- lapply(rew, "[", 1:2, 1, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1:2, 1, sparse = FALSE), res)
-
-res <- lapply(rew, "[", 1:2, , drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1:2, NULL, sparse = FALSE), res)
-
-res <- lapply(rew, "[", 1, 1:2, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1, 1:2, sparse = FALSE), res)
-
-res <- lapply(rew, "[", , 1:2, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, NULL, 1:2, sparse = FALSE), res)
-
-res <- lapply(rew, "[", 1:2, 1:2, drop = FALSE)
-for (m in models)
-  expect_equal(reward_matrix(m, NULL, 1:2, 1:2, sparse = FALSE), res)
-
+expect_true(is.vector(r_dense))
+expect_equal(r_dense, r_orig)
+expect_equal(r_dense, r_sparse)
+expect_equal(r_dense, r_func)
+expect_equal(r_dense, r_all_func)
 

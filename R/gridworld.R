@@ -5,8 +5,10 @@
 #'
 #' Gridworlds are implemented with state names `s(row,col)`, where
 #' `row` and `col` are locations in the matrix representing the gridworld.
-#' The actions are `"up"`, `"right"`,  `"down"`, and  `"left"`.
+#' The default actions are `"up"`, `"right"`,  `"down"`, and  `"left"`.
 #'
+#' 
+#' ### Creating a Gridworld
 #' `gw_init()` initializes a new gridworld creating a matrix
 #' of states with the given dimensions. Other action names
 #' can be specified, but they must have the same effects in the same order
@@ -14,10 +16,6 @@
 #' This information can be used to build a custom gridworld MDP. Note that
 #' blocked states are removed from the model description using 
 #' [remove_unreachable_states()].
-#'
-#' Several helper functions are provided
-#' to use states, look at the state layout, and plot policies on the
-#' gridworld.
 #'
 #' @name gridworld
 #' @aliases gridworld gw
@@ -256,237 +254,50 @@ gw_init <-
     
   }
 
+
+
 #' @rdname gridworld
-#' @details `gw_maze_MDP()` helps to easily define maze-like gridworld MDPs.
-#' By default, the goal state is absorbing, but with `restart = TRUE`, the
-#' agent restarts the problem at the start state every time it reaches the goal
-#' and receives the reward. Note that this implies that the goal state itself
-#' becomes unreachable.
 #'
-#' @param start,goal labels for the start state and the goal state.
-#' @param walls a vector with state labels for walls. Walls will
-#'              become unreachable states.
-#' @param goal_reward reward to transition to the goal state.
-#' @param step_cost cost of each action that does not lead to the goal state.
-#' @param restart logical; if `TRUE` then the problem automatically restarts when
-#'      the agent reaches the goal state.
-#' @param discount,horizon MDP discount factor, and horizon.
-#' @param info A list with additional information. Has to contain the gridworld
-#'      dimensions as element `dim` and can be created using `gw_init()`.
-#' @param name a string to identify the MDP problem.
-#' @param normalize logical; should the description be normalized for
-#'      faster access using [normalize_MDP()].
+#' @details 
+#' ### Converting Between State Names and Coordinates
+#' 
+#' `gw_s2rc()` and `gw_rc2s` help with converting from
+#' state names to xy-coordinates and vice versa.
 #'
-#' @returns `gw_maze_MDP()` returns an MDP object.
+#' @param model,x a solved gridworld MDP.
+#' @param s a state label or a vector of labels.
+#' @param rc a vector of length two with the row and column coordinate of a
+#'   state in the gridworld matrix. A matrix with one state per row can be also
+#'   supplied.
 #' @export
-gw_maze_MDP <- function(dim,
-                               start,
-                               goal,
-                               walls = NULL,
-                               actions = c("up", "right", "down", "left"),
-                               goal_reward = 100,
-                               step_cost = 1,
-                               restart = FALSE,
-                               discount = 1,
-                               horizon = Inf,
-                               info = NULL,
-                               normalize = FALSE,
-                               name = NA) {
+gw_s2rc <- function(s) {
+  if (length(s) > 1)
+    return(sapply(s, gw_s2rc))
   
-  gw <-
-    gw_init(
-      dim,
-      start = start,
-      goal = goal,
-      blocked_states = walls,
-      absorbing_states = goal
-    )
-  
-  if (!restart) {
-    model <-
-      MDP(
-        states = gw$states,
-        actions = gw$actions,
-        transition_prob = gw$transition_prob,
-        reward = rbind(
-          R_(value = -step_cost),
-          R_(end.state = gw$info$goal, value = goal_reward),
-          R_(start.state = gw$info$goal, value = 0) # staying in the goal is 0
-        ),
-        discount = discount,
-        horizon = horizon,
-        start = gw$start,
-        info = gw$info,
-        name = name
-      )
-    
-  } else {
-    # all actions in the goal redirect to a start state
-    trans_restart <- function(model, action, start.state) {
-      P <- structure(numeric(length(S(model))), names = S(model))
-      
-      if (start.state %in% model$info$goal) {
-        P[model$info$start] <- 1 / length(model$info$start)
-        return (P)
-      }
-      
-      # regular move
-      gw_transition_prob(model, action, start.state)
-    }
-    
-    # note the goal state is now unreachable
-    model <- MDP(
-      states = gw$states,
-      #actions = c(gw$actions, "restart"),
-      actions = c(gw$actions),
-      transition_prob = trans_restart,
-      reward = rbind(
-        R_(value = -step_cost),
-        R_(end.state = gw$info$goal, value = goal_reward),
-        R_(start.state = gw$info$goal, value = 0) # restarting is free
-      ),
-      discount = discount,
-      horizon = horizon,
-      start = gw$start,
-      info = gw$info,
-      name = name
-    )
+  rc <- as.integer(strsplit(s, "s\\(|,|\\)")[[1]][-1])
+  if (length(rc) != 2 || any(is.na(rc))) {
+    stop("Malformed gridworld state label ",
+         sQuote(s),
+         ". Needs to be 's(<row>,<col>)'.")
   }
-  
-  model$absorbing_states <- gw$absorbing_states
-  
-  if (normalize) {
-    model <- normalize_MDP(model)
-  }
-  
-  model
+  rc
+}
+
+#' @rdname gridworld
+#' @export
+gw_rc2s <- function(rc) {
+  if (is.matrix(rc))
+    paste0("s(", rc[, 1], ",", rc[, 2], ")")
+  else
+    paste0("s(", rc[1], ",", rc[2], ")")
 }
 
 
 #' @rdname gridworld
-#' @param wall_prob probability to make a tile a wall.
-#' @export
-gw_random_maze <- function(dim,
-                                  wall_prob = .2,
-                                  start = NULL,
-                                  goal = NULL,
-                                  normalize = FALSE) {
-  if (is.null(start))
-    start <- 1
-  else if (is.character(start))
-    start <- sapply(
-      start,
-      FUN = function(s) {
-        rc <- gw_s2rc(s)
-        (rc[2] - 1) * m + (rc[1] - 1) + 1
-      }
-    )
-  
-  n <- dim[1]
-  m <- dim[2]
-  if (is.na(m))
-    m <- n
-  
-  if (is.null(goal))
-    goal <- n * m
-  else if (is.character(goal))
-    goal <- sapply(
-      goal,
-      FUN = function(s) {
-        rc <- gw_s2rc(s)
-        (rc[2] - 1) * m + (rc[1] - 1) + 1
-      }
-    )
-  
-  make_maze <- function() {
-    # random walls (cannot be start or goal)
-    walls <- sort(sample(seq(n * m), size = n * m * wall_prob))
-    walls <- setdiff(walls, c(start, goal)) 
-    
-    maze <- gw_maze_MDP(
-      dim = c(n, m),
-      start = start,
-      goal = goal,
-      walls = walls,
-      normalize = normalize,
-      name = "Random Maze"
-    )
-    
-    # random mazes may produce unreachable states and even unreachable goals
-    remove_unreachable_states(maze)
-  }
-  
-  maze <- make_maze()
-  tries <- 10L
-  
-  while (!all(maze$info$goal %in% maze$states)) {
-    if (tries < 1L)
-      stop("Cannot create a valid maze after 10 tries. Please reduce wall_prob!")
-    maze <- make_maze()
-    tries <- tries <- -1L
-  }
-    
-  maze
-}
-
-
-#' @rdname gridworld
-#' @details `gw_path()` checks if a solved gridworld has a policy that
-#' leads from the start to the goal. Note this function currently samples only a single path which is
-#' an issue with stochastic transitions!
 #'
-#' @param start,goal start and goal states. If `NULL` then the states specified
-#' in the model are used.
-#'
-#' @return `gw_path()` returns a list with the elements `"path"`,
-#' `"reward"` and `"solved"`.
-#' @export
-gw_path <- function(model,
-                           start = NULL,
-                           goal = NULL,
-                           horizon = NULL) {
-  ### TODO: stochastic transitions!
-  
-  if (is.null(goal))
-    goal <- model$info$goal
-  if (is.null(goal))
-    stop("No goal specified!")
-  
-  s <- sample_MDP(
-    model,
-    n = 1,
-    horizon = horizon,
-    epsilon = 0,
-    trajectories = TRUE
-  )
-  
-  path <- s$trajectories
-
-  
-  # Goal state may be non-absorbing (restart = TRUE)
-  found <- match(goal, path$s_prime)
-  solved <- !is.na(found)
-  
-  if (solved) { 
-    if (found == nrow(path)) {
-      reward <- s$reward
-    } else {
-      path <- path[seq(found), , drop = FALSE]
-      reward <- sum(path$r * model$discount ^ seq(found, 1))
-    } 
-  } else {
-    reward <- NA_real_
-    path <- NULL
-  }
-  
-  list(path = path,
-       reward = reward,
-       solved = solved)
-}
-
-#' @rdname gridworld
-#'
-#' @details `gw_matrix()` returns different information
+#' @details 
+#' ### Inspecting Gridworlds
+#' `gw_matrix()` returns different information
 #'  (state names, values, actions, etc.) as a matrix. Note that some gridworlds
 #'  have unreachable states removed. These states will be represented in the 
 #'  matrix as  `NA`.
@@ -863,6 +674,344 @@ gw_animate <- function(model, method, n, zlim = NULL, continue = FALSE, ...) {
   invisible(sol)
 }
 
+
+#' @rdname gridworld
+#'
+#' @details 
+#' 
+#' ### Gridworld Transition Model
+#' 
+#' The transition model is available in several forms:
+#' 
+#' * `gw_transition_prob()` returns a dense vector for the action and start state.
+#' * `gw_transition_prob_sparse()` returns a sparse vector for the action and start state. 
+#'      Note: creating sparse vectors is very expensive and should only be used
+#'      for sparse models with a large state space.
+#' * `gw_transition_prob_named()` returns only the non-zero probabilities as a named vector. 
+#' * `gw_transition_prob_end_state()` returns a single value for a given action, start and end state.
+#'      Note: Using this function is very slow since it results in excessive function calls.
+#'      
+#' @param action,start.state,end.state parameters for the transition function.
+#' 
+#' @export
+gw_transition_prob <- function(model, action, start.state) {
+  S <- S(model)
+  P <- setNames(numeric(length(S)), S)
+  
+  ai <- match(action, A(model))
+  
+  # stay in place for unknown actions
+  if (is.na(ai)) {
+    warning("Unknown action", action)
+    P[start.state] <- 1
+    return(P)
+  }
+  
+  # absorbing states
+  if (start.state %in% model$info$absorbing_states) {
+    P[start.state] <- 1
+    return(P)
+  }
+  
+  # move
+  rc <- gw_s2rc(start.state)
+  rc <- switch(ai, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
+  
+  es <- gw_rc2s(rc)
+  
+  # stay in place if we would leave the gridworld or run into a wall
+  if (!(es %in% S)) {
+    es <- start.state
+  }
+  
+  P[es] <- 1
+  P
+}
+
+#' @rdname gridworld
+#' @export
+gw_transition_prob_sparse <- function(model, action, start.state) {
+  a_i <- match(action, A(model))
+  start_i = match(start.state, S(model))
+  
+  # stay in place for unknown actions
+  if (is.na(a_i) || is.na(start_i)) {
+    warning("Unknown action", action, "or start state", start.state)
+    end_i <- start_i
+  }
+  
+  # absorbing states
+  else if (start.state %in% model$info$absorbing_states) {
+    end_i <- start_i
+  }
+  
+  else {
+    # move
+    rc <- gw_s2rc(start.state)
+    rc <- switch(a_i, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
+    
+    es <- gw_rc2s(rc)
+    end_i <- match(es, S(model))
+    
+    # stay in place if we would leave the gridworld
+    if (is.na(end_i)) {
+      end_i <- start_i
+    }
+  }
+  
+  return(sparseVector(
+    x = 1,
+    i = end_i,
+    length = length(S(model))
+  ))
+}
+
+#' @rdname gridworld
+#' @export
+gw_transition_prob_named <- function(model, action, start.state) {
+  P <- structure(numeric(length(S(model))), names = S(model))
+  
+  ai <- match(action, A(model))
+  
+  # stay in place for unknown actions
+  if (is.na(ai)) {
+    warning("Unknown action", action)
+    P[start.state] <- 1
+    return(P)
+  }
+  
+  # absorbing states
+  if (start.state %in% model$info$absorbing_states) {
+    P[start.state] <- 1
+    return(P)
+  }
+  
+  # move
+  rc <- gw_s2rc(start.state)
+  rc <- switch(ai, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
+  
+  es <- gw_rc2s(rc)
+  
+  # stay in place if we would leave the gridworld
+  if (!(es %in% S(model))) {
+    es <- start.state
+  }
+  
+  P <- 1L
+  names(P) <- es
+  P
+}
+
+
+#' @rdname gridworld
+#' @export
+gw_transition_prob_end_state <- function(model, action, start.state, end.state) {
+  ai <- match(action, A(model))
+  
+  # stay in place for unknown actions
+  if (is.na(ai)) {
+    warning("Unknown action", action)
+    return(as.integer(end.state == start.state))
+  }
+  
+  # stay in place for absorbing states
+  absorbing_states <- model$absorbing_states
+  if (!is.null(absorbing_states) &&
+      start.state %in% absorbing_states) {
+    return(as.integer(end.state == start.state))
+  }
+  
+  # move
+  rc <- gw_s2rc(start.state)
+  rc <- switch(ai, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
+  
+  es <- gw_rc2s(rc)
+  if (!(es %in% S(model))) {
+    es <- start.state
+  }
+  as.integer(es == end.state)
+}
+
+
+
+
+#' @rdname gridworld
+#' @details 
+#' 
+#' ### Mazes
+#' `gw_maze_MDP()` helps to easily define maze-like gridworld MDPs.
+#' By default, the goal state is absorbing, but with `restart = TRUE`, the
+#' agent restarts the problem at the start state every time it reaches the goal
+#' and receives the reward. Note that this implies that the goal state itself
+#' becomes unreachable.
+#'
+#' @param start,goal labels for the start state and the goal state.
+#' @param walls a vector with state labels for walls. Walls will
+#'              become unreachable states.
+#' @param goal_reward reward to transition to the goal state.
+#' @param step_cost cost of each action that does not lead to the goal state.
+#' @param restart logical; if `TRUE` then the problem automatically restarts when
+#'      the agent reaches the goal state.
+#' @param discount,horizon MDP discount factor, and horizon.
+#' @param info A list with additional information. Has to contain the gridworld
+#'      dimensions as element `dim` and can be created using `gw_init()`.
+#' @param name a string to identify the MDP problem.
+#' @param normalize logical; should the description be normalized for
+#'      faster access using [normalize_MDP()].
+#'
+#' @returns `gw_maze_MDP()` returns an MDP object.
+#' @export
+gw_maze_MDP <- function(dim,
+                               start,
+                               goal,
+                               walls = NULL,
+                               actions = c("up", "right", "down", "left"),
+                               goal_reward = 100,
+                               step_cost = 1,
+                               restart = FALSE,
+                               discount = 1,
+                               horizon = Inf,
+                               info = NULL,
+                               normalize = FALSE,
+                               name = NA) {
+  
+  gw <-
+    gw_init(
+      dim,
+      start = start,
+      goal = goal,
+      blocked_states = walls,
+      absorbing_states = goal
+    )
+  
+  if (!restart) {
+    model <-
+      MDP(
+        states = gw$states,
+        actions = gw$actions,
+        transition_prob = gw$transition_prob,
+        reward = rbind(
+          R_(value = -step_cost),
+          R_(end.state = gw$info$goal, value = goal_reward),
+          R_(start.state = gw$info$goal, value = 0) # staying in the goal is 0
+        ),
+        discount = discount,
+        horizon = horizon,
+        start = gw$start,
+        info = gw$info,
+        name = name
+      )
+    
+  } else {
+    # all actions in the goal redirect to a start state
+    trans_restart <- function(model, action, start.state) {
+      P <- structure(numeric(length(S(model))), names = S(model))
+      
+      if (start.state %in% model$info$goal) {
+        P[model$info$start] <- 1 / length(model$info$start)
+        return (P)
+      }
+      
+      # regular move
+      gw_transition_prob(model, action, start.state)
+    }
+    
+    # note the goal state is now unreachable
+    model <- MDP(
+      states = gw$states,
+      #actions = c(gw$actions, "restart"),
+      actions = c(gw$actions),
+      transition_prob = trans_restart,
+      reward = rbind(
+        R_(value = -step_cost),
+        R_(end.state = gw$info$goal, value = goal_reward),
+        R_(start.state = gw$info$goal, value = 0) # restarting is free
+      ),
+      discount = discount,
+      horizon = horizon,
+      start = gw$start,
+      info = gw$info,
+      name = name
+    )
+  }
+  
+  model$absorbing_states <- gw$absorbing_states
+  
+  if (normalize) {
+    model <- normalize_MDP(model)
+  }
+  
+  model
+}
+
+
+#' @rdname gridworld
+#' @param wall_prob probability to make a tile a wall.
+#' @export
+gw_random_maze <- function(dim,
+                                  wall_prob = .2,
+                                  start = NULL,
+                                  goal = NULL,
+                                  normalize = FALSE) {
+  if (is.null(start))
+    start <- 1
+  else if (is.character(start))
+    start <- sapply(
+      start,
+      FUN = function(s) {
+        rc <- gw_s2rc(s)
+        (rc[2] - 1) * m + (rc[1] - 1) + 1
+      }
+    )
+  
+  n <- dim[1]
+  m <- dim[2]
+  if (is.na(m))
+    m <- n
+  
+  if (is.null(goal))
+    goal <- n * m
+  else if (is.character(goal))
+    goal <- sapply(
+      goal,
+      FUN = function(s) {
+        rc <- gw_s2rc(s)
+        (rc[2] - 1) * m + (rc[1] - 1) + 1
+      }
+    )
+  
+  make_maze <- function() {
+    # random walls (cannot be start or goal)
+    walls <- sort(sample(seq(n * m), size = n * m * wall_prob))
+    walls <- setdiff(walls, c(start, goal)) 
+    
+    maze <- gw_maze_MDP(
+      dim = c(n, m),
+      start = start,
+      goal = goal,
+      walls = walls,
+      normalize = normalize,
+      name = "Random Maze"
+    )
+    
+    # random mazes may produce unreachable states and even unreachable goals
+    remove_unreachable_states(maze)
+  }
+  
+  maze <- make_maze()
+  tries <- 10L
+  
+  while (!all(maze$info$goal %in% maze$states)) {
+    if (tries < 1L)
+      stop("Cannot create a valid maze after 10 tries. Please reduce wall_prob!")
+    maze <- make_maze()
+    tries <- tries <- -1L
+  }
+    
+  maze
+}
+
+
 #' @rdname gridworld
 #'
 #' @details `gw_read_maze()` reads a maze in text format from a file
@@ -905,142 +1054,57 @@ gw_read_maze <- function(file,
   maze
 }
 
-#' @rdname gridworld
-#'
-#' @details `gw_s2rc()` and `gw_rc2s` help with converting from
-#' state names to xy-coordinates and vice versa.
-#'
-#' @param model,x a solved gridworld MDP.
-#' @param s a state label or a vector of labels.
-#' @param rc a vector of length two with the row and column coordinate of a
-#'   state in the gridworld matrix. A matrix with one state per row can be also
-#'   supplied.
-#' @export
-gw_s2rc <- function(s) {
-  if (length(s) > 1)
-    return(sapply(s, gw_s2rc))
-  
-  rc <- as.integer(strsplit(s, "s\\(|,|\\)")[[1]][-1])
-  if (length(rc) != 2 || any(is.na(rc))) {
-    stop("Malformed gridworld state label ",
-         sQuote(s),
-         ". Needs to be 's(<row>,<col>)'.")
-  }
-  rc
-}
 
 #' @rdname gridworld
-#' @export
-gw_rc2s <- function(rc) {
-  if (is.matrix(rc))
-    paste0("s(", rc[, 1], ",", rc[, 2], ")")
-  else
-    paste0("s(", rc[1], ",", rc[2], ")")
-}
-
-#' @rdname gridworld
+#' @details `gw_path()` checks if a solved gridworld has a policy that
+#' leads from the start to the goal. Note this function currently samples only a single path which is
+#' an issue with stochastic transitions!
 #'
-#' @details `gw_transition_prob()` and `gw_transition_prob3()`
-#' provide the standard transition functions for a gridworld. 
+#' @param start,goal start and goal states. If `NULL` then the states specified
+#' in the model are used.
 #'
+#' @return `gw_path()` returns a list with the elements `"path"`,
+#' `"reward"` and `"solved"`.
 #' @export
-gw_transition_prob <- function(model, action, start.state) {
-  P <- structure(numeric(length(S(model))), names = S(model))
+gw_path <- function(model,
+                    start = NULL,
+                    goal = NULL,
+                    horizon = NULL) {
+  ### TODO: stochastic transitions!
   
-  ai <- match(action, A(model))
+  if (is.null(goal))
+    goal <- model$info$goal
+  if (is.null(goal))
+    stop("No goal specified!")
   
-  # stay in place for unknown actions
-  if (is.na(ai)) {
-    warning("Unknown action", action)
-    P[start.state] <- 1
-    return(P)
+  s <- sample_MDP(
+    model,
+    n = 1,
+    horizon = horizon,
+    epsilon = 0,
+    trajectories = TRUE
+  )
+  
+  path <- s$trajectories
+  
+  
+  # Goal state may be non-absorbing (restart = TRUE)
+  found <- match(goal, path$s_prime)
+  solved <- !is.na(found)
+  
+  if (solved) { 
+    if (found == nrow(path)) {
+      reward <- s$reward
+    } else {
+      path <- path[seq(found), , drop = FALSE]
+      reward <- sum(path$r * model$discount ^ seq(found, 1))
+    } 
+  } else {
+    reward <- NA_real_
+    path <- NULL
   }
   
-  # absorbing states
-  if (start.state %in% model$info$absorbing_states) {
-    P[start.state] <- 1
-    return(P)
-  }
-  
-  # move
-  rc <- gw_s2rc(start.state)
-  rc <- switch(ai, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
-  
-  es <- gw_rc2s(rc)
-  
-  # stay in place if we would leave the gridworld
-  if (!(es %in% S(model))) {
-    es <- start.state
-  }
-  
-  P[es] <- 1
-  P
-}
-
-#' @rdname gridworld
-#' @param action,start.state,end.state parameters for the transition function.
-#' @export
-gw_transition_prob_end_state <- function(model, action, start.state, end.state) {
-  ai <- match(action, A(model))
-  
-  # stay in place for unknown actions
-  if (is.na(ai)) {
-    warning("Unknown action", action)
-    return(as.integer(end.state == start.state))
-  }
-  
-  # stay in place for absorbing states
-  absorbing_states <- model$absorbing_states
-  if (!is.null(absorbing_states) &&
-      start.state %in% absorbing_states) {
-    return(as.integer(end.state == start.state))
-  }
-  
-  # move
-  rc <- gw_s2rc(start.state)
-  rc <- switch(ai, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
-  
-  es <- gw_rc2s(rc)
-  if (!(es %in% S(model))) {
-    es <- start.state
-  }
-  as.integer(es == end.state)
-}
-
-
-# Creating sparse vectors is too expensive
-gw_transition_prob_sparse <- function(model, action, start.state) {
-  a_i <- match(action, A(model))
-  start_i = match(start.state, S(model))
-  
-  # stay in place for unknown actions
-  if (is.na(a_i) || is.na(start_i)) {
-    warning("Unknown action", action, "or start state", start.state)
-    end_i <- start_i
-  }
-  
-  # absorbing states
-  else if (start.state %in% model$info$absorbing_states) {
-    end_i <- start_i
-  }
-  
-  else {
-    # move
-    rc <- gw_s2rc(start.state)
-    rc <- switch(a_i, rc + c(-1, 0), rc + c(0, +1), rc + c(+1, 0), rc + c(0, -1), )
-    
-    es <- gw_rc2s(rc)
-    end_i <- match(es, S(model))
-    
-    # stay in place if we would leave the gridworld
-    if (is.na(end_i)) {
-      end_i <- start_i
-    }
-  }
-  
-  return(sparseVector(
-    x = 1,
-    i = end_i,
-    length = length(S(model))
-  ))
+  list(path = path,
+       reward = reward,
+       solved = solved)
 }

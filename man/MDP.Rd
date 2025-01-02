@@ -8,7 +8,6 @@
 \alias{is_converged_MDP}
 \alias{P_}
 \alias{R_}
-\alias{epoch_to_episode}
 \title{Define an MDP Problem}
 \usage{
 MDP(
@@ -34,8 +33,6 @@ is_converged_MDP(model, stop = FALSE)
 P_(action = NA, start.state = NA, end.state = NA, probability)
 
 R_(action = NA, start.state = NA, end.state = NA, value)
-
-epoch_to_episode(model, epoch)
 }
 \arguments{
 \item{states}{a character vector specifying the names of the states.}
@@ -68,9 +65,6 @@ horizon.}
 \item{start.state, end.state}{state as a state label or an integer. The value \code{NA} matches any state.}
 
 \item{probability, value}{Values used in the helper functions \code{P_()} and \code{R_()}.}
-
-\item{epoch}{integer; an epoch that should be converted to the
-corresponding episode in a time-dependent MDP.}
 }
 \value{
 The function returns an object of class MDP which is list with

@@ -16,6 +16,7 @@ transition_matrix(
   end.state = NULL,
   ...,
   sparse = NULL,
+  drop = TRUE,
   simplify = FALSE,
   trans_keyword = TRUE
 )
@@ -27,6 +28,7 @@ reward_matrix(
   end.state = NULL,
   ...,
   sparse = NULL,
+  drop = TRUE,
   simplify = FALSE
 )
 
@@ -89,8 +91,9 @@ to make writing code easier.
 \code{transition_matrix()} accesses the transition model. The complete model
 is a list with one element for each action. Each element contains a states x states matrix
 with \eqn{s} (\code{start.state}) as rows and \eqn{s'} (\code{end.state}) as columns.
-Matrices with a density below 50\% can be requested in sparse format
-(as a \link[Matrix:dgCMatrix-class]{Matrix::dgCMatrix}).
+Matrices with a low density can be requested in sparse format
+(as a \link[Matrix:dgRMatrix-class]{Matrix::dgRMatrix}). It is recommended to load package \code{MatrixExtra}
+to work with sparse matrices.
 }
 
 \subsection{Reward \eqn{r(s,s',a)}}{

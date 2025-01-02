@@ -21,6 +21,7 @@ Imports:
     igraph,
     lpSolve,
     Matrix,
+    MatrixExtra,
     methods,
     progress,
     Rcpp,
@@ -84,6 +85,7 @@ Collate:
     'solve_MDP_MC.R'
     'solve_MDP_TD.R'
     'solve_MDP_sampling.R'
+    'sparse_helpers.R'
     'transition_graph.R'
     'unreachable_states.R'
     'value_function.R'

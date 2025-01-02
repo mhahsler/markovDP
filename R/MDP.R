@@ -388,32 +388,3 @@ R_ <-
       stringsAsFactors = FALSE
     )
   }
-
-#' @rdname MDP
-#' @param epoch integer; an epoch that should be converted to the
-#'              corresponding episode in a time-dependent MDP.
-#' @export
-epoch_to_episode <- function(model, epoch) {
-  UseMethod("epoch_to_episode")
-}
-
-#' @export
-epoch_to_episode.MDP <- function(model, epoch) {
-  if (is.null(epoch)) {
-    return(1L)
-  }
-
-  episode <- which(epoch <= cumsum(model$horizon))[1]
-  if (is.na(episode)) {
-    stop("Epoch does not exist")
-  }
-
-  # MDP
-  if (episode != 1) {
-    stop("MDPs do not support time dependence!")
-  }
-
-  episode
-}
-
-
