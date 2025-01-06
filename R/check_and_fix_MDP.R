@@ -52,14 +52,22 @@ check_and_fix_MDP <- function(x) {
       if (is.numeric(field[[i]])) {
         field[[i]] <- x$actions[field[[i]]]
       }
-      field[[i]] <- factor(field[[i]], levels = x$actions)
+      field[[i]] <- as.character(field[[i]])
+      
+      if (!all(field[[i]] %in% c(x$actions, NA)))
+        stop("Unknown action: ", field[[i]][!(field[[i]] %in% c(x$actions, NA))])
+      #field[[i]] <- factor(field[[i]], levels = x$actions)
     }
     
     for (i in grep("state", colnames(field))) {
       if (is.numeric(field[[i]])) {
         field[[i]] <- x$states[field[[i]]]
       }
-      field[[i]] <- factor(field[[i]], levels = x$states)
+      field[[i]] <- as.character(field[[i]])
+      
+      if (!all(field[[i]] %in% c(x$states, NA)))
+        stop("Unknown action: ", field[[i]][!(field[[i]] %in% c(x$states, NA))])
+      #field[[i]] <- factor(field[[i]], levels = x$states)
     }
     # for (i in grep("observation", colnames(field))) {
     #   if (is.numeric(field[[i]])) {

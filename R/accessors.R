@@ -147,6 +147,7 @@ start_vector <- function(model,
 #' @param start logical; convert the start probability distribution into a vector.
 #' @param sparse logical; use sparse matrix representation? `NULL` decides the representation
 #'    based on the memory it would take to store the faster dense representation.
+#' @param drop logical; drop matrices to vectors when one row/one column is selected.
 #' @param precompute_absorbing logical; should absorbing states be precalculated?
 #' @param check_and_fix logical; checks the structure of the problem description.
 #' @param progress logical; show a progress bar with estimated time for completion.
@@ -204,7 +205,7 @@ normalize_MDP <- function(model,
       sapply(
         A(model),
         FUN = function(a) {
-          tm <- transition_matrix(model, a, sparse = sparse)
+          tm <- transition_matrix(model, a, sparse = if (sparse) "sparse_no_labels" else FALSE)
           if (progress)
             pb$tick(n_states * n_states)
           tm
@@ -278,9 +279,9 @@ value_matrix <-
       
       # from data.frame
       else if (is.data.frame(value)) {
-        action <- .normalize_action_id(action, model)
-        row <- .normalize_state_id(row, model)
-        col <- .normalize_state_id(col, model)
+        action <- .normalize_action_label(action, model)
+        row <- .normalize_state_label(row, model)
+        col <- .normalize_state_label(col, model)
         m <- df2value(model, field, action, row, col, sparse, drop)
         return(m)
       }
@@ -357,9 +358,12 @@ function2value <- function(model,
     stop("Only single action allowed!")
   
   # we default to sparse here or the matrices may become to big
-  if (is.null(sparse) &&
-      length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
-    sparse <- TRUE
+  if (is.null(sparse)) {
+    if (length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
+      sparse <- TRUE
+    else 
+      sparse <- FALSE
+  }
   
   f <- model[[field]]
   
@@ -382,14 +386,8 @@ function2value <- function(model,
     return(V)
   }
   
-  # Convert to names
-  if (!is.null(row))
-    row <- as.character(row)
-  
-  ## do we have an end.state argument? (makes it 4 formal arguments)
+  # 4 formal arguments: with end.state ####
   if (length(formals(f)) == 4L) {
-    if (!is.null(col))
-      col <- as.character(col)
     
     # single value
     if (length(row) == 1L &&
@@ -406,7 +404,7 @@ function2value <- function(model,
       else {
         o <- rbind(o)
         rownames(o) <- row
-        o <- .sparsify(o, sparse = sparse)
+        o <- .sparsify(o, sparse = sparse, names = list(row, S(model)))
       }
       
       return(o)
@@ -421,8 +419,7 @@ function2value <- function(model,
         o <- .sparsify_vector(o, sparse = sparse, names = S(model))
       else {
         o <- cbind(o)
-        colnames(o) <- col
-        o <- .sparsify(o, sparse = sparse)
+        o <- .sparsify(o, sparse = sparse, names = list(S(model), col))
       }
       
       return(o)
@@ -463,14 +460,12 @@ function2value <- function(model,
       )
     }
     
-    dimnames(o) <- list(row, col)
-    
-    o <- .sparsify(o, sparse)
+    o <- .sparsify(o, sparse, names =  list(row, col))
     
     return(o)
     
   } else {
-    ## no end.state
+    # 3 formal arguments: no end.state ####
     # the function may return a
     # * dense probability vector
     # * a sparseVector
@@ -485,23 +480,31 @@ function2value <- function(model,
       return(as.numeric(f(model, action, row)[col]))
     }
     
-    # 1 row /no cols
-    if (length(row) == 1L &&  is.null(col)) {
+    # 1 row 
+    if (length(row) == 1L) {
       o <- f(model, action, row)
-      if (drop)
-        o <- .sparsify_vector(o, sparse = sparse, names = S(model))
-      else {
-        o <- rbind(o)
-        rownames(o) <- row
-        o <- .sparsify(o, sparse = sparse)
+      if (is.null(col)) {
+        if (drop)
+          return(.sparsify_vector(o, sparse = sparse, names = S(model)))
+        else {
+          o <- rbind(o)
+          rownames(o) <- row
+          return(.sparsify(o, sparse = sparse, names = list(row, S(model))))
+        }
+      } else {
+        o <- .sparsify_vector(o, sparse = FALSE, names = S(model))
+        o <- o[col]
+        if (drop)
+          return(.sparsify_vector(o, sparse = sparse, names = S(model)[col]))
+        else {
+          o <- rbind(o)
+          rownames(o) <- row
+          return(.sparsify(o, sparse = sparse, names = list(row, S(model)[col])))
+        }
       }
+    } 
       
-      return(o)
-    }
-   
-    # 1 col: No advantage for function with 2 arguments
-     
-    # no rows or specified rows / cols or no cols
+    # general case: > 1 row (incl. all rows) / cols or all cols
     if (is.null(row))
       row <- S(model)
     
@@ -527,46 +530,25 @@ function2value <- function(model,
         paste(sQuote(S(model)[which(lengths(o) != length(S(model)))]), collapse = ", ")
       )
     
-    # Matrix/MatrixExtra has issues with rbind!
+    # Matrix/MatrixExtra needs special rbind
     if (is(o[[1]], "sparseVector")) {
-      if (length(o) == 1L) {
-        o <- o[[1]]
-        
-        if (drop) {
-          if(!is.null(col))
-            o <- o[col]
-          o <- .sparsify_vector(o, sparse = sparse, names = S(model)[col])
-        } else {
-          o <- as.csr.matrix(o)[, col, drop = FALSE]
-        }
-        return(o)
-      }
-      #o <- Reduce(rbind2, o)
-      # rbind for dsparseVectors -> dgRMatrix
       o <- do.call(MatrixExtra::rbind_csr, o)
-      
-      # js <- unname(lapply(o, FUN = function(x) x@i))
-      # ps <- c(0L, cumsum(lengths(js)))
-      # js <- unlist(js) - 1L
-      # xs <- unlist(unname(lapply(o, FUN = function(x) x@x)))
-      # o <- new("dgRMatrix", j = js, p = ps, x = xs, Dim = 
-      #       c(length(o), length(S(model))))
     } else
-    o <- do.call("rbind", o)
+      o <- do.call("rbind", o)
   
-    dimnames(o) <- list(row, S(model))
-    
     if (!is.null(col)) {
-      o <- o[, col, drop = drop]
-      #colnames(o) <- S(model)[col]
-      if (length(col) == 1L)
-        o <- .sparsify_vector(o, sparse = sparse, names = row)
-    }
+      o <- o[, col, drop = FALSE]
+      if (length(col) == 1L && drop)
+        return(.sparsify_vector(o, sparse = sparse, names = row))
+      col <- S(model)[col]
+    } else
+      col <- S(model)
+    
+    o <- .sparsify(o, sparse = sparse, names = list(row, col))
     
     return(o)
   }
 }
-
 
 
 ### this just subsets the matrix list
@@ -607,13 +589,12 @@ matrix2value <-
         )
       )
       
-      dimnames(m) <- list(S(model), S(model))
-      
+      #dimnames(m) <- list(S(model), S(model))
     }
     
     ### whole matrix
     if (is.null(row) && is.null(col)) {
-      return(.sparsify(m, sparse = sparse))
+      return(.sparsify(m, sparse = sparse, names = list(S(model), S(model))))
     }
     
     # single value
@@ -626,7 +607,7 @@ matrix2value <-
       if (drop)
         m <- .sparsify_vector(m, sparse, names = S(model))
       else 
-        m <- .sparsify(m , sparse)
+        m <- .sparsify(m , sparse, names = list(S(model), S(model)[col]))
       return(m)
     }
     
@@ -637,7 +618,7 @@ matrix2value <-
       if (drop)
         m <- .sparsify_vector(m, sparse, names = S(model))
       else 
-        m <- .sparsify(m , sparse)
+        m <- .sparsify(m , sparse, names = list(S(model)[row], S(model)))
       return(m)
     }
     
@@ -647,7 +628,7 @@ matrix2value <-
     if (is.null(col))
       col <- seq_along(S(model))
     
-    return(.sparsify(m[row, col, drop = FALSE], sparse = sparse))
+    return(.sparsify(m[row, col, drop = FALSE], sparse = sparse, names = list(S(model)[row], S(model)[col])))
   }
 
 
@@ -668,11 +649,6 @@ df2value <-
     if (is.null(sparse))
       sparse <- length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT")
     
-    if (!is.null(row))
-      row <- as.integer(row)
-    if (!is.null(col))
-      col <- as.integer(col)
-    
     cols <- S(model)
     rows <- S(model)
     
@@ -680,11 +656,11 @@ df2value <-
     if (length(row) == 1L &&
         length(col) == 1L) {
       val <- df[[4L]][(is.na(df$action) |
-                         as.integer(df$action) == action) &
+                         df$action == action) &
                         (is.na(df[[2L]]) |
-                           as.integer(df[[2L]]) == row) &
+                           df[[2L]] == row) &
                         (is.na(df[[3L]]) |
-                           as.integer(df$end.state) == col)]
+                           df$end.state == col)]
       
       if (length(val) == 0L) {
         return(0)
@@ -739,12 +715,12 @@ df2value <-
     # return a row vector
     # TODO: do this more memory efficient for sparse = TRUE!
     if (is.null(col) && length(row) == 1L) {
-      df <- df[(is.na(df$action) | as.integer(df$action) == action) &
+      df <- df[(is.na(df$action) | df$action == action) &
                  (is.na(df[[2L]]) |
-                    as.integer(df[[2L]]) == row), , drop = FALSE]
+                    df[[2L]] == row), , drop = FALSE]
       
       value <- df[[4L]]
-      cs <- as.integer(df[[3L]])
+      cs <- df[[3L]]
       
       v <-
         setNames(numeric(length(cols)), cols)
@@ -777,12 +753,12 @@ df2value <-
     
     # return a col vector
     if (is.null(row) && length(col) == 1L) {
-      df <- df[(is.na(df$action) | as.integer(df$action) == action) &
+      df <- df[(is.na(df$action) | df$action == action) &
                  (is.na(df[[2L]]) |
-                    as.integer(df[[2L]]) == col), , drop = FALSE]
+                    df[[2L]] == col), , drop = FALSE]
       
       value <- df[[4L]]
-      rs <- as.integer(df[[2L]])
+      rs <- df[[2L]]
       
       v <-
         setNames(numeric(length(rows)), rows)
@@ -816,11 +792,11 @@ df2value <-
     # return the whole matrix or a submatrix there is no more drop!
     df <-
       df[(is.na(df$action) |
-            as.integer(df$action) == action), , drop = FALSE]
+            df$action == action), , drop = FALSE]
     
     value <- df[[4L]]
-    rs <- as.integer(df[[2L]])
-    cs <- as.integer(df[[3L]])
+    rs <- df[[2L]]
+    cs <- df[[3L]]
     
     ## TODO: Make this sparse for large matrices
     m <- matrix(

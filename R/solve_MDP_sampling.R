@@ -8,14 +8,32 @@ solve_MDP_sampling <-
            method = "q_planning",
            horizon = NULL,
            discount = NULL,
-           alpha = function(t, n) 1/n,
+           alpha = function(t, n) min(10/n, 1),
            n = 1000,
            Q = NULL,
+           matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
-           verbose = FALSE) {
-    if (verbose)
+           verbose = FALSE,
+           ...) {
+    .nodots(...)
+    
+    if (verbose > 1)
       progress <- FALSE
+    
+    if (matrix) {
+      if (verbose)
+        cat("Precomputing matrices for R and T ...")
+      model <- normalize_MDP(
+        model,
+        sparse = NULL,
+        precompute_absorbing = FALSE,
+        progress = progress
+      )
+      
+      if (verbose)
+        cat(" done.\n")
+    }
     
     PROGRESS_INTERVAL <- 100
     
@@ -87,6 +105,19 @@ solve_MDP_sampling <-
     if (progress)
       pb <- my_progress_bar(ceiling(n/PROGRESS_INTERVAL) + 1, name = "solve_MDP")
     
+    if (verbose) {
+      cat("Running q_planning (sampling)")
+      cat("\nalpha:       ", deparse(alpha))
+      cat("\nn:           ", n)
+      
+      cat("\nInitial Q (first 20 max):\n")
+      print(head(Q, n = 20))
+      
+      cat("\nInitial Q_N (first 20 max):\n")
+      print(head(Q_N, n = 20))
+      cat("\n")
+    }
+    
     # loop through tries
     t <- 0L
     while (t < n) {
@@ -113,14 +144,14 @@ solve_MDP_sampling <-
       if (is.function(alpha))
         alpha_val <- alpha(t, Q_N[s, a])
       
-      if (verbose) 
-        cat(s, "with", a, "(alpha:", signif(alpha_val, 3), ") Q:", signif(Q[s, a], 3))
+      if (verbose > 1) 
+        cat("update", t, ":", s, "with", a, ": Q", signif(Q[s, a], 3))
       
       Q[s, a] <-
         Q[s, a] + alpha_val * (r + gamma * max(Q[sp, ]) - Q[s, a])
     
-      if (verbose) 
-        cat(" ->", signif(Q[s, a], 3), "\n")
+      if (verbose > 1) 
+        cat(" ->", signif(Q[s, a], 3), "- alpha:", signif(alpha_val, 3), "\n")
       
     }
     

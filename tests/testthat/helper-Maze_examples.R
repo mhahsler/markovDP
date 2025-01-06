@@ -194,9 +194,6 @@ models_reward_function <- list(
   ff = Maze_reward_trans_function
   )
 
-# we test only one since the accessors are tested separately
-models_solve <- list(Maze_dense)
-
 name_models <- function(models)
   lapply(
     models,

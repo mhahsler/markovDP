@@ -1,10 +1,11 @@
 # absorbing states
 
-(s_abs <- Maze_orig$absorbing_states)
+data(Maze)
+models_solve <- list(Maze)
 
-# recalculate the known absorbing states using transition_prob
+s_abs <- c("s(1,4)", "s(2,4)")
 
-verbose <- FALSE
+verbose <- interactive()
 #verbose <- TRUE
 
 models_solve_no_chaching <- models_solve

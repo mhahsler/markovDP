@@ -35,6 +35,7 @@ solve_MDP_LP(
   discount = NULL,
   inf = 1000,
   verbose = FALSE,
+  lpSolve_args = list(),
   ...
 )
 
@@ -44,7 +45,6 @@ solve_MDP_MC(
   horizon = NULL,
   discount = NULL,
   n = 100,
-  ...,
   Q = NULL,
   epsilon = NULL,
   alpha = NULL,
@@ -52,7 +52,8 @@ solve_MDP_MC(
   matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 solve_MDP_TD(
@@ -60,15 +61,15 @@ solve_MDP_TD(
   method = "q_learning",
   horizon = NULL,
   discount = NULL,
-  alpha = function(t, n) 1/n,
-  alpha_expected_sarsa = 1,
+  alpha = function(t, n) min(10/n, 1),
   epsilon = 0.2,
   n = 1000,
   Q = 0,
   matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 
 solve_MDP_sampling(
@@ -76,12 +77,14 @@ solve_MDP_sampling(
   method = "q_planning",
   horizon = NULL,
   discount = NULL,
-  alpha = function(t, n) 1/n,
+  alpha = function(t, n) min(10/n, 1),
   n = 1000,
   Q = NULL,
+  matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{
@@ -131,25 +134,26 @@ but removes the time and memory requirements needed to calculate the matrices.}
 
 \item{progress}{logical; show a progress bar with estimated time for completion.}
 
-\item{verbose}{logical, if set to \code{TRUE}, the function provides the
-output of the solver in the R console.}
+\item{verbose}{logical or a numeric verbose level; if set to \code{TRUE} or \code{1}, the
+function displays the used algorithm parameters and progress information.
+Levels \verb{>1} provide more detailed solver output in the R console.}
 
 \item{inf}{value used for infinity when calling \code{lpSolve::lp()}. This
 should me much larger/smaller than the largest/smallest
 reward in the model.}
+
+\item{lpSolve_args}{a list with additional arguments passed on to \code{lpSolve::lp()}.}
 
 \item{Q}{a state-action value matrix.}
 
 \item{epsilon}{used for \eqn{\epsilon}-greedy policies.}
 
 \item{alpha}{step size as a function of the time step \code{t} and the number of times
-the respective Q-value was updated \code{n} or a scalar.}
+the respective Q-value was updated \code{n} or a scalar. For expected Sarsa, alpha is
+often set to 1.}
 
 \item{first_visit}{if \code{TRUE} then only the first visit of a state/action pair
 in an episode is used to update Q, otherwise, every-visit update is used.}
-
-\item{alpha_expected_sarsa}{step size for expected Sarsa defaults to 1. Can be
-a function like for \code{alpha}.}
 }
 \value{
 \code{solve_MDP()} returns an object of class MDP which is a list with the
@@ -171,6 +175,14 @@ state space MDPs.
 \details{
 Several solvers are available. Note that some solvers are only implemented
 for finite-horizon problems.
+
+Most solvers can be interrupted using Esc/CTRL-C and will return the
+current solution. Solving can be continued by calling \code{solve_MDP} with the
+partial solution as the model and the parameter \code{continue = TRUE}. This method
+can also be used to reduce parameters like \code{alpha} or \code{epsilon} (see Q-learning
+in the Examples section).
+
+Next, we describe the different types of available solvers.
 \subsection{Dynamic Programming}{
 
 Implemented are the following dynamic programming methods (following
@@ -322,7 +334,10 @@ chosen state using a randomly chooses action.
 \item \strong{On-policy Monte Carlo Control} learns an epsilon-greedy policy
 which it uses for behavior and as the target policy
 (on-policy learning). An epsilon-greedy policy is used to provide
-exploration.
+exploration. For calculating running averages, an update with \eqn{\alpha = 1/n}
+is used by default. A different update factor can be set using the parameter \code{alpha}
+as eighter a fixed value or a function with the signature \verb{function(t, n)}
+which returns the factor in the range \eqn{[0,1]}.
 \item \strong{Off-policy Monte Carlo Control} uses for behavior an arbitrary soft policy
 (a soft policy has in each state a probability greater than 0 for all
 possible actions).
@@ -343,7 +358,9 @@ for these reinforcement learning methods only to sample from
 the environment.
 The algorithms use a step size parameter \eqn{\alpha} (learning rate) for the
 updates and the exploration parameter \eqn{\epsilon} for
-the \eqn{\epsilon}-greedy behavior policy.
+the \eqn{\epsilon}-greedy behavior policy. The learning rate can be specified as a
+function with the signature \verb{function(t, n)}, where \code{t} is the number of episodes
+processed and \code{n} is the number of updates for the entry in the Q-table.
 
 If the model has absorbing states to terminate episodes, then no maximal episode length
 (\code{horizon}) needs to
@@ -427,13 +444,22 @@ policy_evaluation(Maze, policy(maze_solved), k_backup = 100)
 policy(maze_solved)
 
 # Learn a Policy using Q-Learning
-maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100, horizon = 100)
+maze_learned <- solve_MDP(Maze, method = "q_learning", 
+    epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
 maze_learned
 
-maze_learned$solution
 policy(maze_learned)
 plot_value_function(maze_learned)
 gw_plot(maze_learned)
+
+# Keep on learning, but with a reduced epsilon
+maze_learned <- solve_MDP(maze_learned, method = "q_learning",
+    epsilon = 0.01, n = 500, horizon = 100, continue = TRUE, verbose = TRUE)
+
+policy(maze_learned)
+plot_value_function(maze_learned)
+gw_plot(maze_learned)
+
 }
 \references{
 Andre, D., Friedman, N., and Parr, R. 1997. "Generalized prioritized sweeping." In Advances in Neural Information Processing Systems 10, pp. 1001-1007. \href{https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf}{NeurIPS Proceedings}

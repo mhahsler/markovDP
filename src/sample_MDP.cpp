@@ -76,7 +76,7 @@ List sample_MDP_cpp(const List& model,
   // n replications
   for (int i = 0; i < n; ++i) {
 #ifdef DEBUG 
-    Rcout << "--- Replication " << i << " ---\n";
+    Rcout << "--- Replication " << i + 1 << " ---\n";
 #endif
     rews[i] = 0.0;
     disc_pow = 1.0;
@@ -86,7 +86,7 @@ List sample_MDP_cpp(const List& model,
     // horizon epochs  
     for (int j = 0; j < horizon; ++j) {
 #ifdef DEBUG 
-      Rcout << "Epoch: " << j << "\n";
+      Rcout << "Epoch: " << j + 1 << "\n";
 #endif
       // find action (if we have no solution then take a random action) and update state and sample obs
      

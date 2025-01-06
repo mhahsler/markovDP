@@ -2,9 +2,8 @@
 
 #' @rdname solve_MDP
 #' @param alpha step size as a function of the time step `t` and the number of times
-#'   the respective Q-value was updated `n` or a scalar.
-#' @param alpha_expected_sarsa step size for expected Sarsa defaults to 1. Can be 
-#'  a function like for `alpha`.
+#'   the respective Q-value was updated `n` or a scalar. For expected Sarsa, alpha is 
+#'   often set to 1.
 #' @param epsilon used for \eqn{\epsilon}-greedy policies.
 #' @param n number of episodes used for learning.
 #' @param Q a state-action value matrix.
@@ -14,19 +13,21 @@ solve_MDP_TD <-
            method = "q_learning",
            horizon = NULL,
            discount = NULL,
-           alpha = function(t, n) 1/n,
-           alpha_expected_sarsa = 1,
+           alpha = function(t, n) min(10/n, 1),
            epsilon = 0.2,
            n = 1000,
            Q = 0,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
-           verbose = FALSE) {
+           verbose = FALSE,
+           ...) {
+    .nodots(...)
+    
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
     
-    if (verbose)
+    if (verbose > 1)
       progress <- FALSE
     
     if (is.null(horizon))
@@ -43,17 +44,15 @@ solve_MDP_TD <-
     }
     model$discount <- discount
    
-    if (method == "expected_sarsa" && !is.null(alpha_expected_sarsa))
-      alpha <- alpha_expected_sarsa
     if (!is.function(alpha))
       alpha_val <- alpha
      
     if (matrix) {
       if (verbose)
-        cat("Precomputing dense matrices for transitions and rewards ...")
+        cat("Precomputing matrices for transitions and rewards ...")
       model <- normalize_MDP(
         model,
-        sparse = FALSE,
+        sparse = NULL,
         precompute_absorbing = TRUE,
         progress = progress
       )
@@ -114,6 +113,19 @@ solve_MDP_TD <-
       return(model)
     })
     
+    if (verbose) {
+      cat("Running", method)
+      cat("\nalpha:            ", deparse(alpha))
+      cat("\nepsilon:          ", epsilon)
+      cat("\nn                 ", n, "\n")
+      
+      cat("\nInitial Q (first 20 max):\n")
+      print(head(Q, n = 20))
+      
+      cat("\nInitial Q_N (first 20 max):\n")
+      print(head(Q_N, n = 20))
+      cat("\n")
+    }
     
     # loop episodes
     e <- 0L
@@ -139,7 +151,7 @@ solve_MDP_TD <-
         r <- reward_matrix(model, a, s, s_prime)
         a_prime <- greedy_action(Q, s_prime, epsilon)
 
-        if (verbose) {
+        if (verbose > 1) {
           if (i == 1L) {
             cat("\n*** Episode", e, "***\n")
           }
@@ -177,7 +189,7 @@ solve_MDP_TD <-
           Q[s, a] <- -Inf
         }
         
-        if (verbose) {
+        if (verbose > 1) {
           cat(sprintf("%.3f (N: %i alpha: %.3f)\n", Q[s, a], Q_N[s,a], alpha_val))
         }
         

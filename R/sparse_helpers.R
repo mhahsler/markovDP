@@ -1,24 +1,40 @@
 
+
+
+
 # make a matrix sparse if it has low density
-.sparsify <- function(x, sparse = TRUE) {
-  # NULL means as is
-  if (is.null(sparse))
-    return(x)
-  
+.sparsify <- function(x, sparse = TRUE, names = NULL) {
   # we also keep special keywords
   if (is.character(x))
     return(x)
   
-  if (!sparse)
-      return(as.matrix(x))
-
+  # NULL means as is
+  if (is.null(sparse))
+    return(x)
   
+  if (is.logical(sparse)) {
+    if (is.null(dimnames(x)) || any(sapply(dimnames(x), is.null)))
+      dimnames(x) <- names
+    
+    if (!sparse)
+      return(as.matrix(x))
+    else 
+      return(as.csr.matrix(x))
+  }
+  
+  if (is.character(sparse))
+    sparse <- match.arg(sparse, c("sparse_no_labels"))
+ 
   x <- as.csr.matrix(x)
+  dimnames(x) <- NULL
   x
 }
 
 # accepts a sparse or dense vector or a matrix with one row or column
 .sparsify_vector <- function(x, sparse = TRUE, names = NULL) {
+  if (is.character(sparse))
+    sparse <- match.arg(sparse, c("states", "index", "sparse_no_labels"))
+  
   if (is.matrix(x))
     x <- drop(x)
   
@@ -36,37 +52,44 @@
   # NULL means as is
   if (is.null(sparse))
     return(x)
-  
+   
   if (is.logical(sparse)) {
     if (sparse)
       return(as.sparse.vector(x))
     else
       return(setNames(as(x, "vector"), names))
   }
-  
-  # state labels or indices
-  if (is.character(sparse)) {
-    sparse <- match.arg(sparse, c("states", "index"))
-    if (sparse == "states") {
-      if (is(x, "sparseVector")) {
-        if (is.null(names))
-          stop("state names needed to return states.")
-        # faster
-        #return(names[which(x > 0)])
-        return(names[x@i])
-      } else
-        return(names(x)[x > 0])
-    } else {
-      ### index
-      return(unname(which(x > 0)))
-    }
-  }
-  
-  stop("Unknown setting for sparse.")
+ 
+  switch(sparse, 
+         sparse_no_labels = as.sparse.vector(x),
+         
+         states =  {
+           if (is(x, "sparseVector")) {
+             if (is.null(names))
+               stop("state names needed to return states.")
+             # faster
+             #names[which(x > 0)]
+             names[x@i]
+           } else
+             names(x)[x > 0]
+         }, 
+         
+         index = unname(which(x > 0)), 
+        
+  )
 }
 
 
 # Translate a probability distribution like the start distribution in MDPs
+# Input options:
+# * dense/sparse vector
+# * dense matrix
+# * keyword "uniform"
+# * state names
+# * state ids
+# "-" + state ids to remove
+# * neg (removed) ids
+#
 .translate_distribution <- function(prob,
                                     state_labels,
                                     sparse = NULL,
@@ -226,7 +249,7 @@
 # * sparse = NULL -> as is
 # * sparse = TRUE -> lsparseVector
 # * sparse = FALSE -> logical vector
-# * sparse = "states" -> character vector 
+# * sparse = "states" -> character vector
 # * sparse = "index" -> integer vector
 #
 .translate_logical <- function(x, state_labels, sparse = NULL) {

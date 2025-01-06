@@ -211,8 +211,11 @@ NumericMatrix reward_matrix_MDP(const List& model, int action) {
   }
   
   if (is<DataFrame>(reward)) {
+    // Convert data.frame from char to indices
     DataFrame df = as<DataFrame>(reward);
-    IntegerVector actions = df[0], start_states = df[1], end_states = df[2];
+    IntegerVector actions = match((CharacterVector) df[0], get_actions(model)); 
+    IntegerVector start_states = match((CharacterVector) df[1], get_actions(model)); 
+    IntegerVector end_states = match((CharacterVector) df[2], get_actions(model)); 
     NumericVector values = df[3]; 
     
     NumericMatrix rew(get_states(model).size(), get_states(model).size());
@@ -221,7 +224,15 @@ NumericMatrix reward_matrix_MDP(const List& model, int action) {
       if(!(IntegerVector::is_na(actions[i]) || actions[i] == action))
         continue;
         
-      if(!IntegerVector::is_na(start_states[i]) && 
+      if(IntegerVector::is_na(start_states[i]) && IntegerVector::is_na(end_states[i])) {
+        int nrow = rew.nrow();
+        int ncol = rew.ncol();
+        for (int ii = 0; i < nrow; ii++) {
+          for (int jj = 0; jj < ncol; jj++) {
+            rew(ii, jj) = values[i];
+          }
+        }
+      } else if(!IntegerVector::is_na(start_states[i]) && 
          !IntegerVector::is_na(end_states[i])) {
         rew(start_states[i], end_states[i]) = values[i];
       } else if (!IntegerVector::is_na(start_states[i])) {
@@ -243,16 +254,11 @@ NumericMatrix reward_matrix_MDP(const List& model, int action) {
 }
 
 
-// Note: R_index does not apply to episode!!!
 // Note: Lists don't use observations (observations) use observation = 0!
 double reward_val_MDP(const List& model, int action, 
-                         int start_state, int end_state,
-                         int episode, bool R_index) {
+                         int start_state, int end_state) {
   RObject reward = model["reward"];
   RObject acts;
-  
-  if (episode >= 0)
-    reward = as<List>(reward)[episode];
   
   if (is<Function>(reward)) {
     return as<double>(R_reward_matrix(model, action + 1, start_state + 1,
@@ -260,14 +266,12 @@ double reward_val_MDP(const List& model, int action,
   }
   
   if (is<DataFrame>(reward)) {
-    // factors in the data.frame are 1-based!!!
-    if (!R_index) {
-      action++; start_state++; end_state++;
-    }
     
+    // Convert data.frame from char to indices
     DataFrame df = as<DataFrame>(reward);
-    // find the best matching entry
-    IntegerVector actions = df[0], start_states = df[1], end_states = df[2];
+    IntegerVector actions = match((CharacterVector) df[0], get_actions(model)); 
+    IntegerVector start_states = match((CharacterVector) df[1], get_states(model)); 
+    IntegerVector end_states = match((CharacterVector) df[2], get_states(model)); 
     NumericVector values = df[3]; 
     
     for (auto i = df.nrows()-1; i >= 0; --i) {

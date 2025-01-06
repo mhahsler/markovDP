@@ -18,7 +18,7 @@ public:
   
   // constructor
   dgRMatrix(S4 mat) {
-    i = mat.slot("i");
+    i = mat.slot("j");
     p = mat.slot("p");
     x = mat.slot("x");
     Dim = mat.slot("Dim");

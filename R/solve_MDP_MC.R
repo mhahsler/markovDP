@@ -10,7 +10,6 @@ solve_MDP_MC <-
            horizon = NULL,
            discount = NULL,
            n = 100,
-           ...,
            Q = NULL,
            epsilon = NULL,
            alpha = NULL,
@@ -18,7 +17,8 @@ solve_MDP_MC <-
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
-           verbose = FALSE) {
+           verbose = FALSE,
+           ...) {
     method <-
       match.arg(method,
                 c("MC_exploring_starts", "MC_on_policy", "MC_off_policy"))
@@ -51,10 +51,10 @@ solve_MDP_MC <-
     
     if (matrix) {
       if (verbose)
-        cat("Precomputing dense matrices for R and T ...")
+        cat("Precomputing matrices for R and T ...")
       model <- normalize_MDP(
         model,
-        sparse = FALSE,
+        sparse = NULL,
         precompute_absorbing = TRUE,
         progress = progress
       )
@@ -74,7 +74,7 @@ solve_MDP_MC <-
         Q,
         exploring_starts = TRUE,
         epsilon = epsilon,
-        alpha = alpha,
+        alpha = alpha %||% function(t, n) 1/n,
         first_visit = first_visit,
         progress = progress,
         verbose = verbose,
@@ -89,7 +89,7 @@ solve_MDP_MC <-
         Q,
         exploring_starts = FALSE,
         epsilon = epsilon,
-        alpha = alpha,
+        alpha = alpha %||% function(t, n) 1/n,
         first_visit = first_visit,
         progress = progress,
         verbose = verbose,
@@ -120,10 +120,13 @@ MC_on_policy <- function(model,
                          Q = NULL,
                          exploring_starts,
                          epsilon = NULL,
-                         alpha = NULL,
+                         alpha = function(t, n) 1/n,
                          first_visit = TRUE,
                          progress = TRUE,
-                         verbose = FALSE) {
+                         verbose = FALSE,
+                         ...) {
+  .nodots(...)
+  
   ## exploring starts: Learns a greedy policy. In order to still keep exploring it uses the
   ## idea of exploring starts: All state-action pairs have a non-zero
   ## probability of being selected as the start of an episode.
@@ -140,10 +143,11 @@ MC_on_policy <- function(model,
     epsilon <- epsilon %||% .2
   }
   
+  if (!is.function(alpha))
+    alpha_val <- alpha
+  
   S <- S(model)
   A <- A(model)
-  
-  alpha_param <- alpha
   
   # Start with arbitrary policy, we make it soft by specifying epsilon
   # in the simulation.
@@ -166,8 +170,8 @@ MC_on_policy <- function(model,
   }
   
   if (verbose) {
-    cat("Running MC_on_policy\n")
-    cat("\nalpha:            ", alpha %||% "1/N")
+    cat("Running MC_on_policy")
+    cat("\nalpha:            ", deparse(alpha))
     cat("\nepsilon:          ", epsilon)
     cat("\nexploring starts: ", exploring_starts, "\n")
     
@@ -235,7 +239,7 @@ MC_on_policy <- function(model,
       verbose = FALSE
     )$trajectories
     
-    if (verbose) {
+    if (verbose > 1) {
       cat(paste(
         "\n****************** Episode",
         e,
@@ -259,7 +263,7 @@ MC_on_policy <- function(model,
                a_t == ep$a[1:(i - 1L)])))
         next
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0(
           "Update at step ",
           i,
@@ -273,34 +277,36 @@ MC_on_policy <- function(model,
         ))
       
       # running average instead of averaging Returns lists.
-      # Q <- Q + 1/n (G - Q) ... 1/n is alpha
+      # Q <- Q + 1/n (G - Q) ... default alpha is 1/n
       Q_N[s_t, a_t] <- Q_N[s_t, a_t] + 1L
       
-      if (is.null(alpha_param))
-        alpha <- 1 / Q_N[s_t, a_t]
+      # we use number of episode for t
+      if (is.function(alpha))
+        #alpha_val <- alpha(t, Q_N[s_t, a_t])
+        alpha_val <- alpha(e, Q_N[s_t, a_t])
       
       err <- G - Q[s_t, a_t]
       if (!is.nan(err))
-        Q[s_t, a_t] <- Q[s_t, a_t] + alpha * (err)
+        Q[s_t, a_t] <- Q[s_t, a_t] + alpha_val * (err)
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0(
           " -> ",
           round(Q[s_t, a_t], 3),
           " (G = ",
           round(G, 3),
           "; alpha = ",
-          signif(alpha, 3),
+          signif(alpha_val, 3),
           ")\n"
         ))
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
       
       # the simulation takes care of the epsilon
       pi$action[s_t] <- greedy_action(Q, s_t)
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0(" -> ", pi[s_t, "action"], "\n"))
       
     }
@@ -322,7 +328,9 @@ MC_off_policy <- function(model,
                           progress = TRUE,
                           verbose = FALSE,
                           ...) {
-  ## Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
+  .nodots(...)
+  
+  # Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
   ## (RL book, Chapter 5)
   
   if (!is.null(alpha))
@@ -353,7 +361,7 @@ MC_off_policy <- function(model,
   # cumulative sum of the weights W used in incremental updates
   
   if (verbose) {
-    cat("Running MC_off_policy\n")
+    cat("Running MC_off_policy")
     
     cat("\nepsilon: ", epsilon, "\n")
     
@@ -424,7 +432,7 @@ MC_off_policy <- function(model,
       verbose = FALSE
     )$trajectories
     
-    if (verbose) {
+    if (verbose > 1) {
       cat(paste(
         "\n****************** Episode",
         e,
@@ -442,7 +450,7 @@ MC_off_policy <- function(model,
       s_t <- ep$s[i]
       a_t <- ep$a[i]
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0(
           "Update at step ",
           i,
@@ -461,7 +469,7 @@ MC_off_policy <- function(model,
       C[s_t, a_t] <- C[s_t, a_t] + W
       Q[s_t, a_t] <- Q[s_t, a_t] + (W / C[s_t, a_t]) * (G - Q[s_t, a_t])
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0(
           " -> ",
           round(Q[s_t, a_t], 3),
@@ -472,19 +480,19 @@ MC_off_policy <- function(model,
           ")\n"
         ))
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
       
       pi$action[s_t] <- greedy_action(Q, s_t)
       
-      if (verbose)
+      if (verbose > 1)
         cat(paste0(" -> ", pi[s_t, "action"], "\n"))
       
       # the algorithm can only learn from the tail of the episode where b
       # also used the greedy actions in pi. The method is inefficient and
       # cannot use all the data!
       if (a_t != pi$action[s_t]) {
-        if (verbose)
+        if (verbose > 1)
           cat("Break: a_t is not the greedy action.\n")
         break
       }

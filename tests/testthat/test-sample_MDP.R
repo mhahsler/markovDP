@@ -10,6 +10,9 @@ verb <- FALSE
 #    (i.e., an epsilon-soft policy with epsilon = 1).
 # add some solved models where sample used the optimal policy
 
+data(Maze)
+models_solve <- list(Maze)
+
 Maze_sparse_sol <- solve_MDP(Maze_sparse)
 Maze_function2_sol <- solve_MDP(Maze_function2)  ### will fallback to R
 

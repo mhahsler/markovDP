@@ -186,19 +186,20 @@ gw_init <-
       }
     ))
     
-    # translate unreachable
     # TODO: remove all Matrix::which(...) once matrix implements the subsetting
-    if (!is.null(blocked_states))
-      blocked_states <- S[Matrix::which(.translate_distribution(blocked_states, S) > 0)]
-    if (!is.null(absorbing_states))
-      absorbing_states <- S[Matrix::which(.translate_distribution(absorbing_states, S) > 0)]
     # translate start/goal
     if (!is.null(goal))
       goal <- S[Matrix::which(.translate_distribution(goal, S) > 0)]
     if (!is.null(start))
       start <- S[Matrix::which(.translate_distribution(start, S) > 0)]
+    # translate unreachable
+    if (!is.null(blocked_states)) {
+      blocked_states <- S[Matrix::which(.translate_distribution(blocked_states, S) > 0)]
+      blocked_states <- setdiff(blocked_states, c(start, goal))
+    } else
+      blocke_states <- character(0)
     
-    S <- setdiff(S, setdiff(blocked_states, c(start, goal)))
+    S <- setdiff(S, blocked_states)
      
     # Build reward data.frame to make unavailable action a reward of -Inf
     R <- R_(value = 0)
@@ -235,23 +236,25 @@ gw_init <-
     state_labels[start] <- "Start"
     state_labels[goal] <- "Goal"
     
-    list(
+    l <- list(
       states = S,
       actions = actions,
       transition_prob = gw_transition_prob,
       reward = R,
       start = start,
-      absorbing_states = absorbing_states,
       info = list(
         gridworld = TRUE,
         dim = dim,
         start = start,
         goal = goal,
-        absorbing_states = absorbing_states,
         state_labels = state_labels
       )
     )
     
+    l$absorbing_states <- .normalize_state_label(absorbing_states, S)
+    l$info$absorbing_states <- .normalize_state_label(absorbing_states, S)
+    
+    l
   }
 
 
@@ -519,12 +522,12 @@ gw_plot <-
         actions,
         character = as.character(factor(
           g$actions,
-          levels = c("up", "right", "down", "left"),
+          levels = model$actions,
           labels = c("^", ">", "v", "<")
         )),
         unicode = as.character(factor(
           g$actions,
-          levels = c("up", "right", "down", "left"),
+          levels = model$actions,
           labels = c("\U2191", "\U2192", "\U2193", "\U2190")
         )),
         label = g$actions,
@@ -936,6 +939,7 @@ gw_maze_MDP <- function(dim,
   }
   
   model$absorbing_states <- gw$absorbing_states
+
   
   if (normalize) {
     model <- normalize_MDP(model)
@@ -953,37 +957,20 @@ gw_random_maze <- function(dim,
                                   start = NULL,
                                   goal = NULL,
                                   normalize = FALSE) {
-  if (is.null(start))
-    start <- 1
-  else if (is.character(start))
-    start <- sapply(
-      start,
-      FUN = function(s) {
-        rc <- gw_s2rc(s)
-        (rc[2] - 1) * m + (rc[1] - 1) + 1
-      }
-    )
-  
   n <- dim[1]
   m <- dim[2]
   if (is.na(m))
     m <- n
   
+  if (is.null(start))
+    start <- "s(1,1)"
+    
   if (is.null(goal))
-    goal <- n * m
-  else if (is.character(goal))
-    goal <- sapply(
-      goal,
-      FUN = function(s) {
-        rc <- gw_s2rc(s)
-        (rc[2] - 1) * m + (rc[1] - 1) + 1
-      }
-    )
+    goal <- paste0("s(", n, ",", m, ")")
   
   make_maze <- function() {
     # random walls (cannot be start or goal)
     walls <- sort(sample(seq(n * m), size = n * m * wall_prob))
-    walls <- setdiff(walls, c(start, goal)) 
     
     maze <- gw_maze_MDP(
       dim = c(n, m),

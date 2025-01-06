@@ -36,9 +36,8 @@ solve_MDP_DP <- function(model,
     stop("'model' needs to be of class 'MDP'.")
   }
   
-  if (verbose)
+  if (verbose > 1)
     progress <- FALSE
-  
 
   methods <- c("value_iteration",
                "policy_iteration",
@@ -72,10 +71,10 @@ solve_MDP_DP <- function(model,
   
   if (matrix) {
     if (verbose)
-      cat("Precomputing dense matrices for R and T ...")
+      cat("Precomputing matrices for R and T ...")
     model <- normalize_MDP(
       model,
-      sparse = FALSE,
+      sparse = NULL,
       precompute_absorbing = FALSE,
       progress = progress
     )
@@ -201,6 +200,8 @@ MDP_value_iteration_finite_horizon <-
            progress = TRUE,
            verbose = FALSE,
            ...) {
+    .nodots(...)
+    
     if (!inherits(model, "MDP")) {
       stop("'model' needs to be of class 'MDP'.")
     }
@@ -216,11 +217,20 @@ MDP_value_iteration_finite_horizon <-
     if (is.null(V)) 
       V <- V_zero(model)
     
+    if (verbose) {
+      cat("Running value iteration (finite horizon)")
+      cat("\nhorizon: ", horizon)
+      cat("\nInitial V (first 20 max):\n")
+      print(head(V, n = 20))
+      
+      cat("\n")
+    }
+    
     for (t in seq(horizon, 1)) {
       if (progress)
         pb$tick()
       
-      if (verbose) {
+      if (verbose > 1) {
         cat("Iteration for t = ", t, "\n")
       }
       
@@ -246,6 +256,8 @@ MDP_value_iteration_inf_horizon <-
            progress = TRUE,
            verbose = FALSE,
            ...) {
+    .nodots(...)
+    
     if (verbose)
       progress <- FALSE
     
@@ -288,7 +300,7 @@ MDP_value_iteration_inf_horizon <-
       } 
       
       if (verbose) {
-        cat("\nTerminated during iteration:", i, "\n")
+        cat("Terminated at iteration:", i, "\n")
       }
       
       model$solution <- list(
@@ -300,6 +312,16 @@ MDP_value_iteration_inf_horizon <-
       )
       return(model)
     })
+   
+    if (verbose) {
+      cat("Running value iteration (infinite horizon)")
+      cat("\nerror for convergence:  ", error) 
+      cat("\nn (max iterations):     ", n) 
+      cat("\nInitial V (first 20 max):\n")
+      print(head(V, n = 20))
+      
+      cat("\n")
+    } 
     
     converged <- FALSE
     delta <- Inf
@@ -310,7 +332,7 @@ MDP_value_iteration_inf_horizon <-
                     signif(delta, 3), "/", signif(convergence_limit, 3)
                   )))
       
-      if (verbose && !progress) {
+      if (verbose > 1) {
         cat("Iteration:", i)
       }
       
@@ -321,8 +343,8 @@ MDP_value_iteration_inf_horizon <-
       delta <- max(abs(V_prime - V))
       V <- V_prime
       
-      if (verbose && !progress) {
-        cat(" -> delta:", delta, "\n")
+      if (verbose > 1) {
+        cat("\t -> delta:", delta, "\n")
       }
       
       if (delta <= convergence_limit) {
@@ -348,27 +370,24 @@ MDP_PS_inf_horizon <-
            n = 1000L,
            V = NULL,
            H_update = "GenPS",
+           use_n_times_states = TRUE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
+    .nodots(...)
+    
     S <- S(model)
     A <- A(model)
     discount <- model$discount
     
-    n <- as.integer(n * length(S))
+    if (use_n_times_states)
+      n <- as.integer(n * length(S))
+    
     if (is.na(n))
       stop("n * |S| is >", .Machine$integer.max, "! Reduce n.")
      
-    if (verbose) {
+    if (verbose > 1) 
       progress <- FALSE
-      
-      cat(
-        "Prioritized sweeping",
-        "\nMax number of state updates is n * |S|:",
-        n,
-        "\n"
-      )
-    }
     
     i <- 0L
     
@@ -396,22 +415,11 @@ MDP_PS_inf_horizon <-
     # needs initialization
     if (is.null(H)) {
       if (H_update == "PS_random") {
-        if (verbose)
-          cat(H_update, ":",
-              "Initializing H randomly.\n"
-          )
         pi <- as.integer(random_policy(model)$action)
         H <- runif(length(S)) + 1e-6 + error
         Q <- NULL
       } else {   ### GenPS or PS_error
         i <- i + length(S)
-        if (verbose)
-          cat(
-            H_update, ":",
-            "Initializing H using a complete sweep (Bellman update) using",
-            i,
-            "state updates\n"
-          )
         VQpi <- bellman_update(model, V)
         pi <- as.integer(VQpi$pi)
         
@@ -470,6 +478,17 @@ MDP_PS_inf_horizon <-
       return(model)
     })
     
+    if (verbose) {
+      cat("Running prioritized sweeping")
+      cat("\nH_update:              ", H_update) 
+      cat("\nerror for convergence: ", error) 
+      cat("\nn (max updates):       ", n) 
+      cat("\nInitial V (first 20 max):\n")
+      print(head(V, n = 20))
+      
+      cat("\n")
+    } 
+    
     err <- sum(H)
     delta <- Inf
     converged <- FALSE
@@ -482,7 +501,7 @@ MDP_PS_inf_horizon <-
       # update state with highest priority (error) next
       s_t <- which.max.random(H)
       
-      if (verbose)
+      if (verbose > 1)
         cat(i, "  updating state", s_t, sQuote(S[s_t]), "| action", pi[s_t], "-> ")
       
       ### do Bellman update for a single state
@@ -492,7 +511,7 @@ MDP_PS_inf_horizon <-
       V_prime <- V_prime$V
       delta <- V_prime - V[s_t]
       
-      if (verbose)
+      if (verbose > 1)
         cat(pi[s_t], "| V ", signif(V[s_t], 3), "->", V_prime, "\n")
       
       V[s_t] <- V_prime
@@ -567,7 +586,7 @@ MDP_PS_inf_horizon <-
       
       err <- max(H)
       
-      if (verbose) {
+      if (verbose > 1) {
         cat(
           "    updating H for states:",
           paste(s_update, sQuote(S[s_update]), "->", signif(H[s_update], 3), collapse = ", "),
@@ -596,6 +615,8 @@ MDP_policy_iteration_inf_horizon <-
            progress = TRUE,
            verbose = FALSE,
            ...) {
+    .nodots(...)
+    
     if (progress) {
       pb <- my_progress_spinner(
         name = "solve_MDP",
@@ -640,7 +661,7 @@ MDP_policy_iteration_inf_horizon <-
       } 
       
       if (verbose) {
-        cat("\nTerminated during iteration:", i, "\n")
+        cat("\nTerminated at iteration:", i, "\n")
       }
       
       model$solution <- list(
@@ -652,6 +673,16 @@ MDP_policy_iteration_inf_horizon <-
       
       return(model)
     })
+    
+    if (verbose) {
+      cat("Running policy iteration (infinite horizon)")
+      cat("\nn (max updates):       ", n) 
+      cat("\nk_backups:             ", k_backups) 
+      cat("\nInitial V (first 20 max):\n")
+      print(head(V, n = 20))
+      
+      cat("\n")
+    } 
     
     changed_actions <- length(S(model))
     converged <- FALSE
@@ -679,7 +710,7 @@ MDP_policy_iteration_inf_horizon <-
       # account for random tie breaking using Q
       changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
       
-      if (verbose)
+      if (verbose > 1)
         cat(i, "| # of updated actions ", changed_actions, "\n")
       
       if (changed_actions == 0) {

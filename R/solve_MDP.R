@@ -7,6 +7,14 @@
 #'
 #' Several solvers are available. Note that some solvers are only implemented
 #' for finite-horizon problems.
+#' 
+#' Most solvers can be interrupted using Esc/CTRL-C and will return the 
+#' current solution. Solving can be continued by calling `solve_MDP` with the 
+#' partial solution as the model and the parameter `continue = TRUE`. This method 
+#' can also be used to reduce parameters like `alpha` or `epsilon` (see Q-learning
+#' in the Examples section).  
+#' 
+#' Next, we describe the different types of available solvers.
 #'
 #' ## Dynamic Programming
 #'
@@ -156,7 +164,10 @@
 #' * **On-policy Monte Carlo Control** learns an epsilon-greedy policy
 #' which it uses for behavior and as the target policy
 #' (on-policy learning). An epsilon-greedy policy is used to provide 
-#' exploration.  
+#' exploration. For calculating running averages, an update with \eqn{\alpha = 1/n}
+#' is used by default. A different update factor can be set using the parameter `alpha`
+#' as eighter a fixed value or a function with the signature `function(t, n)` 
+#' which returns the factor in the range \eqn{[0,1]}.
 #'
 #' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary soft policy
 #' (a soft policy has in each state a probability greater than 0 for all 
@@ -176,7 +187,9 @@
 #' the environment.
 #' The algorithms use a step size parameter \eqn{\alpha} (learning rate) for the
 #' updates and the exploration parameter \eqn{\epsilon} for
-#' the \eqn{\epsilon}-greedy behavior policy.
+#' the \eqn{\epsilon}-greedy behavior policy. The learning rate can be specified as a 
+#' function with the signature `function(t, n)`, where `t` is the number of episodes 
+#' processed and `n` is the number of updates for the entry in the Q-table. 
 #'
 #' If the model has absorbing states to terminate episodes, then no maximal episode length
 #' (`horizon`) needs to
@@ -229,8 +242,9 @@
 #' @param discount discount factor in range \eqn{(0, 1]}. If `NULL`, then the
 #'   discount factor specified in `model` will be used.
 #' @param progress logical; show a progress bar with estimated time for completion.
-#' @param verbose logical, if set to `TRUE`, the function provides the
-#'   output of the solver in the R console.
+#' @param verbose logical or a numeric verbose level; if set to `TRUE` or `1`, the 
+#'   function displays the used algorithm parameters and progress information. 
+#'   Levels `>1` provide more detailed solver output in the R console.
 #' @param ... further parameters are passed on to the solver function.
 #'
 #' @return `solve_MDP()` returns an object of class MDP which is a list with the
@@ -321,13 +335,22 @@
 #' policy(maze_solved)
 #'
 #' # Learn a Policy using Q-Learning
-#' maze_learned <- solve_MDP(Maze, method = "q_learning", n = 100, horizon = 100)
+#' maze_learned <- solve_MDP(Maze, method = "q_learning", 
+#'     epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
 #' maze_learned
 #'
-#' maze_learned$solution
 #' policy(maze_learned)
 #' plot_value_function(maze_learned)
 #' gw_plot(maze_learned)
+#' 
+#' # Keep on learning, but with a reduced epsilon
+#' maze_learned <- solve_MDP(maze_learned, method = "q_learning",
+#'     epsilon = 0.01, n = 500, horizon = 100, continue = TRUE, verbose = TRUE)
+#' 
+#' policy(maze_learned)
+#' plot_value_function(maze_learned)
+#' gw_plot(maze_learned)
+#' 
 #' @export
 solve_MDP <- function(model, method = "value_iteration", ...) {
   if (!inherits(model, "MDP")) {

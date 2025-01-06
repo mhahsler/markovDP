@@ -9,7 +9,7 @@
 #' @importFrom MatrixExtra as.csr.matrix as.sparse.vector
 #' @importFrom methods as is new
 #' @importFrom stats setNames
-#' @importFrom utils head tail read.table type.convert
+#' @importFrom utils head tail read.table type.convert object.size
 #' @importFrom foreach foreach times %do% %dopar% getDoParWorkers
 #' @useDynLib markovDP, .registration=TRUE
 "_PACKAGE"

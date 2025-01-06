@@ -10,7 +10,7 @@
 #                       Example: Maze_function2, Maze_reward_trans_function
 
 ### Full matrix
-# sparse = NULL
+# sparse = NULL (as is)
 (r_orig <- reward_matrix(Maze_orig, sparse = NULL))
 expect_equal(r_orig[[1]], R1_non_zero)
 
@@ -46,6 +46,7 @@ expect_equal(r_func, r_all_func)
 (r_dense <- reward_matrix(Maze_dense, sparse = TRUE))
 (r_sparse <- reward_matrix(Maze_sparse, sparse = TRUE))
 expect_s4_class(r_sparse[[1]], "dgRMatrix")
+expect_equal(dimnames(r_sparse[[1]]), list(S(Maze_sparse), S(Maze_sparse)))
 expect_equal(as.matrix(r_sparse[[1]]), R1_non_zero)
 expect_equal(r_sparse, r_dense)
 expect_equal(r_sparse, r_orig)
@@ -53,8 +54,20 @@ expect_equal(r_sparse, r_orig)
 (r_func <- reward_matrix(Maze_function2, sparse = TRUE))
 (r_all_func <- reward_matrix(Maze_reward_trans_function, sparse = TRUE))
 expect_s4_class(r_func[[1]], "dgRMatrix")
+expect_equal(dimnames(r_func[[1]]), list(S(Maze_sparse), S(Maze_sparse)))
 expect_equal(as.matrix(r_func[[1]]), R1_full)
 expect_equal(r_func, r_all_func)
+
+
+# sparse = "sparse" (no dimnames)
+(r_orig <- reward_matrix(Maze_orig, sparse = "sparse"))
+(r_dense <- reward_matrix(Maze_dense, sparse = "sparse"))
+(r_sparse <- reward_matrix(Maze_sparse, sparse = "sparse"))
+expect_s4_class(r_sparse[[1]], "dgRMatrix")
+expect_equal(dimnames(r_sparse[[1]]), list(NULL, NULL))
+expect_equal(as.matrix(r_sparse[[1]]), unname(R1_non_zero))
+expect_equal(r_sparse, r_dense)
+expect_equal(r_sparse, r_orig)
 
 ### just action is too simple to test
 

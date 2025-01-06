@@ -123,24 +123,19 @@ unreachable_states.MDP <- function(model,
 #' @export
 remove_unreachable_states <- function(model, ...) {
   # Use dense because we need a named vector!
-  reachable <-  which(!unreachable_states(model, 
-                                    sparse = FALSE))
+  unreachable <-  unreachable_states(model, sparse = "index")
   
-  if (length(reachable) == length(S(model))) {
+  if (length(unreachable) == 0L) {
     model$unreachable <- character(0)
     return(model)
   }
   
-  # remove states from a list of matrices or a data.frame
-  keep_states <- function(field, states) {
+  # remove states (ids) from a list of matrices or a data.frame
+  remove_states <- function(field, states) {
     if (is.data.frame(field)) {
       field <-
-        field[field$start.state %in% c(NA, names(states)) |
-                field$end.state %in% c(NA, names(states)), , drop = FALSE]
-      field$start.state <-
-        factor(as.character(field$start.state), levels = names(states))
-      field$end.state <-
-        factor(as.character(field$end.state), levels = names(states))
+        field[!(field$start.state %in% S(model)[states] |
+                field$end.state %in% S(model)[states]), , drop = FALSE]
     } else if (is.function(field)) {
       # do nothing
     } else {
@@ -151,7 +146,7 @@ remove_unreachable_states <- function(model, ...) {
           FUN = function(m) {
             if (!is.character(m)) {
               ### strings like "uniform"
-              m <- m[states, states, drop = FALSE]
+              m <- m[-states, -states, drop = FALSE]
             }
             m
           }
@@ -165,7 +160,7 @@ remove_unreachable_states <- function(model, ...) {
   if (is.numeric(model$start) || is(model$start, "sparseVector")) {
     if (length(model$start) == length(S(model))) {
       ### prob vector
-      model$start <- model$start[reachable]
+      model$start <- model$start[-unreachable]
       if (!sum1(model$start)) {
         stop(
           "Probabilities for reachable states do not sum up to one! An unreachable state had a non-zero probability."
@@ -173,27 +168,28 @@ remove_unreachable_states <- function(model, ...) {
       }
     } else {
       ### state ids... we translate to state names and use code below!
-      model$start <- S(model)[model$start]
+      model$start <- setdiff(model$start, unreachable)
     }
   }
   if (is.character(model$start)) {
     if (model$start == "uniform") {
       # do nothing
     } else {
-      model$start <- intersect(model$start, S(model)[reachable])
+      model$start <- setdiff(model$start, S(model)[unreachable])
     }
     if (length(model$start) == 0L) {
       stop("Start state is not reachable.")
     }
   }
   
-  model$states <- model$states[reachable]
-  model$transition_prob <- keep_states(model$transition_prob, reachable)
-  model$reward <- keep_states(model$reward, reachable)
-  
   # update reachable and unreachable
   if (!is.null(model$absorbing_states))
-    model$absorbing_states <- interaction(absorbing_states(model, sparse = "states"), names(reachable))
+    model$absorbing_states <- setdiff(absorbing_states(model, sparse = "states"), S(model)[unreachable])
+  
+  model$states <- model$states[-unreachable]
+  model$transition_prob <- remove_states(model$transition_prob, unreachable)
+  model$reward <- remove_states(model$reward, unreachable)
+  
   
   # just check
   check_and_fix_MDP(model)

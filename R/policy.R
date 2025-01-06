@@ -256,7 +256,11 @@ induced_transition_matrix <- function(model, policy = NULL, epoch = 1L, sparse =
   if (is.data.frame(policy))
     policy <- policy$action
     
-  P <- t(sapply(seq_along(S(model)), FUN = function(s) transition_matrix(model, policy[s], s)))
+  P <- sapply(seq_along(S(model)), FUN = function(s) transition_matrix(model, policy[s], s))
+  if (is.list(P) && is(P[[1]], "sparseVector"))
+    P <- do.call(MatrixExtra::rbind_csr, P)
+  else
+    P <- t(P)
   dimnames(P) <- list(S(model), S(model))
  
   P <- .sparsify(P, sparse)

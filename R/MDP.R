@@ -240,6 +240,17 @@ print.MDP <- function(x, ...) {
     length(x$actions)
   ))
 
+  s_type <- function(field) {
+    if (is.function(field)) "function"
+    else if (is.data.frame(field)) "data.frame"
+    else class(field[[1L]])[1L]
+  }
+  
+  writeLines(sprintf(
+    "  Storage: transition prob as %s / reward as %s. Total size: %s", 
+      s_type(x$transition_prob), s_type(x$reward), format(object.size(x), units = "auto")
+  ))
+  
   writeLines(paste0("  Start: ", shorten(paste(
     x$start,
     collapse = ", "

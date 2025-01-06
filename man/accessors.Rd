@@ -57,6 +57,8 @@ normalize_MDP(
 \item{sparse}{logical; use sparse matrix representation? \code{NULL} decides the representation
 based on the memory it would take to store the faster dense representation.}
 
+\item{drop}{logical; drop matrices to vectors when one row/one column is selected.}
+
 \item{simplify}{logical; try to simplify action lists into a vector or matrix?}
 
 \item{trans_keyword}{logical; translate keywords like "uniform" into matrices.}
