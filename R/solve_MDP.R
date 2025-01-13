@@ -185,9 +185,11 @@
 #' Note that the MDP transition and reward models are used
 #' for these reinforcement learning methods only to sample from
 #' the environment.
-#' The algorithms use a step size parameter \eqn{\alpha} (learning rate) for the
-#' updates and the exploration parameter \eqn{\epsilon} for
-#' the \eqn{\epsilon}-greedy behavior policy. The learning rate can be specified as a 
+#' 
+#' The implementation uses an \eqn{\epsilon}-greedy behavior policy,
+#' where the parameter `epsilon` controls the degree of exploration. 
+#' The algorithms use a step size parameter \eqn{\alpha} (learning rate). 
+#' The learning rate `alpha` can be specified as a 
 #' function with the signature `function(t, n)`, where `t` is the number of episodes 
 #' processed and `n` is the number of updates for the entry in the Q-table. 
 #'
@@ -202,14 +204,24 @@
 #'    policy.
 #'
 #' * **Sarsa** (Rummery and Niranjan 1994) is an on-policy method that follows and learns
-#'    an \eqn{\epsilon}-greedy policy. The final \eqn{\epsilon}-greedy policy
-#'    is converted into a greedy policy.
+#'    the same policy. Here a an \eqn{\epsilon}-greedy policy is used. 
+#'    The final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
+#'    \eqn{\epsilon} can be lowered over time (see parameter `continue`) 
+#'    to learn a greedy policy.
 #'
-#' * **Expected Sarsa** (R. S. Sutton and Barto 2018). We implement an on-policy version that uses
+#' * **Expected Sarsa** (R. S. Sutton and Barto 2018). We implement an on-policy 
+#'   Sarsa with an \eqn{\epsilon}-greedy policy which uses the
 #'   the expected value under the current policy for the update.
 #'   It moves deterministically in the same direction as Sarsa would
-#'   move in expectation. Because it uses the expectation, we can
+#'   move in expectation. 
+#'   
+#'   Because it uses the expectation, we can
 #'   set the step size \eqn{\alpha} to large values and 1 is common.
+#'   The off-policy use of expected Sarsa simplifies to 
+#'   the Q-learning algorithm.  
+#'   
+#'   
+#'   
 #'
 #' ## Planning by Sampling
 #'

@@ -48,16 +48,9 @@ solve_MDP_DP <- function(model,
   method <- match.arg(method, methods)
   
   ### default is infinite horizon
-  if (!is.null(horizon)) {
-    model$horizon <- horizon
-  }
-  if (is.null(model$horizon)) {
-    model$horizon <- Inf
-  }
+  model$horizon <- horizon %||% model$horizon %||% Inf
   
-  if (!is.null(discount)) {
-    model$discount <- discount
-  }
+  model$discount <- discount %||% model$discount
   if (is.null(model$discount)) {
     message("No discount rate specified. Using .9 for the infinite horizon problem!")
     model$discount <- .9

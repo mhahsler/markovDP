@@ -30,18 +30,17 @@
 #' @export
 act <- function(model, state, action = NULL, ...) {
   # follow the policy in the model?
-  if (is.null(action)) 
-    action <- action(model, state, ...)
+  action <- action %||% action(model, state, ...)
   
-  S <- S(model)
-  sp <- sample.int(length(S), 
+  action <- .normalize_action(action, model)
+  state <- .normalize_state(state, model)
+  
+  sp <- sample.int(length(S(model)), 
                    1L, 
                    prob = transition_matrix(model, action, state, 
                                             sparse = FALSE))
-  action <- .normalize_action(action, model)
-  state <- .normalize_state(state, model)
-  sp <- .normalize_state(sp, model)
   
+  sp <- .normalize_state(sp, model)
   r <-  reward_matrix(model, action, state, sp)
   
   list(old_state = state,
@@ -50,3 +49,16 @@ act <- function(model, state, action = NULL, ...) {
        state = sp)
 }
 
+# faster without conversions
+.act_int <- function(model, state, action, ...) {
+  sp <- sample.int(length(S(model)), 
+                   1L, 
+                   prob = transition_matrix(model, action, state, 
+                                            sparse = FALSE))
+
+  r <-  reward_matrix(model, action, state, sp)
+  list(old_state = state,
+       action = action,
+       reward =  r,
+       state = sp)
+}

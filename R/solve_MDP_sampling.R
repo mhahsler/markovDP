@@ -43,14 +43,9 @@ solve_MDP_sampling <-
     if (!is.null(horizon))
       warning("q_planning does not use horizon. The specified horizon is ignored.")
     
-    if (is.null(discount)) {
-      discount <- model$discount
-    }
-    if (is.null(discount)) {
-      discount <- 1
-    }
-    gamma <- discount
+    discount <- discount %||% model$discount %||% 1
     model$discount <- discount
+    gamma <- discount
     
     S <- S(model)
     A <- A(model)
@@ -58,7 +53,6 @@ solve_MDP_sampling <-
     
     method <-
       match.arg(method, c("q_planning"))
-    
     
     # Initialize Q
     if (continue) {

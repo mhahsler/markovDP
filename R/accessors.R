@@ -16,7 +16,7 @@
 #' with \eqn{s} (`start.state`) as rows and \eqn{s'} (`end.state`) as columns.
 #' Matrices with a low density can be requested in sparse format
 #' (as a [Matrix::dgRMatrix-class]). It is recommended to load package `MatrixExtra`
-#' to work with sparse matrices. 
+#' to work with sparse matrices.
 #'
 #' ## Reward \eqn{r(s,s',a)}
 #'
@@ -164,8 +164,7 @@ normalize_MDP <- function(model,
     stop("model is not an MDP object!")
   }
   
-  if (is.null(sparse))
-    sparse <- length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT")
+  sparse <- sparse %||% (length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
   if (!is.logical(sparse) || length(sparse) != 1L)
     stop("sparse needs to be a NULL or a logical scalar.")
   
@@ -205,7 +204,10 @@ normalize_MDP <- function(model,
       sapply(
         A(model),
         FUN = function(a) {
-          tm <- transition_matrix(model, a, sparse = if (sparse) "sparse_no_labels" else FALSE)
+          tm <- transition_matrix(model, a, sparse = if (sparse)
+            "sparse_no_labels"
+            else
+              FALSE)
           if (progress)
             pb$tick(n_states * n_states)
           tm
@@ -251,16 +253,26 @@ value_matrix <-
            simplify = FALSE,
            trans_keyword = TRUE) {
     if (is.null(action))
-        action <- A(model)
-    if(!is.character(action)) 
-        action <- .normalize_action_label(action, model)
-      
+      action <- A(model)
+    if (!is.character(action))
+      action <- .normalize_action_label(action, model)
+    
     # multiple actions
     if (length(action) > 1L) {
       m <- sapply(
         action,
         FUN = function(a)
-          value_matrix(model, field, a, row, col, sparse, drop, simplify, trans_keyword),
+          value_matrix(
+            model,
+            field,
+            a,
+            row,
+            col,
+            sparse,
+            drop,
+            simplify,
+            trans_keyword
+          ),
         simplify = FALSE,
         USE.NAMES = TRUE
       )
@@ -353,7 +365,6 @@ function2value <- function(model,
                            col = NULL,
                            sparse = NULL,
                            drop = TRUE) {
-  
   if (length(action) != 1L)
     stop("Only single action allowed!")
   
@@ -361,7 +372,7 @@ function2value <- function(model,
   if (is.null(sparse)) {
     if (length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
       sparse <- TRUE
-    else 
+    else
       sparse <- FALSE
   }
   
@@ -388,7 +399,6 @@ function2value <- function(model,
   
   # 4 formal arguments: with end.state ####
   if (length(formals(f)) == 4L) {
-    
     # single value
     if (length(row) == 1L &&
         length(col) == 1L) {
@@ -480,7 +490,7 @@ function2value <- function(model,
       return(as.numeric(f(model, action, row)[col]))
     }
     
-    # 1 row 
+    # 1 row
     if (length(row) == 1L) {
       o <- f(model, action, row)
       if (is.null(col)) {
@@ -502,8 +512,8 @@ function2value <- function(model,
           return(.sparsify(o, sparse = sparse, names = list(row, S(model)[col])))
         }
       }
-    } 
-      
+    }
+    
     # general case: > 1 row (incl. all rows) / cols or all cols
     if (is.null(row))
       row <- S(model)
@@ -519,7 +529,7 @@ function2value <- function(model,
                                 SIMPLIFY = FALSE)
     
     o <- .f_wrapper_vec(f, model, action, row, sparse)
-     
+    
     if (any(lengths(o) != length(S(model))))
       stop(
         "Function for ",
@@ -535,7 +545,7 @@ function2value <- function(model,
       o <- do.call(MatrixExtra::rbind_csr, o)
     } else
       o <- do.call("rbind", o)
-  
+    
     if (!is.null(col)) {
       o <- o[, col, drop = FALSE]
       if (length(col) == 1L && drop)
@@ -606,7 +616,7 @@ matrix2value <-
       m <- m[, col, drop = drop]
       if (drop)
         m <- .sparsify_vector(m, sparse, names = S(model))
-      else 
+      else
         m <- .sparsify(m , sparse, names = list(S(model), S(model)[col]))
       return(m)
     }
@@ -617,16 +627,14 @@ matrix2value <-
       m <- m[row, , drop = drop]
       if (drop)
         m <- .sparsify_vector(m, sparse, names = S(model))
-      else 
+      else
         m <- .sparsify(m , sparse, names = list(S(model)[row], S(model)))
       return(m)
     }
     
     # submatrix (no drop)
-    if (is.null(row))
-      row <- seq_along(S(model))
-    if (is.null(col))
-      col <- seq_along(S(model))
+    row <- row %||% seq_along(S(model))
+    col <- col %||% seq_along(S(model))
     
     return(.sparsify(m[row, col, drop = FALSE], sparse = sparse, names = list(S(model)[row], S(model)[col])))
   }
@@ -642,12 +650,11 @@ df2value <-
            drop = TRUE) {
     if (length(action) != 1L)
       stop("Only single action allowed!")
-   
+    
     df <- model[[field]]
     
     # we default to sparse for larger models
-    if (is.null(sparse))
-      sparse <- length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT")
+    sparse <- sparse %||% (length(S(model))^2 * length(A(model)) > getOption("MDP_SPARSE_LIMIT"))
     
     cols <- S(model)
     rows <- S(model)

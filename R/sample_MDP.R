@@ -102,14 +102,10 @@ sample_MDP <-
            ...) {
     .nodots(...)
     
-    if (is.null(engine)) {
-      if (is.function(model$transition_prob) ||
-          is.function(model$reward))
-        engine <- "r"
-      else 
-        engine <- "cpp"
-    }
-    
+    engine <- engine %||% ifelse(is.function(model$transition_prob) ||
+                                   is.function(model$reward),
+                                 "r",
+                                 "cpp")
     engine <- match.arg(tolower(engine), c("cpp", "r"))
     
     solved <- is_solved_MDP(model)
@@ -124,9 +120,8 @@ sample_MDP <-
     
     start <- start_vector(model, start = start, sparse = FALSE)
     
-    if (is.null(horizon)) {
-      horizon <- model$horizon
-    }
+    
+    horizon <- horizon %||% model$horizon
     if (is.null(horizon) || is.infinite(horizon)) {
       if (!is.null(model$discount) && model$discount < 1) {
         # find a horizon that approximates the reward using
@@ -134,30 +129,25 @@ sample_MDP <-
         max_abs_R <- max(abs(.reward_range(model)))
         horizon <-
           ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
-      } else { 
+      } else {
         horizon <- length(S(model)) * length(A(model))
-        warning("Simulation for undiscounted problems need a finite simulation horizon.\n",
-                "Using a maximum horizon of |S| x |A| = ", horizon, " to avoid infinite loops.")
+        warning(
+          "Simulation for undiscounted problems need a finite simulation horizon.\n",
+          "Using a maximum horizon of |S| x |A| = ",
+          horizon,
+          " to avoid infinite loops."
+        )
       }
     }
     horizon <- as.integer(horizon)
     
-    if (is.null(epsilon)) {
-      if (!solved) {
-        epsilon <- 1
-      } else {
-        epsilon <- 0
-      }
-    }
+    epsilon <- epsilon %||% ifelse(solved, 0, 1)
     
     if (!solved && epsilon != 1) {
       stop("epsilon has to be 1 for unsolved models.")
     }
     
-    disc <- model$discount
-    if (is.null(disc)) {
-      disc <- 1
-    }
+    disc <- model$discount %||% 1
     
     if (engine == "cpp") {
       if (foreach::getDoParWorkers() == 1 || n * horizon < 100000) {
@@ -319,7 +309,7 @@ sample_MDP <-
         # rew <- rew + rew_m[[a]][[s_prev]][s] * disc ^ (j - 1L)
         # MDPs have no observation!
         r <- reward_matrix(model, a, s_prev, s)
-        rew <- rew + r * disc ^ (j - 1L)
+        rew <- rew + r * disc^(j - 1L)
         
         if (trajectories) {
           trajectory[j, ] <-
@@ -369,6 +359,6 @@ sample_MDP <-
     )
     samp$avg_episode_length = sum(samp$state_cnt) / n
     
-    return(samp)  
+    return(samp)
     
-}
+  }

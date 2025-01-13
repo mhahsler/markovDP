@@ -67,8 +67,7 @@ visit_probability <- function(model, pi = NULL, start = NULL, method = "power", 
   }
 
 visit_probability_power <- function(model, pi = NULL, start = NULL, max_err = 1e-6, sparse = FALSE) {
-  if (is.null(pi))
-    pi <- policy(model)
+  pi <- pi %||% policy(model)
   
   start <- start_vector(model, start = start, sparse = FALSE)
   

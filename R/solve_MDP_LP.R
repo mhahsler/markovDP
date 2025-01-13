@@ -3,8 +3,8 @@
 # For any given state, we have the assumption that the state's true value is:
 # V^*(s) = r + \gamma \max_{a \in A}\sum_{s' \in S} P(s' | s,a) \cdot V^*(s')
 #
-# The non-linear max operation can be rewritten as a minimization with a
-# linear inequality.
+# The non-linear max operation can be rewritten as a minimization with a set of
+# linear inequalities.
 #
 # min \sum_{s\in S} V(s)
 # s.t.
@@ -32,23 +32,15 @@ solve_MDP_LP <- function(model,
   # method is always "lp" and ignored
   
   ### horizon and discount rate
-  if (!is.null(horizon)) {
-    model$horizon <- horizon
-  }
-  if (is.null(model$horizon)) {
-    model$horizon <- Inf
+  model$horizon <- horizon %||% model$horizon %||% Inf
+  if (is.finite(model$horizon)) {
+    stop("method 'lp' can only be used for infinite horizon problems.")
   }
   
-  if (!is.null(discount)) {
-    model$discount <- discount
-  }
+  model$discount <- discount %||% model$discount
   if (is.null(model$discount)) {
     message("No discount factor specified. Using .9!")
     model$discount <- .9
-  }
-  
-  if (is.finite(model$horizon)) {
-    stop("method 'lp' can only be used for infinite horizon problems.")
   }
   
   gamma <- model$discount

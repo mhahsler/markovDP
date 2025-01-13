@@ -24,23 +24,17 @@ solve_MDP_MC <-
                 c("MC_exploring_starts", "MC_on_policy", "MC_off_policy"))
     
     ### default is infinite horizon, but we use 1000 to guarantee termination
-    if (is.null(horizon)) {
-      horizon <- model$horizon
-    }
-    if (is.null(horizon) || is.infinite(horizon)) {
+    model$horizon <- horizon <- horizon %||% model$horizon  %||% Inf
+    
+    if (is.infinite(horizon)) {
       warning(
         "No finite horizon defined. Using a maximum horizon of 1000 to guarantee termination. Specify horizon to remove this warning."
       )
       model$horizon <- horizon <- 1000
     }
     
-    if (is.null(discount)) {
-      discount <- model$discount
-    }
-    if (is.null(discount)) {
-      discount <- 1
-    }
-    model$discount <- discount
+    model$discount <- discount <- discount %||% model$discount %||% 1
+    
     
     # Initialize Q
     if (continue) {
