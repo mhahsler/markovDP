@@ -261,8 +261,8 @@ MC_on_policy <- function(model,
         cat(paste0(
           "Update at step ",
           i,
-          ":\n",
-          "  - Q(",
+          ":",
+          " Q(",
           s_t,
           ", ",
           a_t,
@@ -270,8 +270,9 @@ MC_on_policy <- function(model,
           round(Q[s_t, a_t], 3)
         ))
       
+      # Q <- avg(Returns)
       # running average instead of averaging Returns lists.
-      # Q <- Q + 1/n (G - Q) ... default alpha is 1/n
+      # Q <- Q + alpha (G - Q) ... default alpha is 1/n
       Q_N[s_t, a_t] <- Q_N[s_t, a_t] + 1L
       
       # we use number of episode for t
@@ -291,11 +292,11 @@ MC_on_policy <- function(model,
           round(G, 3),
           "; alpha = ",
           signif(alpha_val, 3),
-          ")\n"
+          ")"
         ))
       
       if (verbose > 1)
-        cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
+        cat(paste0("; pi(", s_t, "): ", pi[s_t, "action"]))
       
       # the simulation takes care of the epsilon
       pi$action[s_t] <- greedy_action(Q, s_t)
@@ -448,8 +449,8 @@ MC_off_policy <- function(model,
         cat(paste0(
           "Update at step ",
           i,
-          ":\n",
-          "  - Q(",
+          ":",
+          " Q(",
           s_t,
           ", ",
           a_t,
@@ -471,11 +472,11 @@ MC_off_policy <- function(model,
           round(G, 3),
           "; W/C = ",
           signif(W / C[s_t, a_t], 3),
-          ")\n"
+          ");"
         ))
       
       if (verbose > 1)
-        cat(paste0("  - pi(", s_t, "): ", pi[s_t, "action"]))
+        cat(paste0(" pi(", s_t, "): ", pi[s_t, "action"]))
       
       pi$action[s_t] <- greedy_action(Q, s_t)
       

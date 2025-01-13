@@ -7,6 +7,7 @@
 \alias{solve_MDP_LP}
 \alias{solve_MDP_MC}
 \alias{solve_MDP_TD}
+\alias{solve_MDP_TD_n_step}
 \alias{solve_MDP_sampling}
 \title{Solve an MDP Problem}
 \usage{
@@ -72,6 +73,23 @@ solve_MDP_TD(
   ...
 )
 
+solve_MDP_TD_n_step(
+  model,
+  method = "n_step_sarsa_on_policy",
+  horizon = NULL,
+  discount = NULL,
+  alpha = function(t, n) min(10/n, 1),
+  n_step = 1,
+  epsilon = 0.2,
+  n = 1000,
+  Q = 0,
+  matrix = TRUE,
+  continue = FALSE,
+  progress = TRUE,
+  verbose = FALSE,
+  ...
+)
+
 solve_MDP_sampling(
   model,
   method = "q_planning",
@@ -97,6 +115,8 @@ solve_MDP_sampling(
 \code{'q_learning'},
 \code{'sarsa'},
 \code{'expected_sarsa'},
+\code{'n_step_SARSA_on_policy'},
+\code{'n_step_SARSA_off_policy'},
 \code{'MC_exploring_starts'},
 \code{'MC_on_policy'},
 \verb{'MC_off_policy', }'q_planning'`.}
@@ -154,6 +174,8 @@ often set to 1.}
 
 \item{first_visit}{if \code{TRUE} then only the first visit of a state/action pair
 in an episode is used to update Q, otherwise, every-visit update is used.}
+
+\item{n_step}{integer; steps for bootstrapping}
 }
 \value{
 \code{solve_MDP()} returns an object of class MDP which is a list with the
@@ -336,7 +358,7 @@ which it uses for behavior and as the target policy
 (on-policy learning). An epsilon-greedy policy is used to provide
 exploration. For calculating running averages, an update with \eqn{\alpha = 1/n}
 is used by default. A different update factor can be set using the parameter \code{alpha}
-as eighter a fixed value or a function with the signature \verb{function(t, n)}
+as either a fixed value or a function with the signature \verb{function(t, n)}
 which returns the factor in the range \eqn{[0,1]}.
 \item \strong{Off-policy Monte Carlo Control} uses for behavior an arbitrary soft policy
 (a soft policy has in each state a probability greater than 0 for all
@@ -364,6 +386,13 @@ The learning rate \code{alpha} can be specified as a
 function with the signature \verb{function(t, n)}, where \code{t} is the number of episodes
 processed and \code{n} is the number of updates for the entry in the Q-table.
 
+The general update is
+\deqn{
+Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha [G_t - Q(S_t,A_t)],
+}
+where \eqn{G_t} is the target estimate for the given q-value. The different methods below
+estimate the target value differently.
+
 If the model has absorbing states to terminate episodes, then no maximal episode length
 (\code{horizon}) needs to
 be specified. To make sure that the algorithm does finish in a reasonable amount of time,
@@ -372,22 +401,36 @@ the episode length has to be specified via \code{horizon}.
 \itemize{
 \item \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
-policy.
+policy. The target value is estimated as the one-step bootstrapping using the
+target greedy policy:
+\deqn{G_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a)}
 \item \strong{Sarsa} (Rummery and Niranjan 1994) is an on-policy method that follows and learns
 the same policy. Here a an \eqn{\epsilon}-greedy policy is used.
 The final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
 \eqn{\epsilon} can be lowered over time (see parameter \code{continue})
-to learn a greedy policy.
+to learn a greedy policy. The target is estimated
+as the one-step bootstrapping following the behavior policy:
+\deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
 \item \strong{Expected Sarsa} (R. S. Sutton and Barto 2018). We implement an on-policy
 Sarsa with an \eqn{\epsilon}-greedy policy which uses the
 the expected value under the current policy for the update.
 It moves deterministically in the same direction as Sarsa would
 move in expectation.
+\deqn{G_t = R_{t+1} + \gamma \sum_a \pi(a|S_{t+1})Q(S_{t+1}, a)}
 
 Because it uses the expectation, we can
 set the step size \eqn{\alpha} to large values and 1 is common.
 The off-policy use of expected Sarsa simplifies to
 the Q-learning algorithm.
+\item \strong{On and off-policy n-step Sarsa} (R. S. Sutton and Barto 2018).
+Estimate the return using the last \eqn{n} timesteps:
+\deqn{
+  G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
+  }
+
+This estimate is used as the target for Sarsa. For the off-policy case,
+the update uses the importance sampling ratio. Note that updates are delayed
+\eqn{n} steps in this backward looking algorithm.
 }
 }
 
