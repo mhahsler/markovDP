@@ -1,6 +1,73 @@
 # Solve MDPs using Temporal Differencing
 
 #' @rdname solve_MDP
+#' @details
+#' ## Temporal Difference Control
+#'
+#' Implemented are several temporal difference control methods
+#' described in Sutton and Barto (2020).
+#' Note that the MDP transition and reward models are used
+#' for these reinforcement learning methods only to sample from
+#' the environment.
+#' 
+#' The implementation uses an \eqn{\epsilon}-greedy behavior policy,
+#' where the parameter `epsilon` controls the degree of exploration. 
+#' The algorithms use a step size parameter \eqn{\alpha} (learning rate). 
+#' The learning rate `alpha` can be specified as a 
+#' function with the signature `function(t, n)`, where `t` is the number of episodes 
+#' processed and `n` is the number of updates for the entry in the Q-table. 
+#' 
+#' The general update is
+#' \deqn{
+#' Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha [G_t - Q(S_t,A_t)],
+#' }
+#' where \eqn{G_t} is the target estimate for the given q-value. The different methods below
+#' estimate the target value differently.
+#'
+#' If the model has absorbing states to terminate episodes, then no maximal episode length
+#' (`horizon`) needs to
+#' be specified. To make sure that the algorithm does finish in a reasonable amount of time,
+#' episodes are stopped after 1000 actions (with a warning). For models without absorbing states,
+#' the episode length has to be specified via `horizon`.
+#'
+#' * **Q-Learning** (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
+#'    an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
+#'    policy. The target value is estimated as the one-step bootstrapping using the 
+#'    target greedy policy: 
+#'    \deqn{G_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a)}
+#'
+#' * **Sarsa** (Rummery and Niranjan 1994) is an on-policy method that follows and learns
+#'    the same policy. Here a an \eqn{\epsilon}-greedy policy is used. 
+#'    The final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
+#'    \eqn{\epsilon} can be lowered over time (see parameter `continue`) 
+#'    to learn a greedy policy. The target is estimated 
+#'    as the one-step bootstrapping following the behavior policy:
+#'    \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
+#'    
+#'
+#' * **Expected Sarsa** (R. S. Sutton and Barto 2018). We implement an on-policy 
+#'   Sarsa with an \eqn{\epsilon}-greedy policy which uses the
+#'   the expected value under the current policy for the update.
+#'   It moves deterministically in the same direction as Sarsa would
+#'   move in expectation. 
+#'   \deqn{G_t = R_{t+1} + \gamma \sum_a \pi(a|S_{t+1})Q(S_{t+1}, a)}
+#'   
+#'   
+#'   Because it uses the expectation, we can
+#'   set the step size \eqn{\alpha} to large values and 1 is common.
+#'   The off-policy use of expected Sarsa simplifies to 
+#'   the Q-learning algorithm.  
+#'   
+#' * **On and off-policy n-step Sarsa** (R. S. Sutton and Barto 2018).
+#'   Estimate the return using the last \eqn{n} timesteps:
+#'   \deqn{
+#'   G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
+#'   }
+#'
+#'   This estimate is used as the target for Sarsa. For the off-policy case,
+#'   the update uses the importance sampling ratio. Note that updates are delayed 
+#'   \eqn{n} steps in this backward looking algorithm.
+#' 
 #' @param alpha step size as a function of the time step `t` and the number of times
 #'   the respective Q-value was updated `n` or a scalar. For expected Sarsa, alpha is
 #'   often set to 1.

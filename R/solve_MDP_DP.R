@@ -1,6 +1,97 @@
 # Solve MDPs using Dynamic Programming (Value and policy iteration)
 
 #' @rdname solve_MDP
+#' @details
+#' ## Dynamic Programming
+#'
+#' Implemented are the following dynamic programming methods (following
+#' Russell and Norvig, 2010):
+#'
+#' * **(Modified) Policy Iteration** (Howard 1960; Puterman and Shin 1978)
+#' starts with a random policy and iteratively performs
+#' a sequence of
+#'   1. (Approximate) policy evaluation to estimate the value function for the
+#'      current policy. Iterative policy evaluation can be approximated by 
+#'      stopping early after `k_backups` iterations 
+#'      (see [`policy_evaluation()`]. In this case the algorithm is called 
+#'      _modified_ policy iteration.
+#'   2. Policy improvement is performed by updating the policy to be greedy 
+#'      (see [`greedy_policy()`])
+#'      with respect to the new value function.
+#' The algorithm stops when it converges to a stable policy (i.e., no changes
+#' between two iterations). Note that the policy typically stabilizes before 
+#' the value function converges. 
+#'
+#' * **Value Iteration** (Bellman 1957) starts with
+#'   an arbitrary value function (by default all 0s) and iteratively
+#'   updates the value function for each state using the Bellman update 
+#'   equation (see [`bellman_update()`]).
+#'   
+#'   \deqn{v(s) \leftarrow \max_{a \in \mathcal{A}(s)} \sum_{s'} p(s' | s,a) [r(s,a, s') + \gamma v(s')]}
+#'   
+#'   The iteration
+#'   is terminated when the solution converges or the maximum of `n` iterations
+#'   has been reached.
+#'   Approximate convergence is achieved
+#'   for discounted problems (with \eqn{\gamma < 1})
+#'   when the maximal value function change for any state \eqn{\delta} is
+#'   \deqn{\delta \le \frac{error (1-\gamma)}{\gamma}.}
+#'   It can be shown that this means
+#'   that no state value is more than
+#'   \eqn{error} from the value in the optimal value function. For undiscounted
+#'   problems, we use \eqn{\delta \le error}.
+#'
+#'   A greedy policy
+#'   is extracted from the final value function. Value iteration can be seen as
+#'   policy iteration with policy evaluation truncated to one step.
+#'
+#' * **Prioritized Sweeping** (Moore and Atkeson, 1993; Andre et al., 1997; Li and Littman, 2008)
+#'   approximate the optimal value
+#'   function by iteratively adjusting one state at a time. While value and policy iteration
+#'   sweep in every iteration through all states, prioritized sweeping 
+#'   updates states in the order given by their priority.
+#'   The priority reflects how much a state value may change
+#'   given the most recently updated other states that can be directly reached via an action.
+#'   This update order often lead to faster convergence compared
+#'   to sweeping the whole state space in regular value iteration.
+#'
+#'   We implement the two priority update strategies described as __PS__ and
+#'   __GenPS__ by Li and Littman.
+#'
+#'   * __PS__ (Moore and Atkeson, 1993) updates the priority of a state \eqn{H(s)}
+#'      using:
+#'      \deqn{
+#'        \forall{s \in \mathcal{S}}: H_{t+1}(s)  \leftarrow \begin{cases}
+#'          \max(H_{t}(s), \Delta_t \max_{a \in \mathcal{A}}(p(s_t|s,a)) \text{ for } s \ne s_{t+1} \\
+#'          \Delta_t \max_{a \in A}(p(s_t|s,a) \text{ for } s = s_{t+1}
+#'          \end{cases}
+#'      }
+#'
+#'      where \eqn{\Delta_t = |V_{t+1}(s_t) - V_t(s_t)| = |E(s_t; V_{t+1})|}, i.e.,
+#'      the Bellman error for the updated state.
+#'
+#'   * __GenPS__ (Andre et al., 1997) updates all state priorities using their
+#'      current Bellman error:
+#'
+#'      \deqn{\forall{s \in \mathcal{S}}: H_{t+1}(s) \leftarrow |E(s; V_{t+1})|}
+#'
+#'      where \eqn{E(s; V_{t+1}) = \max_{a \in A} \left[R(s,a) + \gamma \sum_{s \in S} p(s'|s,a) V(s')\right] - V(s)}
+#'      is a state's Bellman error.
+#'
+#'   The update method can be chosen using the additional parameter `H_update`
+#'   as the character string `"PS_random"`, `"PS_error"` or `"GenPS"`.
+#'   The default is `H_update = "GenPS"`. For PS, random means that the
+#'   priority vector is initialized with random values (larger than 0),
+#'   and error means they are initialized with the Bellman error as in
+#'   GenPS. However, this requires one complete sweep over all states.
+#'
+#'   This implementation stops updating when the largest priority values
+#'   over all states is less than the specified `error`.
+#'
+#'   Since the algorithm does not sweep through the whole state space for each
+#'   iteration, `n` is converted into an equivalent number of state updates
+#'   \eqn{n = n\ |S|}.
+#' 
 #' @param V a vector with initial state values. If
 #'   `NULL`, then the default of a vector of all 0s ([V_zero()]) is used.
 #' @param n maximum number of iterations allowed to converge. If the

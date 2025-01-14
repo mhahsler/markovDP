@@ -10,6 +10,14 @@
 
 
 #' @rdname policy_evaluation
+#' @details The LP implementation only works for infinite-horizon problems with 
+#' a discount factor <1. It solves the following LP:
+#' 
+#' \deqn{\min \sum_{s\in S} v(s)}
+#' s.t.
+#' \deqn{v(s) \ge \sum_{s' \in S} p(s' | s, \pi(s)) [r(s, \pi(s), s') + \gamma v(s')],\; \forall s \in S         
+#'  }        
+#'          
 #' @param inf value used to replace infinity for `lpSolve::lp()`.
 #' @param ... further arguments are ignored
 #' @export
@@ -18,16 +26,12 @@ policy_evaluation_LP <- function(model,
                                  inf = 1000,
                                  verbose = FALSE,
                                  ...) {
-  if (is.null(model$discount)) {
-    message("No discount factor specified. Using .9!")
-    model$discount <- .9
-  }
   
   if (is.finite(model$horizon)) {
     stop("method 'lp' can only be used for infinite horizon problems.")
   }
   
-  gamma <- model$discount
+  gamma <- model$discount %||% 1
   
   # TODO: For a better formulation of the undiscounted problem, see:
   # Lexing Ying and Yuhua Zhu, A note on optimization formulations of

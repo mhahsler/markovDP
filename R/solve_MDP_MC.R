@@ -1,6 +1,50 @@
 # Solve MDPs using Monte Carlo Methods
 
 #' @rdname solve_MDP
+#' @details
+#' ## Monte Carlo Control
+#'
+#' The idea is to estimate the action value function for a policy as the 
+#' average of sampled returns.
+#' 
+#' \deqn{q_\pi(s,a) = \mathbb{E}_\pi[R_i|S_0=s,A_0=a] \approx \frac{1}{n} \sum_{i=1}^n R_i}
+#' 
+#' Monte Carlo control simulates a whole episode using the current behavior
+#' policy and uses the sampled reward to update the Q values. For on-policy 
+#' methods, the behavior policy is updated to be greedy (i.e., optimal) with 
+#' respect to the new Q values. Then the next episode is simulated till 
+#' the predefined number of episodes is completed.  
+#' 
+#' Implemented are the following temporal difference control methods
+#' described in Sutton and Barto (2020).
+#'
+#' * **Monte Carlo Control with exploring Starts** learns the optimal greedy policy. 
+#' It uses the same greedy policy for
+#' behavior and target (on-policy learning).
+#' After each episode, the policy is updated to be greedy with respect to the 
+#' current Q values. 
+#' To make sure all states/action pairs are
+#' explored, it uses exploring starts meaning that new episodes are started at a randomly
+#' chosen state using a randomly chooses action.
+#'
+#' * **On-policy Monte Carlo Control** learns an epsilon-greedy policy
+#' which it uses for behavior and as the target policy
+#' (on-policy learning). An epsilon-greedy policy is used to provide 
+#' exploration. For calculating running averages, an update with \eqn{\alpha = 1/n}
+#' is used by default. A different update factor can be set using the parameter `alpha`
+#' as either a fixed value or a function with the signature `function(t, n)` 
+#' which returns the factor in the range \eqn{[0,1]}.
+#'
+#' * **Off-policy Monte Carlo Control** uses for behavior an arbitrary soft policy
+#' (a soft policy has in each state a probability greater than 0 for all 
+#' possible actions). 
+#' We use an epsilon-greedy policy and the method learns a greedy policy using
+#' importance sampling. Note: This method can only learn from the tail of the 
+#' sampled runs where greedy actions are chosen. This means that it is very
+#' inefficient in learning the beginning portion of long episodes. This problem 
+#' is especially problematic when larger values for \eqn{\epsilon} are used. 
+#'
+#' 
 #' @param first_visit if `TRUE` then only the first visit of a state/action pair
 #'   in an episode is used to update Q, otherwise, every-visit update is used.
 #' @export
@@ -28,9 +72,9 @@ solve_MDP_MC <-
     
     if (is.infinite(horizon)) {
       warning(
-        "No finite horizon defined. Using a maximum horizon of 1000 to guarantee termination. Specify horizon to remove this warning."
+        "No finite horizon defined. Specify horizon to remove this warning."
       )
-      model$horizon <- horizon <- 1000
+      model$horizon <- horizon <- convergence_horizon(model, n_updates = 1)
     }
     
     model$discount <- discount <- discount %||% model$discount %||% 1

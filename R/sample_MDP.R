@@ -120,25 +120,10 @@ sample_MDP <-
     
     start <- start_vector(model, start = start, sparse = FALSE)
     
-    
-    horizon <- horizon %||% model$horizon
-    if (is.null(horizon) || is.infinite(horizon)) {
-      if (!is.null(model$discount) && model$discount < 1) {
-        # find a horizon that approximates the reward using
-        # discount^horizon * max_abs_R <= 0.001
-        max_abs_R <- max(abs(.reward_range(model)))
-        horizon <-
-          ceiling(log(delta_horizon / max_abs_R) / log(model$discount))
-      } else {
-        horizon <- length(S(model)) * length(A(model))
-        warning(
-          "Simulation for undiscounted problems need a finite simulation horizon.\n",
-          "Using a maximum horizon of |S| x |A| = ",
-          horizon,
-          " to avoid infinite loops."
-        )
-      }
-    }
+    horizon <- horizon %||% model$horizon %||% Inf
+    if (is.infinite(horizon)) 
+      horizon <- convergence_horizon(model, delta = delta_horizon, 
+                                     n_updates = 1)
     horizon <- as.integer(horizon)
     
     epsilon <- epsilon %||% ifelse(solved, 0, 1)

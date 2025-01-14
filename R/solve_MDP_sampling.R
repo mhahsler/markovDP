@@ -2,6 +2,16 @@
 #(Sutton & Barto, Chapter 8)
 
 #' @rdname solve_MDP
+#' @details
+#' ## Planning by Sampling
+#'
+#' A simple, not very effective, planning method proposed by Sutton and Barto (2020) in Chapter 8.
+#'
+#' * **Random-sample one-step tabular Q-planning** randomly selects a
+#' state/action pair and samples the resulting reward and next state from
+#' the model. This
+#' information is used to update a single Q-table value.
+#' 
 #' @export
 solve_MDP_sampling <-
   function(model,

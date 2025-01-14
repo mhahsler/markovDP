@@ -62,6 +62,14 @@ stopped when the largest state Bellman error is below a threshold.
 \deqn{||v_{k+1} - v_k||_\infty < \theta.}
 
 Or if \code{k_backups} iterations have been completed.
+
+The LP implementation only works for infinite-horizon problems with
+a discount factor <1. It solves the following LP:
+
+\deqn{\min \sum_{s\in S} v(s)}
+s.t.
+\deqn{v(s) \ge \sum_{s' \in S} p(s' | s, \pi(s)) [r(s, \pi(s), s') + \gamma v(s')],\; \forall s \in S         
+ }
 }
 \examples{
 data(Maze)
@@ -113,6 +121,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{convergence_horizon}()},
 \code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{regret}()},

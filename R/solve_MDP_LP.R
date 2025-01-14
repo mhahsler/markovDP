@@ -15,6 +15,32 @@
 
 
 #' @rdname solve_MDP
+#' @details
+#' ## Linear Programming
+#'
+#' A linear programming formulation was developed by Manne (1960) and further 
+#' described by Puterman (1996). For the
+#' optimal value function, the Bellman equation holds:
+#'
+#' \deqn{
+#'  v^*(s) = \max_{a \in \mathcal{A}}\sum_{s' \in  \mathcal{S}} p(s, a, s') [ r(s, a, s') + \gamma v^*(s')]\; \forall a\in \mathcal{A}, s \in \mathcal{S}
+#' }
+#'
+#' The maximization problem can reformulate as a minimization with 
+#' a linear constraint for each state action pair. 
+#' The optimal value function can be found by solving the 
+#' following linear program:
+#' \deqn{\text{min} \sum_{s\in S} v(s)}
+#' subject to
+#' \deqn{v(s) \ge \sum_{s' \in \mathcal{S}} p(s, a, s')[r(s, a, s') + \gamma v(s')],\; \forall a\in \mathcal{A}, s \in \mathcal{S}
+#' }
+#'
+#' Note:
+#' * The discounting factor has to be strictly less than 1.
+#' * The used solver does not support infinity and a sufficiently large
+#'   value needs to be used instead (see parameter `inf`).
+#' * Additional parameters to to `solve_MDP` are passed on to [lpSolve::lp()].
+#' 
 #' @param inf value used for infinity when calling `lpSolve::lp()`. This
 #'            should me much larger/smaller than the largest/smallest
 #'            reward in the model.
@@ -37,12 +63,7 @@ solve_MDP_LP <- function(model,
     stop("method 'lp' can only be used for infinite horizon problems.")
   }
   
-  model$discount <- discount %||% model$discount
-  if (is.null(model$discount)) {
-    message("No discount factor specified. Using .9!")
-    model$discount <- .9
-  }
-  
+  model$discount <- discount %||% model$discount %||% 1
   gamma <- model$discount
   
   # TODO: For a better formulation of the undiscounted problem, see:
