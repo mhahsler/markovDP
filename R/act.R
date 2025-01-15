@@ -12,8 +12,8 @@
 #' @param ... if action is unspecified, then the additional parameters are 
 #'   passed on to `action()` to determine the action using the model's policy.
 #' 
-#' @returns a names list with the `old_state`, the `action`, 
-#'  the next `reward` and `state`.
+#' @returns a names list with the `state`, the `action`, 
+#'  the `reward` and the next `state_prime`.
 #'
 #' @author Michael Hahsler
 #' @examples
@@ -43,22 +43,24 @@ act <- function(model, state, action = NULL, ...) {
   sp <- .normalize_state(sp, model)
   r <-  reward_matrix(model, action, state, sp)
   
-  list(old_state = state,
+  list(state = state,
        action = action,
        reward =  r,
-       state = sp)
+       state_prime = sp)
 }
 
-# faster without conversions
-.act_int <- function(model, state, action, ...) {
+# faster without conversions and only returns r and state_prime
+act.int <- function(model, state, action) {
   sp <- sample.int(length(S(model)), 
                    1L, 
                    prob = transition_matrix(model, action, state, 
                                             sparse = FALSE))
-
+  
+  # this may be more memory efficient
+  #sp <- sample_sparse(S, 1L, prob = transition_matrix(model, a, s, sparse = NULL)) 
+  
   r <-  reward_matrix(model, action, state, sp)
-  list(old_state = state,
-       action = action,
-       reward =  r,
-       state = sp)
+  
+  list(reward =  r,
+       state_prime = sp)
 }

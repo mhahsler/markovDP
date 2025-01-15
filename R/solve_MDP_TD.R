@@ -205,9 +205,14 @@ solve_MDP_TD <-
           pb$tick(0)
         
         # act
-        s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
-        #s_prime <- sample_sparse(S, 1L, prob = transition_matrix(model, a, s, sparse = NULL))
-        r <- reward_matrix(model, a, s, s_prime)
+        a_res <- act.int(model, s, a)
+        s_prime <- a_res$state_prime 
+        r <- a_res$r 
+        
+        # act without a function call
+        #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
+        #r <- reward_matrix(model, a, s, s_prime)
+       
         
         # for Sarsa we need (s, a, r, s', a')
         a_prime <- greedy_action(Q, s_prime, epsilon)
@@ -428,8 +433,13 @@ solve_MDP_TD_n_step <-
         
         if (t < tt) {
           # take action a
-          s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
-          r <- reward_matrix(model, a, s, s_prime)
+          a_res <- act.int(model, s, a)
+          s_prime <- a_res$state_prime 
+          r <- a_res$r 
+          
+          # no funciton call
+          #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
+          #r <- reward_matrix(model, a, s, s_prime)
           
           S_t[t_plus_1_idx] <- s_prime
           R_t[t_plus_1_idx] <- r

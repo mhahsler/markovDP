@@ -133,8 +133,8 @@ solve_MDP_sampling <-
       s <- sample(S, 1L)
       a <- sample(A, 1L)
       
-      sp_r <- act(model, s, a)
-      sp <- sp_r$state
+      sp_r <- act.int(model, s, a)
+      sp <- sp_r$state_prime
       r <- sp_r$r
       
       # NOTE: we use as the default alpha = 1/N(s,a)
