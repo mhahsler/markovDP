@@ -58,7 +58,7 @@ round_stochastic_int <- function(x, digits = 7) {
     # inc_id <- which.max(x - xr)
     ### take it from the largest
     inc_id <- which.max.random(xr)
-    xr[inc_id] <- xr[inc_id] + 1 - s
+    xr[inc_id] <- zapsmall(xr[inc_id] + 1 - s, digits = digits)
   }
 
   if (any(xr < 0) || !sum1(xr)) {
@@ -70,7 +70,7 @@ round_stochastic_int <- function(x, digits = 7) {
 
 
 # check if vector sums to 1
-sum1 <- function(x, digits = getOption("digits")) {
+sum1 <- function(x, digits = 7) {
   if (!is.null(dim(x))) {
     all(zapsmall(rowSums(x), digits) == 1)
   } else {
