@@ -1,14 +1,26 @@
-# sample_sparse
+# sample sparse
+
+# create a sparse vector
+non_zeros <- 10
+#non_zeros <- 100
+#non_zeros <- 500
+p <- numeric(1000)
+non_zero_idx <- sample.int(length(p), non_zeros)
+p[non_zero_idx] <- runif(non_zeros)
+p <- p/sum(p)
+
+(p_sparse <- as(p, "sparseVector"))
+
+# base sample does not need to be tested
+#(samp <- sample.int(length(p), size = 100, replace = TRUE, prob = p))
+#expect_true(all(samp %in% non_zero_idx))
+
+(samp <- sample_sparse(seq_along(p), size = 100, replace = TRUE, prob = p_sparse))
+expect_true(all(samp %in% non_zero_idx))
 
 
+# sample.int is faster, but sparse sampling takes less memory!
+#bench::mark(samp <- sample.int(length(p), size = 100, replace = TRUE, prob = p))
+#bench::mark(samp <- sample_sparse(seq_along(p), size = 100, replace = TRUE, prob = p))
+#bench::mark(samp <- sample_sparse(seq_along(p), size = 100, replace = TRUE, prob = p_sparse))
 
-p <- replicate(10, .1)
-
-expect_equal(round_stochastic(p), p)
-expect_equal(round_stochastic(p + 1e-9), p)
-
-expect_true(sum1(p))
-expect_true(sum1(round_stochastic(p + 1e-9)))
-expect_true(sum1(round_stochastic(p + 1e-3)))
-expect_true(sum1(p + 1e-9, digits = 7))
-expect_false(sum1(p + 1e-9, digits = 10))
