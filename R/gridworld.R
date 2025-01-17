@@ -193,7 +193,7 @@ gw_init <-
     if (!is.null(start))
       start <- S[Matrix::which(.translate_distribution(start, S) > 0)]
     # translate unreachable
-    if (!is.null(blocked_states)) {
+    if (!is.null(blocked_states) && length(blocked_states) > 0L) {
       blocked_states <- S[Matrix::which(.translate_distribution(blocked_states, S) > 0)]
       blocked_states <- setdiff(blocked_states, c(start, goal))
     } else
@@ -970,7 +970,10 @@ gw_random_maze <- function(dim,
   
   make_maze <- function() {
     # random walls (cannot be start or goal)
-    walls <- sort(sample(seq(n * m), size = n * m * wall_prob))
+    if (wall_prob > 0)
+      walls <- sort(sample(seq(n * m), size = ceiling(n * m * wall_prob)))
+    else
+      walls <- integer()
     
     maze <- gw_maze_MDP(
       dim = c(n, m),

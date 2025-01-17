@@ -1,23 +1,10 @@
-# Solve MDPs using Linear Programming
-
-# For any given state, we have the assumption that the state's true value is:
-# V^*(s) = r + \gamma \max_{a \in A}\sum_{s' \in S} P(s' | s,a) \cdot V^*(s')
-#
-# The non-linear max operation can be rewritten as a minimization with a set of
-# linear inequalities.
-#
-# min \sum_{s\in S} V(s)
-# s.t.
-# V(s) >=  R + \gamma\sum_{s' \in S} P(s' | s,a)*V(s'),\; \forall a\in A, s \in S
-#
-# find the smallest value of V(s) that matches this requirement,
-# then that value would make exactly one of the constraints tight.
-
-
-#' @rdname solve_MDP
-#' @details
-#' ## Linear Programming
+#' Solve MDPs using Linear Programming
 #'
+#' Solve discounted, infinite horizon MDPs via linear programming.
+#'
+#' @family solver
+#' 
+#' @details
 #' A linear programming formulation was developed by Manne (1960) and further 
 #' described by Puterman (1996). For the
 #' optimal value function, the Bellman equation holds:
@@ -40,30 +27,60 @@
 #' * The used solver does not support infinity and a sufficiently large
 #'   value needs to be used instead (see parameter `inf`).
 #' * Additional parameters to to `solve_MDP` are passed on to [lpSolve::lp()].
+#'
+#' @references 
+#' Manne, Alan. 1960. "On the Job-Shop Scheduling Problem." Operations Research 8 (2): 219-23. \doi{10.1287/opre.8.2.219}.
 #' 
+#' Puterman, Martin L. 1996. Markov decision processes: discrete stochastic dynamic programming. John Wiley & Sons.
+#'
+#' @examples
+#' data(Maze)
+#'
+#' # we change the discount to 0.9 since LP is only implemented for discounted MDPs.  
+#' maze_solved <- solve_MDP(Maze, discount = 0.9, method = "LP:LP", verbose = TRUE)
+#' maze_solved
+#' policy(maze_solved)
+#' 
+#' @inheritParams solve_MDP
+#' @param method string; one of the following solution methods: `'LP'`
+#' @param progress not supported by this solver.
+#' @param horizon Only infinite-horizon MDPs with `horizon = Inf` are supported.
+#' @param discount only undiscounted MDPs with `discount = 1` are supported.
 #' @param inf value used for infinity when calling `lpSolve::lp()`. This
-#'            should me much larger/smaller than the largest/smallest
+#'            should me much larger than the largest absolute
 #'            reward in the model.
 #' @param lpSolve_args a list with additional arguments passed on to `lpSolve::lp()`.
+#' 
+#' @inherit solve_MDP return
+#' 
 #' @export
 solve_MDP_LP <- function(model,
-                         method = "lp",
+                         method = "LP",
                          horizon = NULL,
                          discount = NULL,
                          inf = 1000,
-                         verbose = FALSE,
                          lpSolve_args = list(),
-                         ...) {
+                         ...,
+                         matrix = NULL,
+                         continue = FALSE,
+                         verbose = FALSE,
+                         progress = NULL
+                         ) {
   .nodots(...)
-  # method is always "lp" and ignored
+  # currently ignored: matrix
   
-  ### horizon and discount rate
-  model$horizon <- horizon %||% model$horizon %||% Inf
+  method <-
+    match.arg(method, c("LP"))
+  
+  if (continue)
+    stop("continue is not supported by LP methods!")
+  
+  model <- .prep_model(model, horizon, discount, matrix = FALSE, verbose, progress)
+  
   if (is.finite(model$horizon)) {
     stop("method 'lp' can only be used for infinite horizon problems.")
   }
   
-  model$discount <- discount %||% model$discount %||% 1
   gamma <- model$discount
   
   # TODO: For a better formulation of the undiscounted problem, see:

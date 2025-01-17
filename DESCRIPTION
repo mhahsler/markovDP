@@ -84,6 +84,7 @@ Collate:
     'solve_MDP_DP.R'
     'solve_MDP_LP.R'
     'solve_MDP_MC.R'
+    'solve_MDP_SAMP.R'
     'solve_MDP_SGD.R'
     'solve_MDP_TD.R'
     'solve_MDP_sampling.R'

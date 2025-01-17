@@ -19,8 +19,8 @@ policy.}
 passed on to \code{action()} to determine the action using the model's policy.}
 }
 \value{
-a names list with the \code{old_state}, the \code{action},
-the next \code{reward} and \code{state}.
+a names list with the \code{state}, the \code{action},
+the \code{reward} and the next \code{state_prime}.
 }
 \description{
 Performs an action in a state and returns the new state and reward.
@@ -44,6 +44,7 @@ Other MDP:
 \code{\link{absorbing_states}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{convergence_horizon}()},
 \code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

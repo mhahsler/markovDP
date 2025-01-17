@@ -70,6 +70,7 @@ Other MDP:
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
 \code{\link{available_actions}()},
+\code{\link{convergence_horizon}()},
 \code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

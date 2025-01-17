@@ -1,11 +1,13 @@
-# Solve MDPs using Temporal Differencing
-
-#' @rdname solve_MDP
-#' @details
-#' ## Temporal Difference Control
+#' Solve MDPs using Temporal Differencing
 #'
-#' Implemented are several temporal difference control methods
-#' described in Sutton and Barto (2020).
+#' Solve MDPs using 1-step and n-step tabular temporal difference control 
+#' methods like q-learning and Sarsa.
+#'
+#' @family solver
+#' 
+#' @details
+#' Implemented are several tabular temporal difference control methods
+#' described in Sutton and Barto (2018).
 #' Note that the MDP transition and reward models are used
 #' for these reinforcement learning methods only to sample from
 #' the environment.
@@ -45,7 +47,7 @@
 #'    \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
 #'    
 #'
-#' * **Expected Sarsa** (R. S. Sutton and Barto 2018). We implement an on-policy 
+#' * **Expected Sarsa** (Sutton and Barto 2018). We implement an on-policy 
 #'   Sarsa with an \eqn{\epsilon}-greedy policy which uses the
 #'   the expected value under the current policy for the update.
 #'   It moves deterministically in the same direction as Sarsa would
@@ -58,7 +60,7 @@
 #'   The off-policy use of expected Sarsa simplifies to 
 #'   the Q-learning algorithm.  
 #'   
-#' * **On and off-policy n-step Sarsa** (R. S. Sutton and Barto 2018).
+#' * **On and off-policy n-step Sarsa** (Sutton and Barto 2018).
 #'   Estimate the return using the last \eqn{n} timesteps:
 #'   \deqn{
 #'   G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
@@ -68,12 +70,47 @@
 #'   the update uses the importance sampling ratio. Note that updates are delayed 
 #'   \eqn{n} steps in this backward looking algorithm.
 #' 
+#' @references 
+#'  
+#' Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
+#' 
+#' Sutton, R. 1988. "Learning to Predict by the Method of Temporal Differences." Machine Learning 3: 9-44. [https://link.springer.com/article/10.1007/BF00115009](https://link.springer.com/article/10.1007/BF00115009).
+#'
+#' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
+#' 
+#' Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Learning 8 (3): 279-92. \doi{10.1007/BF00992698}.
+#' 
+#' @inheritParams solve_MDP
 #' @param alpha step size as a function of the time step `t` and the number of times
 #'   the respective Q-value was updated `n` or a scalar. For expected Sarsa, alpha is
 #'   often set to 1.
 #' @param epsilon used for the \eqn{\epsilon}-greedy behavior policies.
 #' @param n number of episodes used for learning.
-#' @param Q a state-action value matrix.
+#' @param Q an initial state-action value matrix. By default an all 0 matrix is 
+#'        used.
+#' 
+#' @inherit solve_MDP return 
+#' 
+#' @examples
+#' data(Maze)
+#' 
+#' # Learn a Policy using Q-Learning
+#' maze_learned <- solve_MDP(Maze, method = "TD:q_learning",
+#'     epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
+#' maze_learned
+#'
+#' policy(maze_learned)
+#' plot_value_function(maze_learned)
+#' gw_plot(maze_learned)
+#'
+#' # Keep on learning, but with a reduced epsilon
+#' maze_learned <- solve_MDP(maze_learned, method = "TD:q_learning",
+#'     epsilon = 0.01, n = 500, horizon = 100, continue = TRUE, verbose = TRUE)
+#'
+#' policy(maze_learned)
+#' plot_value_function(maze_learned)
+#' gw_plot(maze_learned)
+#' 
 #' @export
 solve_MDP_TD <-
   function(model,
@@ -85,58 +122,36 @@ solve_MDP_TD <-
            epsilon = 0.2,
            n = 1000,
            Q = 0,
+           ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
-           verbose = FALSE,
-           ...) {
+           verbose = FALSE) {
     .nodots(...)
     
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
     
-    if (verbose > 1)
-      progress <- FALSE
-    
-    horizon <- model$horizon <- horizon %||% model$horizon
-    if (is.null(horizon) || !is.finite(horizon)) {
+    model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
+     
+    if (!is.finite(model$horizon)) {
       stop("Finite horizon needed for exploration!")
     }
     
-    discount <- model$discount <- discount %||% model$discount %||% 1
-    
     if (!is.function(alpha))
       alpha_val <- alpha
-    
-    if (matrix) {
-      if (verbose)
-        cat("Precomputing matrices for transitions and rewards ...")
-      model <- normalize_MDP(
-        model,
-        sparse = NULL,
-        precompute_absorbing = TRUE,
-        progress = progress
-      )
-      
-      if (verbose)
-        cat(" done.\n")
-    }
     
     if (progress) {
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
       pb$tick(0)
     }
     
-    S <- S(model)
-    A <- A(model)
-    start <- start_vector(model, sparse = FALSE)
-    
     # Initialize Q and Q_N
     if (continue) {
-      if (is.null(model$solution$Q))
-        stop("model solution does not contain a Q matrix to continue from!")
       Q <- model$solution$Q
       Q_N <- model$solution$Q_N
+      if (is.null(Q) || is.null(Q_N))
+        stop("model solution does not contain a Q matrix to continue from!")
     } else {
       Q <- init_Q(model, Q)
       Q_N <-
@@ -145,7 +160,7 @@ solve_MDP_TD <-
                ncol = ncol(Q),
                dimnames = dimnames(Q))
     }
-    
+   
     # return unconverged result when interrupted
     on.exit({
       if (progress) {
@@ -187,6 +202,12 @@ solve_MDP_TD <-
       cat("\n")
     }
     
+    S <- S(model)
+    A <- A(model)
+    start <- start_vector(model, sparse = FALSE)
+    horizon <- model$horizon
+    discount <- model$discount
+     
     # loop episodes
     e <- 0L
     while (e < n) {
@@ -281,12 +302,12 @@ solve_MDP_TD <-
   }
 
 
-#' @rdname solve_MDP
+#' @rdname solve_MDP_TD
 #' @param n_step integer; steps for bootstrapping
 #' @export
 solve_MDP_TD_n_step <-
   function(model,
-           method = "n_step_sarsa_on_policy",
+           method = "sarsa_on_policy",
            horizon = NULL,
            discount = NULL,
            alpha = function(t, n)
@@ -304,43 +325,22 @@ solve_MDP_TD_n_step <-
     
     method <-
       match.arg(method,
-                c("n_step_sarsa_on_policy", "n_step_sarsa_off_policy"))
+                c("sarsa_on_policy", "sarsa_off_policy"))
    
-    if (verbose > 1)
-      progress <- FALSE
+    model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
-    horizon <- model$horizon <- horizon %||% model$horizon
-    if (is.null(horizon) || !is.finite(horizon)) {
+    if (!is.finite(model$horizon)) {
       stop("Finite horizon needed for exploration!")
     }
     
-    discount <- model$discount <- discount %||% model$discount %||% 1
-    
     if (!is.function(alpha))
       alpha_val <- alpha
-    
-    if (matrix) {
-      if (verbose)
-        cat("Precomputing matrices for transitions and rewards ...")
-      model <- normalize_MDP(
-        model,
-        sparse = NULL,
-        precompute_absorbing = TRUE,
-        progress = progress
-      )
-      
-      if (verbose)
-        cat(" done.\n")
-    }
     
     if (progress) {
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
       pb$tick(0)
     }
     
-    S <- S(model)
-    A <- A(model)
-    start <- start_vector(model, sparse = FALSE)
     
     # Initialize Q and Q_N
     if (continue) {
@@ -384,15 +384,6 @@ solve_MDP_TD_n_step <-
       return(model)
     })
     
-    # store S_t, A_t and R_t; initialize as 0; accessed with t %% n_step + 1
-    S_t <- integer(n_step + 1L)
-    A_t <- integer(n_step + 1L)
-    R_t <- numeric(n_step + 1L)
-    gamma_t <- numeric(n_step + 1L)
-    gamma_n_steps <- discount^n_step
-    
-    # index in circular buffer
-    t2idx <- function(t) t %% (n_step + 1) + 1
     
     if (verbose) {
       cat("Running", method)
@@ -408,6 +399,22 @@ solve_MDP_TD_n_step <-
       print(head(Q_N, n = 20))
       cat("\n")
     }
+    
+    S <- S(model)
+    A <- A(model)
+    start <- start_vector(model, sparse = FALSE)
+    horizon <- model$horizon
+    discount <- model$discount
+    
+    # store S_t, A_t and R_t; initialize as 0; accessed with t %% n_step + 1
+    S_t <- integer(n_step + 1L)
+    A_t <- integer(n_step + 1L)
+    R_t <- numeric(n_step + 1L)
+    gamma_t <- numeric(n_step + 1L)
+    gamma_n_steps <- discount^n_step
+    
+    # index in circular buffer
+    t2idx <- function(t) t %% (n_step + 1) + 1
    
     # loop episodes
     e <- 0L

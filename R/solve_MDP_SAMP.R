@@ -19,10 +19,17 @@
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
 #' 
 #' @inheritParams solve_MDP
+#' @param method string; one of the following solution methods: `'q_planning'`
+#' @param alpha step size as a function of the time step `t` and the number of times
+#'   the respective Q-value was updated `n` or a scalar. For expected Sarsa, alpha is
+#'   often set to 1.
+#' @param n number of updates performed.
+#' @param Q an initial state-action value matrix. By default an all 0 matrix is 
+#'        used.
 #' @inherit solve_MDP return 
 #' 
 #' @export
-solve_MDP_sampling <-
+solve_MDP_SAMP <-
   function(model,
            method = "q_planning",
            horizon = NULL,

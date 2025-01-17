@@ -61,6 +61,7 @@ Other MDP:
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
 \code{\link{bellman_update}()},
+\code{\link{convergence_horizon}()},
 \code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},

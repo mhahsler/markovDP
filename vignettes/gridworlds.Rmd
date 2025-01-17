@@ -105,7 +105,7 @@ available for solved problems that contain a policy.
 Gridworld MDPs are solved like any other MDP.
 
 ```{r}
-sol <- solve_MDP(x, method = "value_iteration")
+sol <- solve_MDP(x)
 sol
 ```
 
@@ -139,7 +139,7 @@ state values change after each iteration. For example, we can stop the algorithm
 a given number of iterations and visualize the progress.
 
 ```{r}
-sol <- solve_MDP(x, method = "value_iteration", iter_max = 5)
+sol <- solve_MDP(x, method = "DP:VI", iter_max = 5)
 gw_plot(sol, zlim = c(0, 2), sub = "Iteration 5")
 ```
 The solver creates a warning indicating that the solution has not converged after only
@@ -152,7 +152,7 @@ R markdown documents can use `{r, fig.show='animate'}` so create an animation us
 the individual frames.
 
 ```{r, fig.show='animate'}
-gw_animate(x, "value_iteration", n = 20, zlim = c(0, 2))
+gw_animate(x, "DP:VI", n = 20, zlim = c(0, 2))
 ```
 
 It is easy to see how value iteration propagates value from the goal to the start.
@@ -160,11 +160,11 @@ In the following, we create animations for more solving methods.
 
 
 ```{r, fig.show='animate'}
-gw_animate(x, "policy_iteration", n = 15, zlim = c(0, 2))
+gw_animate(x, "DP:PI", n = 15, zlim = c(0, 2))
 ```
 
 ```{r, fig.show='animate'}
-gw_animate(x, "q_learning", n = 15, zlim = c(0, 2), horizon = 1000)
+gw_animate(x, "TD:q_learning", n = 15, zlim = c(0, 2), horizon = 1000)
 ```
 
 # References

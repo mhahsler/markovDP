@@ -1,11 +1,12 @@
-# Solve MDPs using Dynamic Programming (Value and policy iteration)
-
-#' @rdname solve_MDP
-#' @details
-#' ## Dynamic Programming
+#' Solve MDPs using Dynamic Programming
 #'
-#' Implemented are the following dynamic programming methods (following
-#' Russell and Norvig, 2010):
+#' Solve MDPs via policy and value iteration.
+#'
+#' @family solver
+#' 
+#' @details
+#' The following dynamic programming methods 
+#' are implemented using the algorithms presented in Russell and Norvig (2010). 
 #'
 #' * **(Modified) Policy Iteration** (Howard 1960; Puterman and Shin 1978)
 #' starts with a random policy and iteratively performs
@@ -56,7 +57,7 @@
 #'   to sweeping the whole state space in regular value iteration.
 #'
 #'   We implement the two priority update strategies described as __PS__ and
-#'   __GenPS__ by Li and Littman.
+#'   __GenPS__ by Li and Littman (2008).
 #'
 #'   * __PS__ (Moore and Atkeson, 1993) updates the priority of a state \eqn{H(s)}
 #'      using:
@@ -92,6 +93,43 @@
 #'   iteration, `n` is converted into an equivalent number of state updates
 #'   \eqn{n = n\ |S|}.
 #' 
+#' @references
+#' Andre, D., Friedman, N., and Parr, R. 1997. "Generalized prioritized sweeping." In Advances in Neural Information Processing Systems 10, pp. 1001-1007. [NeurIPS Proceedings](https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf)
+#' 
+#' Bellman, Richard. 1957. "A Markovian Decision Process." Indiana University Mathematics Journal 6: 679-84. [https://www.jstor.org/stable/24900506](https://www.jstor.org/stable/24900506).
+#' 
+#' Howard, R. A. 1960. "Dynamic Programming and Markov Processes." Cambridge, MA: MIT Press.
+#' 
+#' Li, Lihong, and Michael Littman. 2008. "Prioritized Sweeping Converges to the Optimal Value Function." DCS-TR-631. Rutgers University. \doi{10.7282/T3TX3JSX}
+#' 
+#' Moore, Andrew, and C. G. Atkeson. 1993. "Prioritized Sweeping: Reinforcement Learning with Less Data and Less Real Time." Machine Learning 13 (1): 103–30. \doi{10.1007/BF00993104}.
+#' 
+#' Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algorithms for Discounted Markov Decision Problems." Management Science 24: 1127-37. \doi{10.1287/mnsc.24.11.1127}.
+#' 
+#' Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. [http://aima.cs.berkeley.edu/](http://aima.cs.berkeley.edu/).
+#' 
+#' @examples
+#' data(Maze)
+#' 
+#' maze_solved <- solve_MDP(Maze, method = "DP:VI", verbose = TRUE)
+#' policy(maze_solved)
+#' 
+#' # use prioritized sweeping (which is known to be fast for mazes)
+#' maze_solved <- solve_MDP(Maze, method = "DP:PS_GenPS", verbose = TRUE)
+#' policy(maze_solved)
+#'
+#' # finite horizon
+#' maze_solved <- solve_MDP(Maze, method = "DP:VI", horizon = 3)
+#' policy(maze_solved)
+#' gw_plot(maze_solved, epoch = 1)
+#' gw_plot(maze_solved, epoch = 2)
+#' gw_plot(maze_solved, epoch = 3)
+#' 
+#' @inheritParams solve_MDP
+#' @param method string; one of the following solution methods:
+#'    * `'VI'` - value iteration
+#'    * `'PI'` - policy iteration
+#'    * `'PS_GenPS'`, `'PS_error'`, `'PS_random'` - prioritized sweeping 
 #' @param V a vector with initial state values. If
 #'   `NULL`, then the default of a vector of all 0s ([V_zero()]) is used.
 #' @param n maximum number of iterations allowed to converge. If the
@@ -109,67 +147,43 @@
 #'    components are already matrices, then this is very fast. For `FALSE`, the
 #'    transition probabilities and the reward is extracted when needed. This is slower,
 #'    but removes the time and memory requirements needed to calculate the matrices.
+#' 
+#' @inherit solve_MDP return 
+#' 
 #' @export
 solve_MDP_DP <- function(model,
-                         method = "value_iteration",
+                         method = "VI",
                          horizon = NULL,
                          discount = NULL,
                          n = 1000L,
                          error = 0.001,
                          k_backups = 10L,
                          V = NULL,
+                         ...,
                          matrix = TRUE,
                          continue = FALSE,
-                         progress = TRUE,
                          verbose = FALSE,
-                         ...) {
-  if (!inherits(model, "MDP")) {
-    stop("'model' needs to be of class 'MDP'.")
-  }
+                         progress = TRUE) {
+  .nodots(...)
   
-  if (verbose > 1)
-    progress <- FALSE
-
-  methods <- c("value_iteration",
-               "policy_iteration",
-               "prioritized_sweeping",
-               "GenPS",
+  methods <- c("VI",
+               "PI",
+               "PS_GenPS",
                "PS_error",
                "PS_random")
   method <- match.arg(method, methods)
-  
-  ### default is infinite horizon
-  model$horizon <- horizon %||% model$horizon %||% Inf
-  
-  model$discount <- discount %||% model$discount
-  if (is.null(model$discount)) {
-    message("No discount rate specified. Using .9 for the infinite horizon problem!")
-    model$discount <- .9
-  }
-  
+ 
+  model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
+   
   if (continue) {
     if (is.null(model$solution$policy[[1]]$V))
       stop("model solution does not contain a V vector to continue from!")
     V <- model$solution$policy[[1]]$V
   }
   
-  if (matrix) {
-    if (verbose)
-      cat("Precomputing matrices for R and T ...")
-    model <- normalize_MDP(
-      model,
-      sparse = NULL,
-      precompute_absorbing = FALSE,
-      progress = progress
-    )
-    
-    if (verbose)
-      cat(" done.\n")
-  }
-  
   ret <- switch(
     method,
-    value_iteration = {
+    VI = {
       if (is.infinite(model$horizon)) {
         MDP_value_iteration_inf_horizon(
           model,
@@ -191,27 +205,12 @@ solve_MDP_DP <- function(model,
         )
       }
     },
-    policy_iteration = {
+    PI = {
       if (is.infinite(model$horizon)) {
         MDP_policy_iteration_inf_horizon(
           model,
           n,
           k_backups,
-          V = V,
-          progress = progress,
-          verbose = verbose,
-          ...
-        )
-      } else {
-        stop("Method not implemented yet for finite horizon problems.")
-      }
-    },
-    prioritized_sweeping = {
-      if (is.infinite(model$horizon)) {
-        MDP_PS_inf_horizon(
-          model,
-          error = error,
-          n = n,
           V = V,
           progress = progress,
           verbose = verbose,
@@ -253,7 +252,7 @@ solve_MDP_DP <- function(model,
         stop("Method not implemented yet for finite horizon problems.")
       }
     },
-    GenPS = {
+    PS_GenPS = {
       if (is.infinite(model$horizon)) {
         MDP_PS_inf_horizon(
           model,
@@ -438,6 +437,125 @@ MDP_value_iteration_inf_horizon <-
     }
     
     # return via on.exit()
+  }
+
+## Policy iteration
+
+MDP_policy_iteration_inf_horizon <-
+  function(model,
+           n = 1000,
+           k_backups = 10,
+           V = NULL,
+           progress = TRUE,
+           verbose = FALSE,
+           ...) {
+    .nodots(...)
+    
+    if (progress) {
+      pb <- my_progress_spinner(
+        name = "solve_MDP",
+        format_extra = paste0(
+          " | changed actions: :changed_actions/",
+          length(S(model)),
+          " | press esc/CTRL-C to terminate early"
+        )
+      )
+      pb$tick(0, token = list(changed_actions = "-"))
+    }
+    
+    S <- S(model)
+    
+    if (is.null(V))
+      V <- V_zero(model)
+    
+    pi <- greedy_policy(Q_values(model, V))
+    V <- pi$V
+    pi <- pi$action
+    
+    if (progress)
+      pb$tick(0, token = list(changed_actions = "-"))
+    
+    # return unconverged result when interrupted
+    on.exit({
+      if (progress) {
+        pb$tick(0, token = list(changed_actions = changed_actions))
+        pb$terminate()
+      }
+      
+      if (!converged) {
+        if (i < n)
+          warning("Manual interupt: MDP solver did not converge at iteration ", i)
+        else
+          warning(
+            "MDP solver did not converge after ",
+            i,
+            " iterations.",
+            " Consider decreasing the 'discount' factor or increasing 'n'."
+          )
+      } 
+      
+      if (verbose) {
+        cat("\nTerminated at iteration:", i, "\n")
+      }
+      
+      model$solution <- list(
+        method = "policy iteration",
+        policy = list(.normalize_policy(pi, model, V = V)),
+        converged = converged,
+        iterations = i
+      )
+      
+      return(model)
+    })
+    
+    if (verbose) {
+      cat("Running policy iteration (infinite horizon)")
+      cat("\nn (max updates):       ", n) 
+      cat("\nk_backups:             ", k_backups) 
+      cat("\nInitial V (first 20 max):\n")
+      print(head(V, n = 20))
+      
+      cat("\n")
+    } 
+    
+    changed_actions <- length(S(model))
+    converged <- FALSE
+    i <- 0L
+    while (i < n) {
+      i <- i + 1L
+      if (progress)
+        pb$tick(token = list(changed_actions = changed_actions))
+      
+      # evaluate to get V from pi
+      V <- policy_evaluation(
+        model,
+        pi,
+        V,
+        k_backups = k_backups,
+        progress = FALSE
+      )
+      
+      V_prime <- bellman_update(model, V)
+      pi_prime <- V_prime$pi
+      V <- V_prime$V
+      Q <- V_prime$Q
+      
+      # changed_actions <- sum(pi != pi_prime)
+      # account for random tie breaking using Q
+      changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
+      
+      if (verbose > 1)
+        cat(i, "| # of updated actions ", changed_actions, "\n")
+      
+      if (changed_actions == 0) {
+        converged <- TRUE
+        break
+      }
+      
+      pi <- pi_prime
+    }
+    
+    # return is done in on.exit()
   }
 
 ## Prioritized sweeping
@@ -689,121 +807,3 @@ MDP_PS_inf_horizon <-
   }
 
 
-## Policy iteration
-
-MDP_policy_iteration_inf_horizon <-
-  function(model,
-           n = 1000,
-           k_backups = 10,
-           V = NULL,
-           progress = TRUE,
-           verbose = FALSE,
-           ...) {
-    .nodots(...)
-    
-    if (progress) {
-      pb <- my_progress_spinner(
-        name = "solve_MDP",
-        format_extra = paste0(
-          " | changed actions: :changed_actions/",
-          length(S(model)),
-          " | press esc/CTRL-C to terminate early"
-        )
-      )
-      pb$tick(0, token = list(changed_actions = "-"))
-    }
-    
-    S <- S(model)
-    
-    if (is.null(V))
-      V <- V_zero(model)
-    
-    pi <- greedy_policy(Q_values(model, V))
-    V <- pi$V
-    pi <- pi$action
-    
-    if (progress)
-      pb$tick(0, token = list(changed_actions = "-"))
-    
-    # return unconverged result when interrupted
-    on.exit({
-      if (progress) {
-        pb$tick(0, token = list(changed_actions = changed_actions))
-        pb$terminate()
-      }
-      
-      if (!converged) {
-        if (i < n)
-          warning("Manual interupt: MDP solver did not converge at iteration ", i)
-        else
-          warning(
-            "MDP solver did not converge after ",
-            i,
-            " iterations.",
-            " Consider decreasing the 'discount' factor or increasing 'n'."
-          )
-      } 
-      
-      if (verbose) {
-        cat("\nTerminated at iteration:", i, "\n")
-      }
-      
-      model$solution <- list(
-        method = "policy iteration",
-        policy = list(.normalize_policy(pi, model, V = V)),
-        converged = converged,
-        iterations = i
-      )
-      
-      return(model)
-    })
-    
-    if (verbose) {
-      cat("Running policy iteration (infinite horizon)")
-      cat("\nn (max updates):       ", n) 
-      cat("\nk_backups:             ", k_backups) 
-      cat("\nInitial V (first 20 max):\n")
-      print(head(V, n = 20))
-      
-      cat("\n")
-    } 
-    
-    changed_actions <- length(S(model))
-    converged <- FALSE
-    i <- 0L
-    while (i < n) {
-      i <- i + 1L
-      if (progress)
-        pb$tick(token = list(changed_actions = changed_actions))
-      
-      # evaluate to get V from pi
-      V <- policy_evaluation(
-        model,
-        pi,
-        V,
-        k_backups = k_backups,
-        progress = FALSE
-      )
-      
-      V_prime <- bellman_update(model, V)
-      pi_prime <- V_prime$pi
-      V <- V_prime$V
-      Q <- V_prime$Q
-      
-      # changed_actions <- sum(pi != pi_prime)
-      # account for random tie breaking using Q
-      changed_actions <- sum(Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max))
-      
-      if (verbose > 1)
-        cat(i, "| # of updated actions ", changed_actions, "\n")
-      
-      if (changed_actions == 0) {
-        converged <- TRUE
-        break
-      }
-      
-      pi <- pi_prime
-    }
-    
-    # return is done in on.exit()
-  }

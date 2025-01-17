@@ -45,7 +45,7 @@
 #'
 #' # create several policies:
 #' # 1. optimal policy using value iteration
-#' maze_solved <- solve_MDP(Maze, method = "value_iteration")
+#' maze_solved <- solve_MDP(Maze, method = "DP:VI")
 #' pi_opt <- policy(maze_solved)
 #' pi_opt
 #'
@@ -58,7 +58,7 @@
 #'
 #' # 3. a random policy
 #' set.seed(1234)
-#' pi_random <- random_policy(Maze)
+#' pi_random <- random_policy(Maze, prob = c(up = .7, right = .1, down = .1, left = 0.1))
 #' pi_random
 #'
 #' # 4. an improved policy based on one policy evaluation and

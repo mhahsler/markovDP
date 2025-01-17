@@ -41,9 +41,11 @@
 #' 
 #' @param epsilon an `epsilon > 0` applies an epsilon-greedy policy.
 #' @param prob logical; return a probability distribution over the actions.
-#' @return `greedy_action()` returns the action with the highest q-value
+#' @return 
+#'    * `greedy_action()` returns the action with the highest q-value
 #'    for state `s`. If `prob = TRUE`, then a vector with
 #'    the probability for each action is returned.
+#'    * `greedy_policy()` returns a data.frame with the policy.
 #' @export
 greedy_action <- function(x,  
                           s,

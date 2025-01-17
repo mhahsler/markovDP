@@ -6,7 +6,12 @@ data(Maze)
 
 #models_solve <- list(Maze)
 #models_solve <- list(normalize_MDP(Maze, transition_prob = TRUE, reward = FALSE, sparse = TRUE))
-models_solve <- list(normalize_MDP(Maze, transition_prob = TRUE, reward = TRUE, sparse = FALSE))
+models_solve <- list(normalize_MDP(
+  Maze,
+  transition_prob = TRUE,
+  reward = TRUE,
+  sparse = FALSE
+))
 
 # precompute dense matrices?
 #matrix <- FALSE
@@ -18,24 +23,25 @@ matrix <- TRUE
 # gw_plot(models_solve[[1]])
 
 
-methods_DP <- c("value_iteration", "policy_iteration")
-methods_PS <- c("prioritized_sweeping")
-methods_LP <- c("lp")
-methods_TD <- c("sarsa", "q_learning", "expected_sarsa")
-methods_MC <- c("MC_exploring_starts", "MC_on_policy", "MC_off_policy")
-methods_sampling <- c("q_planning")
+methods_DP <- c("DP:VI", "DP:PI", "DP:PS_GenPS", "DP:PS_error", "DP:PS_random")
+methods_LP <- c("LP:LP")
+methods_TD <- c("TD:sarsa", "TD:q_learning", "TD:expected_sarsa")
+methods_MC <- c("MC:exploring_starts", "MC:on_policy", "MC:off_policy")
+methods_sampling <- c("SAMP:q_planning")
 
 num_states <- length(models_solve[[1]]$states)
 
 # benchmark
-#bench <- solve_MDP(models_solve[[1]], method = "lp", discount = 1)
-bench <- solve_MDP(models_solve[[1]], method = "value")
+#bench <- solve_MDP(models_solve[[1]], method = "LP:LP", discount = 1)
+bench <- solve_MDP(models_solve[[1]], method = "DP:VI")
 
 
-timing <- data.frame(model = character(0), 
-                     method = character(0),
-                     action_discrepancy = numeric(0),
-                     time = numeric(0))
+timing <- data.frame(
+  model = character(0),
+  method = character(0),
+  action_discrepancy = numeric(0),
+  time = numeric(0)
+)
 solutions <- list()
 
 
@@ -47,11 +53,16 @@ for (model in models_solve) {
     
     t <- system.time(sol <- solve_MDP(model, method = m, matrix = matrix))
     
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
-                                       action_discrepancy = action_discrepancy(sol, bench),
-                                       weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
-                                       time = t[3]))
+    timing <- rbind(
+      timing,
+      data.frame(
+        model = model$name,
+        method = m,
+        action_discrepancy = action_discrepancy(sol, bench),
+        weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
+        time = t[3]
+      )
+    )
     solutions <- append(solutions, setNames(list(sol), m))
     
     if (verbose)
@@ -65,32 +76,6 @@ for (model in models_solve) {
   }
 }
 
-for (model in models_solve) {
-  for (m in methods_PS) {
-    for (H_update in c("PS_random", "PS_error", "GenPS")) {
-    if (verbose)
-      cat("Solving w/", m, ":", model$name, "\n")
-    
-    t <- system.time(sol <- solve_MDP(model, method = m, H_update = H_update, matrix = matrix))
-    
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = paste0(m, "_", H_update), 
-                                       action_discrepancy = action_discrepancy(sol, bench),
-                                       weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
-                                       time = t[3]))
-    solutions <- append(solutions, setNames(list(sol), m))
-    
-    if (verbose)
-      cat("time: ", t[3], " sec.\n\n")
-    
-    pol <- policy(sol)
-    expect_identical(dim(pol), c(num_states, 3L))
-    expect_equal(action_discrepancy(sol, bench), 0)
-    
-    # check_and_fix_MDP(sol)
-    }
-  }
-}
 
 
 # need no parameters
@@ -102,11 +87,16 @@ for (model in models_solve) {
     # TD warn about inf horizon
     # has no matrix
     t <- system.time(sol <- solve_MDP(model, method = m, discount = 0.999))
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m,
-                                       action_discrepancy = action_discrepancy(sol, bench),
-                                       weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
-                                       time = t[3]))
+    timing <- rbind(
+      timing,
+      data.frame(
+        model = model$name,
+        method = m,
+        action_discrepancy = action_discrepancy(sol, bench),
+        weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
+        time = t[3]
+      )
+    )
     solutions <- append(solutions, setNames(list(sol), m))
     
     if (verbose)
@@ -127,19 +117,30 @@ for (model in models_solve) {
 for (model in models_solve) {
   for (m in methods_sampling) {
     if (verbose)
-      cat("Solving w/", m, ":", model$name,"\n")
+      cat("Solving w/", m, ":", model$name, "\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000, alpha = 0.1, matrix = matrix))
+    t <- system.time(sol <- solve_MDP(
+      model,
+      method = m,
+      n = 1000,
+      alpha = 0.1,
+      matrix = matrix
+    ))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
-                                       action_discrepancy = action_discrepancy(sol, bench),
-                                       weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
-                                       time = t[3]))
+    timing <- rbind(
+      timing,
+      data.frame(
+        model = model$name,
+        method = m,
+        action_discrepancy = action_discrepancy(sol, bench),
+        weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
+        time = t[3]
+      )
+    )
     solutions <- append(solutions, setNames(list(sol), m))
-     
+    
     pol <- policy(sol)
     expect_identical(dim(pol), c(num_states, 3L))
     
@@ -150,17 +151,28 @@ for (model in models_solve) {
 for (model in models_solve) {
   for (m in c(methods_TD)) {
     if (verbose)
-      cat("Solving w/", m, ":", model$name,"\n")
+      cat("Solving w/", m, ":", model$name, "\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000, horizon = 100, matrix = matrix))
+    t <- system.time(sol <- solve_MDP(
+      model,
+      method = m,
+      n = 1000,
+      horizon = 100,
+      matrix = matrix
+    ))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
-                                       action_discrepancy = action_discrepancy(sol, bench),
-                                       weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
-                                       time = t[3]))
+    timing <- rbind(
+      timing,
+      data.frame(
+        model = model$name,
+        method = m,
+        action_discrepancy = action_discrepancy(sol, bench),
+        weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
+        time = t[3]
+      )
+    )
     solutions <- append(solutions, setNames(list(sol), m))
     
     pol <- policy(sol)
@@ -173,17 +185,28 @@ for (model in models_solve) {
 for (model in models_solve) {
   for (m in c(methods_MC)) {
     if (verbose)
-      cat("Solving w/", m, ":", model$name,"\n")
+      cat("Solving w/", m, ":", model$name, "\n")
     
-    t <- system.time(sol <- solve_MDP(model, method = m, n = 1000, horizon = 100, matrix = matrix))
+    t <- system.time(sol <- solve_MDP(
+      model,
+      method = m,
+      n = 1000,
+      horizon = 100,
+      matrix = matrix
+    ))
     
     if (verbose)
       cat("time: ", t[3], " sec.\n\n")
-    timing <- rbind(timing, data.frame(model = model$name, 
-                                       method = m, 
-                                       action_discrepancy = action_discrepancy(sol, bench),
-                                       weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
-                                       time = t[3]))
+    timing <- rbind(
+      timing,
+      data.frame(
+        model = model$name,
+        method = m,
+        action_discrepancy = action_discrepancy(sol, bench),
+        weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
+        time = t[3]
+      )
+    )
     solutions <- append(solutions, setNames(list(sol), m))
     
     pol <- policy(sol)
@@ -203,9 +226,8 @@ rownames(timing) <- NULL
 #     geom_bar(stat = "identity")
 # }
 
-timing[order(timing$time),]
-timing[order(timing$action_discrepancy),]
+timing[order(timing$time), ]
+timing[order(timing$action_discrepancy), ]
 
 
 #cbind(policy(solutions$q_planning), bench = policy(bench)$action)
-

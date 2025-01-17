@@ -1,9 +1,8 @@
-# Solve MDPs using Monte Carlo Methods
-
-#' @rdname solve_MDP
-#' @details
-#' ## Monte Carlo Control
+#' Solve MDPs using Monte Carlo Control
 #'
+#' Solve MDPs using monte carlo control.
+#'
+#' @details
 #' The idea is to estimate the action value function for a policy as the 
 #' average of sampled returns.
 #' 
@@ -16,7 +15,7 @@
 #' the predefined number of episodes is completed.  
 #' 
 #' Implemented are the following temporal difference control methods
-#' described in Sutton and Barto (2020).
+#' described in Sutton and Barto (2018).
 #'
 #' * **Monte Carlo Control with exploring Starts** learns the optimal greedy policy. 
 #' It uses the same greedy policy for
@@ -44,13 +43,25 @@
 #' inefficient in learning the beginning portion of long episodes. This problem 
 #' is especially problematic when larger values for \eqn{\epsilon} are used. 
 #'
+#' @references 
 #' 
+#' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
+#' 
+#' @inheritParams solve_MDP
+#' @inheritParams solve_MDP_TD
+#' @param method string; one of the following solution methods:
+#'    * `'exploring_starts'` - on-policy MC control with exploring starts.
+#'    * `'on_policy'` - on-policy MC control with an \eqn{\epsilon}-greedy policy.
+#'    * `'off_policy"'` - off-policy MC control using an \eqn{\epsilon}-greedy behavior policy.
 #' @param first_visit if `TRUE` then only the first visit of a state/action pair
 #'   in an episode is used to update Q, otherwise, every-visit update is used.
+#' 
+#' @inherit solve_MDP return 
+#' 
 #' @export
 solve_MDP_MC <-
   function(model,
-           method = "MC_exploring_starts",
+           method = "exploring_starts",
            horizon = NULL,
            discount = NULL,
            n = 100,
@@ -58,27 +69,24 @@ solve_MDP_MC <-
            epsilon = NULL,
            alpha = NULL,
            first_visit = TRUE,
+           ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
-           verbose = FALSE,
-           ...) {
-    method <-
-      match.arg(method,
-                c("MC_exploring_starts", "MC_on_policy", "MC_off_policy"))
+           verbose = FALSE) {
+    .nodots(...)
     
-    ### default is infinite horizon, but we use 1000 to guarantee termination
-    model$horizon <- horizon <- horizon %||% model$horizon  %||% Inf
+    methods <- c("exploring_starts", "on_policy", "off_policy")
+    method <- match.arg(method, methods)
     
-    if (is.infinite(horizon)) {
+    model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
+    
+    if (is.infinite(model$horizon)) {
       warning(
         "No finite horizon defined. Specify horizon to remove this warning."
       )
-      model$horizon <- horizon <- convergence_horizon(model, n_updates = 1)
+      model$horizon <- convergence_horizon(model, n_updates = 1)
     }
-    
-    model$discount <- discount <- discount %||% model$discount %||% 1
-    
     
     # Initialize Q
     if (continue) {
@@ -87,27 +95,11 @@ solve_MDP_MC <-
       Q <- model$solution$Q
     }
     
-    if (matrix) {
-      if (verbose)
-        cat("Precomputing matrices for R and T ...")
-      model <- normalize_MDP(
-        model,
-        sparse = NULL,
-        precompute_absorbing = TRUE,
-        progress = progress
-      )
-      
-      if (verbose)
-        cat(" done.\n")
-    }
-    
     switch(
       method,
-      MC_exploring_starts = MC_on_policy(
+      exploring_starts = MC_on_policy(
         model,
         method,
-        horizon,
-        discount,
         n,
         Q,
         exploring_starts = TRUE,
@@ -118,11 +110,9 @@ solve_MDP_MC <-
         verbose = verbose,
         ...
       ),
-      MC_on_policy = MC_on_policy(
+      on_policy = MC_on_policy(
         model,
         method,
-        horizon,
-        discount,
         n,
         Q,
         exploring_starts = FALSE,
@@ -133,11 +123,9 @@ solve_MDP_MC <-
         verbose = verbose,
         ...
       ),
-      MC_off_policy = MC_off_policy(
+      off_policy = MC_off_policy(
         model,
         method,
-        horizon,
-        discount,
         n,
         Q,
         epsilon = epsilon,
@@ -152,8 +140,6 @@ solve_MDP_MC <-
 
 MC_on_policy <- function(model,
                          method,
-                         horizon,
-                         discount,
                          n,
                          Q = NULL,
                          exploring_starts,
@@ -186,6 +172,8 @@ MC_on_policy <- function(model,
   
   S <- S(model)
   A <- A(model)
+  horizon <- model$horizon
+  discount <- model$discount
   
   # Start with arbitrary policy, we make it soft by specifying epsilon
   # in the simulation.
@@ -357,8 +345,6 @@ MC_on_policy <- function(model,
 
 MC_off_policy <- function(model,
                           method,
-                          horizon,
-                          discount,
                           n,
                           Q = NULL,
                           epsilon = NULL,
@@ -379,7 +365,8 @@ MC_off_policy <- function(model,
   
   S <- S(model)
   A <- A(model)
-  gamma <- discount
+  gamma <- model$discount
+  horizon <- model$horizon
   
   # Initialize
   if (is.null(Q)) {

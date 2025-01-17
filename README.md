@@ -47,6 +47,10 @@ tabular methods:
   - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
   - Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
   - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
+  - n-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
+- **Linear Function Approximation**
+  - Episodic Semi-gradient Sarsa ([Sutton and Barto
+    2018](#ref-Sutton1998))
 - **Sampling**
   - Random-sample one-step tabular Q-planning ([Sutton and Barto
     2018](#ref-Sutton1998))
@@ -100,11 +104,11 @@ Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
+    ##   Storage: transition prob as matrix / reward as matrix. Total size: 28.8 Kb
     ##   Start: s(3,1)
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states',
-    ##     'unreachable_states'
+    ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states'
 
 The maze is a gridworld and can be displayed directly.
 
@@ -123,6 +127,7 @@ sol
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
+    ##   Storage: transition prob as matrix / reward as matrix. Total size: 32.3 Kb
     ##   Start: s(3,1)
     ##   Solved:
     ##     Method: 'value_iteration'
@@ -130,7 +135,7 @@ sol
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
     ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states',
-    ##     'unreachable_states', 'solution'
+    ##     'solution'
 
 Display the value function.
 

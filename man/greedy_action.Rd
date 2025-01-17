@@ -19,9 +19,12 @@ greedy_policy(x)
 \item{prob}{logical; return a probability distribution over the actions.}
 }
 \value{
-\code{greedy_action()} returns the action with the highest q-value
+\itemize{
+\item \code{greedy_action()} returns the action with the highest q-value
 for state \code{s}. If \code{prob = TRUE}, then a vector with
 the probability for each action is returned.
+\item \code{greedy_policy()} returns a data.frame with the policy.
+}
 
 \code{greedy_policy()} returns the greedy policy given \code{Q}.
 }
@@ -67,6 +70,7 @@ Other MDP:
 \code{\link{act}()},
 \code{\link{available_actions}()},
 \code{\link{bellman_update}()},
+\code{\link{convergence_horizon}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},
