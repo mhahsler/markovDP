@@ -19,7 +19,7 @@
 #' function with the signature `function(t, n)`, where `t` is the number of episodes 
 #' processed and `n` is the number of updates for the entry in the Q-table. 
 #' 
-#' The general update is
+#' The general 1-step update is
 #' \deqn{
 #' Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha [G_t - Q(S_t,A_t)],
 #' }
@@ -61,11 +61,14 @@
 #'   the Q-learning algorithm.  
 #'   
 #' * **On and off-policy n-step Sarsa** (Sutton and Barto 2018).
-#'   Estimate the return using the last \eqn{n} timesteps:
+#'   Estimate the return using the last \eqn{n} time steps:
 #'   \deqn{
 #'   G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
 #'   }
-#'
+#'   
+#'   \eqn{n = 1} is regular 1-step Sarsa, \eqn{n = \inf} is equivalent to 
+#'   Monte Carlo Control.
+#'   
 #'   This estimate is used as the target for Sarsa. For the off-policy case,
 #'   the update uses the importance sampling ratio. Note that updates are delayed 
 #'   \eqn{n} steps in this backward looking algorithm.
@@ -94,7 +97,7 @@
 #' @examples
 #' data(Maze)
 #' 
-#' # Learn a Policy using Q-Learning
+#' # Example 1: Learn a Policy using Q-Learning
 #' maze_learned <- solve_MDP(Maze, method = "TD:q_learning",
 #'     epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
 #' maze_learned
@@ -110,7 +113,13 @@
 #' policy(maze_learned)
 #' plot_value_function(maze_learned)
 #' gw_plot(maze_learned)
+#'
+#' # Example 2: n-step Sarsa
+#' maze_learned <- solve_MDP(Maze, method = "TDN:sarsa_on_policy",
+#'     n_step = 3, n = 10, horizon = 100, verbose = TRUE)
+#' maze_learned
 #' 
+#' gw_plot(maze_learned)
 #' @export
 solve_MDP_TD <-
   function(model,
@@ -305,14 +314,14 @@ solve_MDP_TD <-
 #' @rdname solve_MDP_TD
 #' @param n_step integer; steps for bootstrapping
 #' @export
-solve_MDP_TD_n_step <-
+solve_MDP_TDN <-
   function(model,
            method = "sarsa_on_policy",
            horizon = NULL,
            discount = NULL,
+           n_step,
            alpha = function(t, n)
              min(10 / n, 1),
-           n_step = 1,
            epsilon = 0.2,
            n = 1000,
            Q = 0,
@@ -322,6 +331,9 @@ solve_MDP_TD_n_step <-
            verbose = FALSE,
            ...) {
     .nodots(...)
+    
+    if (missing(n_step))
+      stop("argument \"n_step\" is missing!")
     
     method <-
       match.arg(method,
@@ -423,7 +435,7 @@ solve_MDP_TD_n_step <-
       if (progress)
         pb$tick()
       
-      s <- sample(S, 1L, prob = start)
+      s <- sample.int(length(S), 1L, prob = start)
       a <- greedy_action(Q, s, epsilon)
       
       S_t[1L] <- s

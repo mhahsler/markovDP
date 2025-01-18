@@ -1,6 +1,6 @@
 #' Solve MDPs using Monte Carlo Control
 #'
-#' Solve MDPs using monte carlo control.
+#' Solve MDPs using Monte Carlo control.
 #'
 #' @details
 #' The idea is to estimate the action value function for a policy as the 

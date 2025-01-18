@@ -6,7 +6,7 @@
 \alias{approx_Q_value}
 \alias{approx_greedy_action}
 \alias{approx_greedy_policy}
-\title{Episodic Semi-gradient Sarsa}
+\title{Episodic Semi-gradient Sarsa with Linear Function Approximation}
 \usage{
 solve_MDP_SGD(
   model,

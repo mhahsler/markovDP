@@ -26,6 +26,7 @@ matrix <- TRUE
 methods_DP <- c("DP:VI", "DP:PI", "DP:PS_GenPS", "DP:PS_error", "DP:PS_random")
 methods_LP <- c("LP:LP")
 methods_TD <- c("TD:sarsa", "TD:q_learning", "TD:expected_sarsa")
+methods_TDN <- c("TDN:sarsa_on_policy", "TDN:sarsa_off_policy")
 methods_MC <- c("MC:exploring_starts", "MC:on_policy", "MC:off_policy")
 methods_sampling <- c("SAMP:q_planning")
 
@@ -84,7 +85,6 @@ for (model in models_solve) {
     if (verbose)
       cat("Solving w/", m, ":", model$name, "\n")
     
-    # TD warn about inf horizon
     # has no matrix
     t <- system.time(sol <- solve_MDP(model, method = m, discount = 0.999))
     timing <- rbind(
@@ -181,6 +181,44 @@ for (model in models_solve) {
     # check_and_fix_MDP(sol)
   }
 }
+
+for (model in models_solve) {
+  for (m in c(methods_TDN)) {
+    if (verbose)
+      cat("Solving w/", m, ":", model$name, "\n")
+    
+    t <- system.time(sol <- solve_MDP(
+      model,
+      method = m,
+      n_step = 4,
+      n = 100,
+      horizon = 100,
+      matrix = matrix
+    ))
+    
+    if (verbose)
+      cat("time: ", t[3], " sec.\n\n")
+    timing <- rbind(
+      timing,
+      data.frame(
+        model = model$name,
+        method = m,
+        action_discrepancy = action_discrepancy(sol, bench),
+        weighted_RMSVE = value_error(sol, bench, weighted = TRUE),
+        time = t[3]
+      )
+    )
+    solutions <- append(solutions, setNames(list(sol), m))
+    
+    pol <- policy(sol)
+    expect_identical(dim(pol), c(num_states, 3L))
+    
+    # check_and_fix_MDP(sol)
+  }
+}
+
+
+
 
 for (model in models_solve) {
   for (m in c(methods_MC)) {

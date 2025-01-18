@@ -2,7 +2,7 @@
 % Please edit documentation in R/solve_MDP_TD.R
 \name{solve_MDP_TD}
 \alias{solve_MDP_TD}
-\alias{solve_MDP_TD_n_step}
+\alias{solve_MDP_TDN}
 \title{Solve MDPs using Temporal Differencing}
 \usage{
 solve_MDP_TD(
@@ -21,7 +21,7 @@ solve_MDP_TD(
   verbose = FALSE
 )
 
-solve_MDP_TD_n_step(
+solve_MDP_TDN(
   model,
   method = "sarsa_on_policy",
   horizon = NULL,
@@ -104,7 +104,7 @@ The learning rate \code{alpha} can be specified as a
 function with the signature \verb{function(t, n)}, where \code{t} is the number of episodes
 processed and \code{n} is the number of updates for the entry in the Q-table.
 
-The general update is
+The general 1-step update is
 \deqn{
 Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha [G_t - Q(S_t,A_t)],
 }
@@ -141,10 +141,13 @@ set the step size \eqn{\alpha} to large values and 1 is common.
 The off-policy use of expected Sarsa simplifies to
 the Q-learning algorithm.
 \item \strong{On and off-policy n-step Sarsa} (Sutton and Barto 2018).
-Estimate the return using the last \eqn{n} timesteps:
+Estimate the return using the last \eqn{n} time steps:
 \deqn{
   G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
   }
+
+\eqn{n = 1} is regular 1-step Sarsa, \eqn{n = \inf} is equivalent to
+Monte Carlo Control.
 
 This estimate is used as the target for Sarsa. For the off-policy case,
 the update uses the importance sampling ratio. Note that updates are delayed
@@ -154,7 +157,7 @@ the update uses the importance sampling ratio. Note that updates are delayed
 \examples{
 data(Maze)
 
-# Learn a Policy using Q-Learning
+# Example 1: Learn a Policy using Q-Learning
 maze_learned <- solve_MDP(Maze, method = "TD:q_learning",
     epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
 maze_learned
@@ -171,6 +174,12 @@ policy(maze_learned)
 plot_value_function(maze_learned)
 gw_plot(maze_learned)
 
+# Example 2: n-step Sarsa
+maze_learned <- solve_MDP(Maze, method = "TDN:sarsa_on_policy",
+    epsilon = 0.2, n = 10, horizon = 100, verbose = TRUE)
+maze_learned
+
+#' gw_plot(maze_learned)
 }
 \references{
 Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
