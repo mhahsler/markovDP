@@ -1,6 +1,4 @@
-
-
-
+# Internal helpers for sparse representation
 
 # make a matrix sparse if it has low density
 .sparsify <- function(x, sparse = TRUE, names = NULL) {
@@ -313,112 +311,7 @@
 }
 
 
-# make sure state and actions are factors, integer vectors or character vectors
-.normalize_state <- function(state, model) {
-  if (is.null(state) || is.factor(state))
-    return(state)
-  
-  if (is.numeric(state)) {
-    s <- factor(state, levels = seq_along(S(model)), labels = S(model))
-    if (any(is.na(s)))
-      stop("Unknown state ", paste(sQuote(state[is.na(s)]), collapse = ", "))
-    return(s)
-  }
-  
-  if (is.character(state)) {
-    s <- factor(state, levels = S(model))
-    if (any(is.na(s)))
-      stop("Unknown state ", paste(sQuote(state[is.na(s)]), collapse = ", "))
-    return(s)
-  }
-  stop("Unknown state label: ", sQuote(state))
-}
 
-.normalize_state_id <- function(state, model) {
-  if (is.null(state) || is.integer(state))
-    return(state)
-  
-  s <- state
-  if (is.character(s))
-    s <- match(s, S(model))
-  
-  if (!is.integer(s))
-    s <- as.integer(s)
-  
-  problem <- is.na(s) | s < 1L | s > length(S(model))
-  if (any(problem))
-    stop("Unknown state ", paste(sQuote(state[problem]), collapse = ", "))
-  
-  return(s)
-}
-
-.normalize_state_label <- function(state, model) {
-  if (is.null(state) || is.character(state))
-    return(state)
-  
-  if (is.factor(state))
-    return(as.character(state))
-  
-  return(S(model)[state])
-}
-
-.normalize_action <- function(action, model) {
-  if (is.null(action) || is.factor(action))
-    return(action)
-  
-  if (is.logical(action)) {
-    if (length(action) != length(A(model)))
-      stop("Illegal action definition (logical)")
-    action <- which(action)
-  }
-  
-  if (is.numeric(action)) {
-    a <- factor(action, levels = seq_along(A(model)), labels = A(model))
-    if (any(is.na(a)))
-      stop("Unknown action ", paste(sQuote(action[is.na(a)]), collapse = ", "))
-    return(a)
-  }
-  
-  if (is.character(action)) {
-    a <- factor(action, levels = A(model))
-    if (any(is.na(a)))
-      stop("Unknown action ", paste(sQuote(action[is.na(a)]), collapse = ", "))
-    return(a)
-  }
-  
-  if (is.null(action))
-    return(NULL)
-  
-  stop("Unknown action label: ", sQuote(action))
-}
-
-.normalize_action_id <- function(action, model) {
-  if (is.null(action) || is.integer(action))
-    return(action)
-  
-  a <- action
-  if (is.character(a))
-    a <- match(a, A(model))
-  
-  if (!is.integer(a))
-    a <- as.integer(a)
-  
-  problem <- is.na(a) | a < 1L | a > length(A(model))
-  if (any(problem))
-    stop("Unknown action ", paste(sQuote(action[problem]), collapse = ", "))
-  
-  return(a)
-}
-
-.normalize_action_label <- function(action, model) {
-  if (is.null(action) || is.character(action))
-    return(action)
-  
-  if (is.factor(action))
-    return(as.character(action))
-  
-  return(A(model)[action])
-}
 
 ### check if a field/action has a matrix
 .action_is_matrix <- function(model, field, action) {

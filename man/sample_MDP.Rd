@@ -2,11 +2,14 @@
 % Please edit documentation in R/sample_MDP.R
 \name{sample_MDP}
 \alias{sample_MDP}
+\alias{sample_MDP.MDP}
 \title{Sample Trajectories from an MDP}
 \usage{
-sample_MDP(
+sample_MDP(model, n, ...)
+
+\method{sample_MDP}{MDP}(
   model,
-  n = 100,
+  n,
   start = NULL,
   horizon = NULL,
   epsilon = NULL,
@@ -23,6 +26,8 @@ sample_MDP(
 \item{model}{an MDP model.}
 
 \item{n}{number of trajectories.}
+
+\item{...}{further arguments are ignored.}
 
 \item{start}{probability distribution over the states for choosing the
 starting states for the trajectories. Defaults to "uniform".}
@@ -48,8 +53,6 @@ the reward are specified as R functions (which are slow in C++).}
 \item{progress}{show a progress bar?}
 
 \item{verbose}{report used parameters}
-
-\item{...}{further arguments are ignored.}
 }
 \value{
 A list with elements:
@@ -67,8 +70,8 @@ only returned for \code{trajectories = TRUE}.
 }
 \description{
 Sample trajectories through an MDP. The start state for each
-trajectory is randomly chosen using the specified belief. The belief is used to choose actions
-from an epsilon-greedy policy and then update the state.
+trajectory is chosen using the start definition in the model. Actions are chosen
+randomly of using an epsilon-greedy policy.
 }
 \details{
 The default is a

@@ -255,7 +255,7 @@ value_matrix <-
     if (is.null(action))
       action <- A(model)
     if (!is.character(action))
-      action <- .normalize_action_label(action, model)
+      action <- normalize_action_label(action, model)
     
     # multiple actions
     if (length(action) > 1L) {
@@ -282,27 +282,27 @@ value_matrix <-
       
       # from functions
       if (is.function(value)) {
-        action <- .normalize_action_label(action, model)
-        row <- .normalize_state_label(row, model)
-        col <- .normalize_state_label(col, model)
+        action <- normalize_action_label(action, model)
+        row <- normalize_state_label(row, model)
+        col <- normalize_state_label(col, model)
         m <- function2value(model, field, action, row, col, sparse, drop)
         return(m)
       }
       
       # from data.frame
       else if (is.data.frame(value)) {
-        action <- .normalize_action_label(action, model)
-        row <- .normalize_state_label(row, model)
-        col <- .normalize_state_label(col, model)
+        action <- normalize_action_label(action, model)
+        row <- normalize_state_label(row, model)
+        col <- normalize_state_label(col, model)
         m <- df2value(model, field, action, row, col, sparse, drop)
         return(m)
       }
       
       # from a list of matrices
       else {
-        action <- .normalize_action_id(action, model)
-        row <- .normalize_state_id(row, model)
-        col <- .normalize_state_id(col, model)
+        action <- normalize_action_id(action, model)
+        row <- normalize_state_id(row, model)
+        col <- normalize_state_id(col, model)
         m <- matrix2value(model, field, action, row, col, sparse, trans_keyword, drop)
         return(m)
       }

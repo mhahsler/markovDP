@@ -2,11 +2,27 @@
 % Please edit documentation in R/solve_MDP.R
 \name{solve_MDP}
 \alias{solve_MDP}
+\alias{solve_MDP.MDP}
+\alias{solve_MDP.MDPE}
 \title{Solve an MDP Problem}
 \usage{
-solve_MDP(
+solve_MDP(model, ...)
+
+\method{solve_MDP}{MDP}(
   model,
   method = "DP:VI",
+  horizon = NULL,
+  discount = NULL,
+  ...,
+  matrix = TRUE,
+  continue = FALSE,
+  verbose = FALSE,
+  progress = !verbose
+)
+
+\method{solve_MDP}{MDPE}(
+  model,
+  method = "APPROX:semi_gradient_sarsa",
   horizon = NULL,
   discount = NULL,
   ...,
@@ -18,6 +34,8 @@ solve_MDP(
 }
 \arguments{
 \item{model}{an MDP problem specification.}
+
+\item{...}{further parameters are passed on to the solver function.}
 
 \item{method}{string; Composed of the algorithm family abbreviation and the algorithm
 separated by \code{:}. The algorithm families can be found in the See Also
@@ -31,7 +49,14 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
-\item{...}{further parameters are passed on to the solver function.}
+\item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
+the reward function are taken from the model first. This can be slow if functions
+need to be converted or do not fit into memory if the models are large. If these
+components are already matrices, then this is very fast. For \code{FALSE}, the
+transition probabilities and the reward is extracted when needed. This is slower,
+but removes the time and memory requirements needed to calculate the matrices.}
+
+\item{continue}{logical; show a progress bar with estimated time for completion.}
 
 \item{verbose}{logical or a numeric verbose level; if set to \code{TRUE} or \code{1}, the
 function displays the used algorithm parameters and progress information.
@@ -68,6 +93,12 @@ in the Examples section).
 
 A list of available solvers can be found in the See Also section under
 "Other solvers".
+
+While \link{MDP} model contain an explicit specification of the state space,
+the transition probabilities and the reward structure, \link{MDPE} only contains a
+transition function. This means that only a small subset of solvers can be
+used for MDPEs. This currently includes only includes
+the solvers in \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}.
 }
 \examples{
 data(Maze)
@@ -92,12 +123,11 @@ Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introd
 }
 \seealso{
 Other solver: 
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_SGD}()},
-\code{\link{solve_MDP_TD}()},
-\code{\link{solve_MDP_sampling}()}
+\code{\link{solve_MDP_TD}()}
 
 Other MDP: 
 \code{\link{MDP}()},
@@ -116,9 +146,17 @@ Other MDP:
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
+
+Other MDPE: 
+\code{\link{MDPE}()},
+\code{\link{absorbing_states}()},
+\code{\link{act}()},
+\code{\link{sample_MDP.MDPE}()},
+\code{\link{solve_MDP_APPROX}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
+\concept{MDPE}
 \concept{solver}

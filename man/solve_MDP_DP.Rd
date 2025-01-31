@@ -27,7 +27,7 @@ solve_MDP_DP(
 \itemize{
 \item \code{'VI'} - value iteration
 \item \code{'PI'} - policy iteration
-\item \code{'PS_GenPS'}, \code{'PS_error'}, \code{'PS_random'} - prioritized sweeping
+\item \code{'GenPS'}, \code{'PS_error'}, \code{'PS_random'} - prioritized sweeping
 }}
 
 \item{horizon}{an integer with the number of epochs for problems with a
@@ -61,7 +61,7 @@ components are already matrices, then this is very fast. For \code{FALSE}, the
 transition probabilities and the reward is extracted when needed. This is slower,
 but removes the time and memory requirements needed to calculate the matrices.}
 
-\item{continue}{logical; Continue with an unconverged solution specified in \code{model}.}
+\item{continue}{logical; show a progress bar with estimated time for completion.}
 
 \item{verbose}{logical or a numeric verbose level; if set to \code{TRUE} or \code{1}, the
 function displays the used algorithm parameters and progress information.
@@ -181,7 +181,7 @@ maze_solved <- solve_MDP(Maze, method = "DP:VI", verbose = TRUE)
 policy(maze_solved)
 
 # use prioritized sweeping (which is known to be fast for mazes)
-maze_solved <- solve_MDP(Maze, method = "DP:PS_GenPS", verbose = TRUE)
+maze_solved <- solve_MDP(Maze, method = "DP:GenPS", verbose = TRUE)
 policy(maze_solved)
 
 # finite horizon
@@ -210,10 +210,9 @@ Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Ap
 \seealso{
 Other solver: 
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_SGD}()},
-\code{\link{solve_MDP_TD}()},
-\code{\link{solve_MDP_sampling}()}
+\code{\link{solve_MDP_TD}()}
 }
 \concept{solver}

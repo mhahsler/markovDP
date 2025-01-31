@@ -15,6 +15,7 @@
 \alias{gw_transition_prob_named}
 \alias{gw_transition_prob_end_state}
 \alias{gw_maze_MDP}
+\alias{gw_maze_MDPE}
 \alias{gw_random_maze}
 \alias{gw_read_maze}
 \alias{gw_path}
@@ -85,6 +86,21 @@ gw_maze_MDP(
   goal_reward = 100,
   step_cost = 1,
   restart = FALSE,
+  discount = 1,
+  horizon = Inf,
+  info = NULL,
+  normalize = FALSE,
+  name = NA
+)
+
+gw_maze_MDPE(
+  dim,
+  start,
+  goal,
+  walls = NULL,
+  actions = c("up", "right", "down", "left"),
+  goal_reward = 100,
+  step_cost = 1,
   discount = 1,
   horizon = Inf,
   info = NULL,
@@ -292,7 +308,7 @@ gw <- gw_init(
 
 str(gw)
 
-# display the state labels in the gridworld (states not represented in the 
+# display the state labels in the gridworld (states not represented in the
 # model are shown as NA)
 gw_matrix(gw)
 gw_matrix(gw, what = "label")
@@ -379,7 +395,7 @@ gw_matrix(DynaMaze, what = "labels")
 gw_plot_transition_graph(DynaMaze)
 # Note that the problems resets if the goal state would be reached.
 
-sol <- solve_MDP(DynaMaze, method = "lp")
+sol <- solve_MDP(DynaMaze, method = "LP:LP")
 
 gw_matrix(sol, what = "values")
 gw_matrix(sol, what = "actions")
@@ -403,7 +419,7 @@ gw_matrix(maze, what = "label")
 gw_plot(maze)
 
 # Prioritized sweeping is especially effective for larger mazes.
-sol <- solve_MDP(maze, method = "prioritized_sweeping")
+sol <- solve_MDP(maze, method = "DP:GenPS")
 sol
 
 gw_plot(sol)
@@ -411,7 +427,7 @@ gw_path(sol, horizon = 1000)
 
 # A maze can also be created directly from a character vector
 maze <- gw_read_maze(
-    textConnection(c("XXXXXX", 
+    textConnection(c("XXXXXX",
                      "XS  GX",
                      "XXXXXX")))
 gw_plot(maze)

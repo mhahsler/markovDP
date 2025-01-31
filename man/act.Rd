@@ -2,9 +2,15 @@
 % Please edit documentation in R/act.R
 \name{act}
 \alias{act}
+\alias{act.MDP}
+\alias{act.MDPE}
 \title{Perform an Action}
 \usage{
-act(model, state, action = NULL, ...)
+act(model, state, action, fast = FALSE, ...)
+
+\method{act}{MDP}(model, state, action = NULL, fast = FALSE, ...)
+
+\method{act}{MDPE}(model, state, action, fast = FALSE, ...)
 }
 \arguments{
 \item{model}{an MDP model.}
@@ -15,11 +21,13 @@ act(model, state, action = NULL, ...)
 the MDP model contains a policy, then the action is chosen according to the
 policy.}
 
+\item{fast}{logical; if \code{TRUE} then extra state id to label conversions are avoided.}
+
 \item{...}{if action is unspecified, then the additional parameters are
 passed on to \code{action()} to determine the action using the model's policy.}
 }
 \value{
-a names list with the \code{state}, the \code{action},
+a names list with
 the \code{reward} and the next \code{state_prime}.
 }
 \description{
@@ -34,7 +42,7 @@ act(Maze, "s(1,3)", "right")
 sol <- solve_MDP(Maze)
 act(sol, "s(1,3)")
 
-# make the policy in sol epsilon-soft and ask 10 times for the action 
+# make the policy in sol epsilon-soft and ask 10 times for the action
 replicate(10, act(sol, "s(1,3)", epsilon = .2))
 }
 \seealso{
@@ -55,8 +63,16 @@ Other MDP:
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
+
+Other MDPE: 
+\code{\link{MDPE}()},
+\code{\link{absorbing_states}()},
+\code{\link{sample_MDP.MDPE}()},
+\code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
+\concept{MDPE}

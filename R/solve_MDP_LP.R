@@ -69,8 +69,8 @@ solve_MDP_LP <- function(model,
   .nodots(...)
   # currently ignored: matrix
   
-  method <-
-    match.arg(method, c("LP"))
+  methods <- c("LP")
+  method <- match.arg(method, methods)
   
   if (continue)
     stop("continue is not supported by LP methods!")

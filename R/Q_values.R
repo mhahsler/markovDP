@@ -5,8 +5,9 @@
 #'
 #' Implemented functions are:
 #'
-#' * `Q_values()` approximates
-#'   Q values for a given model and value function using the Bellman
+#' * `Q_values()` gets the Q-values from the model. If the value function
+#'    `V` is specified or if the policy of a solved model contains a value 
+#'    function, then the Q-values are approximated using the Bellman
 #'   optimality equation:
 #'
 #'   \deqn{q_*(s,a) = \sum_{s'} p(s'|s,a) [r(s,a,s') + \gamma v_*(s')]}
@@ -15,6 +16,9 @@
 #'   otherwise we get an approximation that might not 
 #'   be consistent with \eqn{v} or the implied policy.
 #'   Q values can be used as the input for several other functions.
+#'   
+#'   For solvers, that directly calculate Q-values or an approximate Q-function,
+#'   then the solver's values are returned.
 #'
 #' * `Q_zero()` and `Q_random()` create initial Q value matrices for algorithms.
 #'
@@ -55,13 +59,21 @@ NULL
 #'   are calculated from the value function (U) and the transition model.
 #' @export
 Q_values <- function(model, V = NULL) {
-  if (is.null(V)) {
-    V <- policy(model)$V
-  }
+  if (!is.null(V)) 
+    return(bellman_update(model, V)$Q)
+
+  is_solved_MDP(model, allow_MDPE = TRUE, stop = TRUE)   
   
-  Q <- bellman_update(model, V)$Q
+  # solved models may have Q 
+  if(!is.null(model$solution$Q))
+    return(model$solution$Q)
   
-  Q
+  # solved model may have an approx. Q-function
+  if(!is.null(model$solution$w))
+    return(approx_Q_value(model))
+  
+  # use the value function in the policy 
+  bellman_update(model, policy(model)$V)$Q
 }
 
 #' @rdname Q_values

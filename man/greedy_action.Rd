@@ -50,12 +50,16 @@ Q
 # get the greedy policy form the Q values
 pi_greedy <- greedy_policy(Q)
 pi_greedy
-gw_plot(add_policy(Maze, pi_greedy), main = "Maze: Greedy Policy")
+Maze_with_policy <- add_policy(Maze, pi_greedy)
+gw_plot(Maze_with_policy, main = "Maze: Greedy Policy")
 
 # find the greedy/ epsilon-greedy action for the top-left corner state 
 greedy_action(Q, "s(1,1)", epsilon = 0, prob = FALSE)
 greedy_action(Q, "s(1,1)", epsilon = 0, prob = TRUE)
 greedy_action(Q, "s(1,1)", epsilon = .1, prob = TRUE)
+
+# we can also specify a model with a policy 
+greedy_action(Maze_with_policy, "s(1,1)", epsilon = .1, prob = TRUE)
 
 }
 \references{

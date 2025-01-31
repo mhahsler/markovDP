@@ -202,7 +202,7 @@ MDP <- function(states,
     info = info
   )
 
-  class(x) <- list("MDP", "list")
+  class(x) <- c("MDP", "list")
   x <- check_and_fix_MDP(x)
     
   # this takes a while
@@ -223,14 +223,14 @@ print.MDP <- function(x, ...) {
   if (!is.null(x$discount)) {
     writeLines(sprintf(
       "  Discount factor: %s",
-      paste(x$discount, collapse = "+")
+      x$discount
     ))
   }
 
   if (!is.null(x$horizon)) {
     writeLines(sprintf(
       "  Horizon: %s epochs",
-      paste(x$horizon, collapse = " + ")
+      x$horizon
     ))
   }
 
@@ -292,14 +292,15 @@ A <- function(model) model$actions
 
 #' @rdname MDP
 #' @param stop logical; stop with an error.
+#' @param allow_MDPE logical; also accept [MDPE] objects.
 #' @export
-is_solved_MDP <- function(model, stop = FALSE) {
-  if (!inherits(model, "MDP")) {
+is_solved_MDP <- function(model, allow_MDPE = FALSE, stop = FALSE) {
+  if (!inherits(model, "MDP") && !(allow_MDPE && inherits(model, "MDPE"))) {
     stop("x needs to be an MDP object!")
   }
   solved <- !is.null(model$solution)
   if (stop && !solved) {
-    stop("model needs to contain a policy. Use solve_MDP() or add_policy() first.")
+    stop("model needs to contain a solution. Use solve_MDP() or add_policy() first.")
   }
 
   solved

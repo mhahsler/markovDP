@@ -53,7 +53,7 @@ available_actions <- function(model,
         sum(reward_matrix(model, a, state) != -Inf & transition_matrix(model, a, state) > 0) > 0
       })
       acts_reward <- rbind(acts_reward)
-      rownames(acts_reward) <- .normalize_state(state, model)
+      rownames(acts_reward) <- normalize_state(state, model)
         
     } else {
       acts_reward <- sapply(A(model), function(a) {
@@ -71,7 +71,7 @@ available_actions <- function(model,
         end.state = s,
         simplify = TRUE) != 1
     ))
-    rownames(acts_stay) <- .normalize_state(state, model)
+    rownames(acts_stay) <- normalize_state(state, model)
   }
   
   if (neg_inf_reward && stay_in_place)

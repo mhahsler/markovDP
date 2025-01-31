@@ -130,10 +130,10 @@ add_policy.MDP <- function(model, policy) {
     stop("Specified value function is not compartible with the number of states!")
   
   if (is.data.frame(policy)) {
-    action <- .normalize_action(policy$action, model)
+    action <- normalize_action(policy$action, model)
     V <- V %||% policy$V
   }  else {
-    action <- .normalize_action(policy, model)
+    action <- normalize_action(policy, model)
     V <- V %||% NA_real_
   }
   

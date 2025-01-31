@@ -23,7 +23,7 @@ matrix <- TRUE
 # gw_plot(models_solve[[1]])
 
 
-methods_DP <- c("DP:VI", "DP:PI", "DP:PS_GenPS", "DP:PS_error", "DP:PS_random")
+methods_DP <- c("DP:VI", "DP:PI", "DP:GenPS", "DP:PS_error", "DP:PS_random")
 methods_LP <- c("LP:LP")
 methods_TD <- c("TD:sarsa", "TD:q_learning", "TD:expected_sarsa")
 methods_TDN <- c("TDN:sarsa_on_policy", "TDN:sarsa_off_policy")

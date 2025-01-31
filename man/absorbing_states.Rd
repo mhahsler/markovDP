@@ -15,10 +15,11 @@ absorbing_states(
 \arguments{
 \item{model}{a \link{MDP} object.}
 
-\item{state}{logical; check a single state. This can be much faster if
-the model contains a transition model implemented as a function.}
+\item{state}{a single state to check. This can be much faster if
+the model contains a transition model implemented as a function.
+\code{NULL} means all states are checked.}
 
-\item{sparse}{logical; return a sparse logical vector?}
+\item{sparse}{logical; if return a sparse logical vector?}
 
 \item{use_precomputed}{logical; should precomputed values in the MDP be used?}
 
@@ -47,6 +48,10 @@ gw_matrix(Maze, what = "absorbing")
 absorbing_states(Maze)
 absorbing_states(Maze, sparse = FALSE)
 absorbing_states(Maze, sparse = "states")
+
+# check individual states
+absorbing_states(Maze, "s(1,1)")
+absorbing_states(Maze, "s(1,4)")
 }
 \seealso{
 Other MDP: 
@@ -66,8 +71,16 @@ Other MDP:
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
+
+Other MDPE: 
+\code{\link{MDPE}()},
+\code{\link{act}()},
+\code{\link{sample_MDP.MDPE}()},
+\code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
+\concept{MDPE}

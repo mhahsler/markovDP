@@ -42,7 +42,7 @@ action.MDP <-
     available_A <- which(available_actions(model, state)) 
     if (length(available_A) > 1L && runif(1) < epsilon) {
       a <- sample.int(length(available_A), size = 1L)
-      a <- .normalize_action(a, model)
+      a <- normalize_action(a, model)
     }
    
     a

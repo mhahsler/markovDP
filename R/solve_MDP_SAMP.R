@@ -130,7 +130,7 @@ solve_MDP_SAMP <-
       s <- sample(S, 1L)
       a <- sample(A, 1L)
       
-      sp_r <- act.int(model, s, a)
+      sp_r <- act(model, s, a, fast = TRUE)
       sp <- sp_r$state_prime
       r <- sp_r$r
       

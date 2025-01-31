@@ -15,9 +15,16 @@
 #'
 #' A list of available solvers can be found in the See Also section under 
 #' "Other solvers".
-#'
+#' 
+#' While [MDP] model contain an explicit specification of the state space,
+#' the transition probabilities and the reward structure, [MDPE] only contains a 
+#' transition function. This means that only a small subset of solvers can be 
+#' used for MDPEs. This currently includes only includes 
+#' the solvers in [`solve_MDP_APPROX()`].  
+#' 
 #' @family solver
 #' @family MDP
+#' @family MDPE
 #'
 #' @param model an MDP problem specification.
 #' @param method string; Composed of the algorithm family abbreviation and the algorithm
@@ -29,6 +36,14 @@
 #'   `NULL`, then the horizon specified in `model` will be used.
 #' @param discount discount factor in range \eqn{(0, 1]}. If `NULL`, then the
 #'   discount factor specified in `model` will be used.
+#' @param continue logical; Continue with an unconverged solution specified in `model`.
+#' @param matrix logical; if `TRUE` then matrices for the transition model and
+#'    the reward function are taken from the model first. This can be slow if functions
+#'    need to be converted or do not fit into memory if the models are large. If these
+#'    components are already matrices, then this is very fast. For `FALSE`, the
+#'    transition probabilities and the reward is extracted when needed. This is slower,
+#'    but removes the time and memory requirements needed to calculate the matrices.
+#' @param continue logical; show a progress bar with estimated time for completion.
 #' @param progress logical; show a progress bar with estimated time for completion.
 #' @param verbose logical or a numeric verbose level; if set to `TRUE` or `1`, the
 #'   function displays the used algorithm parameters and progress information.
@@ -67,7 +82,13 @@
 #' gw_plot(maze_solved)
 #'
 #' @export
-solve_MDP <- function(model,
+solve_MDP <- function(model, ...) {
+  UseMethod("solve_MDP")
+}
+
+#' @rdname solve_MDP
+#' @export
+solve_MDP.MDP <- function(model,
                       method = "DP:VI",
                       horizon = NULL,
                       discount = NULL,
@@ -95,21 +116,53 @@ solve_MDP <- function(model,
   )
 }
 
+#' @rdname solve_MDP
+#' @export
+solve_MDP.MDPE <- function(model,
+                      method = "APPROX:semi_gradient_sarsa",
+                      horizon = NULL,
+                      discount = NULL,
+                      ...,
+                      matrix = TRUE,
+                      continue = FALSE,
+                      verbose = FALSE,
+                      progress = !verbose) {
+  # remove prefix
+  splt <- strsplit(method, ":")[[1]]
+  prefix <- splt[1]
+  method <- splt[2]
+  
+  func <- get(paste0("solve_MDP_", prefix))
+  
+  func(
+    model,
+    method,
+    horizon,
+    discount,
+    ...,
+    continue = continue,
+    verbose = verbose,
+    progress = progress
+  )
+}
+
+
 .prep_model <- function(model,
                         horizon = NULL,
                         discount = NULL,
                         matrix = FALSE,
                         verbose = FALSE,
-                        progress = TRUE) {
+                        progress = TRUE,
+                        allow_MDPE = FALSE) {
   
-  if (!inherits(model, "MDP")) {
+  if (!inherits(model, "MDP") && !(allow_MDPE && inherits(model, "MDPE"))) {
     stop("'model' needs to be of class 'MDP'.")
   }
   
   model$horizon <- horizon %||% model$horizon %||% Inf
   model$discount <- discount %||% model$discount %||% 1
   
-  if (matrix) {
+  if (inherits(model, "MDP") && matrix) {
     if (verbose)
       cat("Precomputing matrices for R and T ...")
     model <- normalize_MDP(
@@ -125,3 +178,5 @@ solve_MDP <- function(model,
   
   model
 }
+
+

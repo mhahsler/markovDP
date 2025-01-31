@@ -7,11 +7,13 @@
 #' if there is for all actions a probability of 1 for staying in the state.
 #'
 #' @family MDP
+#' @family MDPE
 #'
 #' @param model a [MDP] object.
-#' @param state logical; check a single state. This can be much faster if
+#' @param state a single state to check. This can be much faster if
 #'   the model contains a transition model implemented as a function.
-#' @param sparse logical; return a sparse logical vector?
+#'   `NULL` means all states are checked.
+#' @param sparse logical; if return a sparse logical vector?
 #' @param use_precomputed logical; should precomputed values in the MDP be used?
 #' @param ... further arguments are passed on.
 #' 
@@ -30,6 +32,10 @@
 #' absorbing_states(Maze)
 #' absorbing_states(Maze, sparse = FALSE)
 #' absorbing_states(Maze, sparse = "states")
+#' 
+#' # check individual states
+#' absorbing_states(Maze, "s(1,1)")
+#' absorbing_states(Maze, "s(1,4)")
 #' @importFrom Matrix colSums
 #' @export
 absorbing_states <- function(model,
@@ -94,4 +100,22 @@ absorbing_states.MDP <- function(model,
   
   absorbing <- absorbing[state]
   .translate_logical(absorbing, S(model)[state], sparse)
+}
+
+#' @export
+absorbing_states.MDPE <- function(model,
+                                 state = NULL,
+                                 sparse = "states",
+                                 use_precomputed = TRUE,
+                                 ...) {
+  
+  if(is.null(model$absorbing_states))
+    stop("Model does not specify absorbing states!")
+  
+  if(is.null(state))
+    return(model$absorbing_states)
+  
+  state <- drop(normalize_state_features(state, model))
+  
+  any(apply(model$absorbing_states, MARGIN = 1, FUN = function(x) all(x == state)))
 }

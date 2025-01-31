@@ -32,12 +32,16 @@
 #' # get the greedy policy form the Q values
 #' pi_greedy <- greedy_policy(Q)
 #' pi_greedy
-#' gw_plot(add_policy(Maze, pi_greedy), main = "Maze: Greedy Policy")
+#' Maze_with_policy <- add_policy(Maze, pi_greedy)
+#' gw_plot(Maze_with_policy, main = "Maze: Greedy Policy")
 #'
 #' # find the greedy/ epsilon-greedy action for the top-left corner state 
 #' greedy_action(Q, "s(1,1)", epsilon = 0, prob = FALSE)
 #' greedy_action(Q, "s(1,1)", epsilon = 0, prob = TRUE)
 #' greedy_action(Q, "s(1,1)", epsilon = .1, prob = TRUE)
+#'
+#' # we can also specify a model with a policy 
+#' greedy_action(Maze_with_policy, "s(1,1)", epsilon = .1, prob = TRUE)
 #' 
 #' @param epsilon an `epsilon > 0` applies an epsilon-greedy policy.
 #' @param prob logical; return a probability distribution over the actions.
@@ -54,12 +58,16 @@ greedy_action <- function(x,
   UseMethod("greedy_action")
 }
 
+# For a Q-matrix
 #' @export
 greedy_action.matrix <-
   function(x,
            s,
            epsilon = 0,
            prob = FALSE) {
+    if (missing(s))
+      stop("state s needs to be specified!")
+    
     Q <- x
     
     A <- colnames(Q)
@@ -99,6 +107,14 @@ greedy_action.MDP <-
     greedy_action(Q_values(x), s, epsilon, prob)
   }
 
+#' @export
+greedy_action.MDPE <- 
+  function(x,
+           s,
+           epsilon = 0,
+           prob = FALSE) {
+    greedy_action(rbind(approx_Q_value(x, s)), 1, epsilon, prob)
+  }
 
 #' @rdname greedy_action
 #' @return `greedy_policy()` returns the greedy policy given `Q`.

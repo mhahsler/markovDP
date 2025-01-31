@@ -78,7 +78,7 @@ bellman_update <- function(model, V) {
   m <- apply(Q, MARGIN = 1, which.max.random)
   
   list(V = Q[cbind(seq_along(S), m)] , 
-       pi = .normalize_action(m, model),
+       pi = normalize_action(m, model),
        Q = Q)
 }
 
@@ -98,7 +98,7 @@ bellman_update <- function(model, V) {
   m <- which.max.random(Qs)
   
   list(V = unname(Qs[m]), 
-       pi = .normalize_action(m, model)
+       pi = normalize_action(m, model)
   )
 }
 

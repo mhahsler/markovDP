@@ -26,8 +26,8 @@ solve_MDP_TDN(
   method = "sarsa_on_policy",
   horizon = NULL,
   discount = NULL,
+  n_step,
   alpha = function(t, n) min(10/n, 1),
-  n_step = 1,
   epsilon = 0.2,
   n = 1000,
   Q = 0,
@@ -41,9 +41,11 @@ solve_MDP_TDN(
 \arguments{
 \item{model}{an MDP problem specification.}
 
-\item{method}{string; Composed of the algorithm family abbreviation and the algorithm
-separated by \code{:}. The algorithm families can be found in the See Also
-section under "Other solvers". The family abbreviation follows \code{solve_MDP_} in the function name.}
+\item{method}{string; one of the following solution methods:
+\itemize{
+\item for TD: \code{"sarsa"}, \code{"q_learning"}, or \code{"expected_sarsa"}
+\item for TDN: \code{"sarsa_on_policy"}, or \code{"sarsa_off_policy"}
+}}
 
 \item{horizon}{an integer with the number of epochs for problems with a
 finite planning horizon. If set to \code{Inf}, the algorithm continues
@@ -65,6 +67,15 @@ often set to 1.}
 used.}
 
 \item{...}{further parameters are passed on to the solver function.}
+
+\item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
+the reward function are taken from the model first. This can be slow if functions
+need to be converted or do not fit into memory if the models are large. If these
+components are already matrices, then this is very fast. For \code{FALSE}, the
+transition probabilities and the reward is extracted when needed. This is slower,
+but removes the time and memory requirements needed to calculate the matrices.}
+
+\item{continue}{logical; show a progress bar with estimated time for completion.}
 
 \item{progress}{logical; show a progress bar with estimated time for completion.}
 
@@ -146,8 +157,8 @@ Estimate the return using the last \eqn{n} time steps:
   G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
   }
 
-\eqn{n = 1} is regular 1-step Sarsa, \eqn{n = \inf} is equivalent to
-Monte Carlo Control.
+\eqn{n = 1} is regular 1-step Sarsa. Uaing \eqn{n = \inf} is equivalent to
+Monte Carlo Control, howver, \code{solve_MDP_MC()} is more memory efficient.
 
 This estimate is used as the target for Sarsa. For the off-policy case,
 the update uses the importance sampling ratio. Note that updates are delayed
@@ -176,10 +187,10 @@ gw_plot(maze_learned)
 
 # Example 2: n-step Sarsa
 maze_learned <- solve_MDP(Maze, method = "TDN:sarsa_on_policy",
-    epsilon = 0.2, n = 10, horizon = 100, verbose = TRUE)
+    n_step = 3, n = 10, horizon = 100, verbose = TRUE)
 maze_learned
 
-#' gw_plot(maze_learned)
+gw_plot(maze_learned)
 }
 \references{
 Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
@@ -193,10 +204,9 @@ Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Lear
 \seealso{
 Other solver: 
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_SGD}()},
-\code{\link{solve_MDP_sampling}()}
+\code{\link{solve_MDP_SAMP}()}
 }
 \concept{solver}

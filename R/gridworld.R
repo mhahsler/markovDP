@@ -7,14 +7,14 @@
 #' `row` and `col` are locations in the matrix representing the gridworld.
 #' The default actions are `"up"`, `"right"`,  `"down"`, and  `"left"`.
 #'
-#' 
+#'
 #' ### Creating a Gridworld
 #' `gw_init()` initializes a new gridworld creating a matrix
 #' of states with the given dimensions. Other action names
 #' can be specified, but they must have the same effects in the same order
 #' as above. Blocked states (walls) and absorbing state can be defined.
 #' This information can be used to build a custom gridworld MDP. Note that
-#' blocked states are removed from the model description using 
+#' blocked states are removed from the model description using
 #' [remove_unreachable_states()].
 #'
 #' @name gridworld
@@ -32,7 +32,7 @@
 #'
 #' str(gw)
 #'
-#' # display the state labels in the gridworld (states not represented in the 
+#' # display the state labels in the gridworld (states not represented in the
 #' # model are shown as NA)
 #' gw_matrix(gw)
 #' gw_matrix(gw, what = "label")
@@ -119,7 +119,7 @@
 #' gw_plot_transition_graph(DynaMaze)
 #' # Note that the problems resets if the goal state would be reached.
 #'
-#' sol <- solve_MDP(DynaMaze, method = "lp")
+#' sol <- solve_MDP(DynaMaze, method = "LP:LP")
 #'
 #' gw_matrix(sol, what = "values")
 #' gw_matrix(sol, what = "actions")
@@ -141,17 +141,17 @@
 #' maze
 #' gw_matrix(maze, what = "label")
 #' gw_plot(maze)
-#' 
+#'
 #' # Prioritized sweeping is especially effective for larger mazes.
-#' sol <- solve_MDP(maze, method = "prioritized_sweeping")
+#' sol <- solve_MDP(maze, method = "DP:GenPS")
 #' sol
 #'
 #' gw_plot(sol)
 #' gw_path(sol, horizon = 1000)
-#' 
+#'
 #' # A maze can also be created directly from a character vector
 #' maze <- gw_read_maze(
-#'     textConnection(c("XXXXXX", 
+#'     textConnection(c("XXXXXX",
 #'                      "XS  GX",
 #'                      "XXXXXX")))
 #' gw_plot(maze)
@@ -200,7 +200,7 @@ gw_init <-
       blocke_states <- character(0)
     
     S <- setdiff(S, blocked_states)
-     
+    
     # Build reward data.frame to make unavailable action a reward of -Inf
     R <- R_(value = 0)
     
@@ -251,8 +251,8 @@ gw_init <-
       )
     )
     
-    l$absorbing_states <- .normalize_state_label(absorbing_states, S)
-    l$info$absorbing_states <- .normalize_state_label(absorbing_states, S)
+    l$absorbing_states <- normalize_state_label(absorbing_states, S)
+    l$info$absorbing_states <- normalize_state_label(absorbing_states, S)
     
     l
   }
@@ -261,9 +261,9 @@ gw_init <-
 
 #' @rdname gridworld
 #'
-#' @details 
+#' @details
 #' ### Converting Between State Names and Coordinates
-#' 
+#'
 #' `gw_s2rc()` and `gw_rc2s` help with converting from
 #' state names to xy-coordinates and vice versa.
 #'
@@ -274,8 +274,11 @@ gw_init <-
 #'   supplied.
 #' @export
 gw_s2rc <- function(s) {
-  if (length(s) > 1)
-    return(sapply(s, gw_s2rc))
+  if (length(s) > 1) {
+    rcs <- t(sapply(s, gw_s2rc))
+    rownames(rcs) <- s
+    return(rcs)
+  }
   
   rc <- as.integer(strsplit(s, "s\\(|,|\\)")[[1]][-1])
   if (length(rc) != 2 || any(is.na(rc))) {
@@ -283,6 +286,7 @@ gw_s2rc <- function(s) {
          sQuote(s),
          ". Needs to be 's(<row>,<col>)'.")
   }
+  
   rc
 }
 
@@ -298,11 +302,11 @@ gw_rc2s <- function(rc) {
 
 #' @rdname gridworld
 #'
-#' @details 
+#' @details
 #' ### Inspecting Gridworlds
 #' `gw_matrix()` returns different information
 #'  (state names, values, actions, etc.) as a matrix. Note that some gridworlds
-#'  have unreachable states removed. These states will be represented in the 
+#'  have unreachable states removed. These states will be represented in the
 #'  matrix as  `NA`.
 #'
 #' @param what What should be returned in the matrix. Options are:
@@ -383,7 +387,7 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
     },
     visit_probability = {
       l <- structure(rep(NA, length(all_states)), names = all_states)
-      l[S(model)] <- visit_probability(model) 
+      l[S(model)] <- visit_probability(model)
       l
     }
   )
@@ -462,7 +466,7 @@ gw_plot <-
     
     absorbing <- gw_matrix(model, what = "absorbing")
     unreachable <- gw_matrix(model, what = "unreachable")
-     
+    
     # hide unreachable values for unreachable states
     m[unreachable] <- NA
     
@@ -544,9 +548,7 @@ gw_plot <-
       g$state <-
         as.vector(gw_matrix(model, what = "index"))
     } else {
-      g$state <- paste0(as.vector(gw_matrix(model, what = "index")),
-                        ": ",
-                        as.vector(gw_matrix(model, what = "states")))
+      g$state <- paste0(as.vector(gw_matrix(model, what = "index")), ": ", as.vector(gw_matrix(model, what = "states")))
     }
     
     if (states || index) {
@@ -647,11 +649,16 @@ gw_plot_transition_graph <-
 #' @param n number of iterations to animate.
 #' @param method an MDP solution method for [solve_MDP()].
 #' @param zlim limits for visualizing the state value.
-#' 
+#'
 #' @returns `gw_animate()` returns the final solution invisibly.
-#' 
+#'
 #' @export
-gw_animate <- function(model, method, n, zlim = NULL, continue = FALSE, ...) {
+gw_animate <- function(model,
+                       method,
+                       n,
+                       zlim = NULL,
+                       continue = FALSE,
+                       ...) {
   if (is.null(model$info$gridworld)) {
     stop("'model' does not seem to be a gridworld!")
   }
@@ -680,22 +687,22 @@ gw_animate <- function(model, method, n, zlim = NULL, continue = FALSE, ...) {
 
 #' @rdname gridworld
 #'
-#' @details 
-#' 
+#' @details
+#'
 #' ### Gridworld Transition Model
-#' 
+#'
 #' The transition model is available in several forms:
-#' 
+#'
 #' * `gw_transition_prob()` returns a dense vector for the action and start state.
-#' * `gw_transition_prob_sparse()` returns a sparse vector for the action and start state. 
+#' * `gw_transition_prob_sparse()` returns a sparse vector for the action and start state.
 #'      Note: creating sparse vectors is very expensive and should only be used
 #'      for sparse models with a large state space.
-#' * `gw_transition_prob_named()` returns only the non-zero probabilities as a named vector. 
+#' * `gw_transition_prob_named()` returns only the non-zero probabilities as a named vector.
 #' * `gw_transition_prob_end_state()` returns a single value for a given action, start and end state.
 #'      Note: Using this function is very slow since it results in excessive function calls.
-#'      
+#'
 #' @param action,start.state,end.state parameters for the transition function.
-#' 
+#'
 #' @export
 gw_transition_prob <- function(model, action, start.state) {
   S <- S(model)
@@ -839,8 +846,8 @@ gw_transition_prob_end_state <- function(model, action, start.state, end.state) 
 
 
 #' @rdname gridworld
-#' @details 
-#' 
+#' @details
+#'
 #' ### Mazes
 #' `gw_maze_MDP()` helps to easily define maze-like gridworld MDPs.
 #' By default, the goal state is absorbing, but with `restart = TRUE`, the
@@ -865,19 +872,18 @@ gw_transition_prob_end_state <- function(model, action, start.state, end.state) 
 #' @returns `gw_maze_MDP()` returns an MDP object.
 #' @export
 gw_maze_MDP <- function(dim,
-                               start,
-                               goal,
-                               walls = NULL,
-                               actions = c("up", "right", "down", "left"),
-                               goal_reward = 100,
-                               step_cost = 1,
-                               restart = FALSE,
-                               discount = 1,
-                               horizon = Inf,
-                               info = NULL,
-                               normalize = FALSE,
-                               name = NA) {
-  
+                        start,
+                        goal,
+                        walls = NULL,
+                        actions = c("up", "right", "down", "left"),
+                        goal_reward = 100,
+                        step_cost = 1,
+                        restart = FALSE,
+                        discount = 1,
+                        horizon = Inf,
+                        info = NULL,
+                        normalize = FALSE,
+                        name = NA) {
   gw <-
     gw_init(
       dim,
@@ -939,11 +945,73 @@ gw_maze_MDP <- function(dim,
   }
   
   model$absorbing_states <- gw$absorbing_states
-
+  
   
   if (normalize) {
     model <- normalize_MDP(model)
   }
+  
+  model
+}
+
+#' @rdname gridworld
+#' @export
+gw_maze_MDPE <- function(dim,
+                         start,
+                         goal,
+                         walls = NULL,
+                         actions = c("up", "right", "down", "left"),
+                         goal_reward = 100,
+                         step_cost = 1,
+                         discount = 1,
+                         horizon = Inf,
+                         info = NULL,
+                         normalize = FALSE,
+                         name = NA) {
+  if (!is.null(walls))
+    walls <- normalize_state_features(walls, NULL)
+  
+  transition_func <- function(model, state, action) {
+    if (absorbing_states(model, state))
+      return(list(reward = 0, state_prime = state))
+    
+    action <- normalize_action_label(action, model)
+    
+    r <- -step_cost
+    sp <- state + switch(
+      action,
+      up =   c(-1, 0),
+      down = c(+1, 0),
+      left = c(0, -1),
+      right = c(0, +1)
+    )
+    
+    # check bounds and walls
+    if (any(sp < 1) || 
+        any(sp > dim) || 
+        !is.null(walls) &&
+        any(apply(walls, MARGIN = 1, FUN = function(x) all(x == sp)))) 
+      sp <- state
+    
+    # goal
+    if (all(sp == goal))
+      r <- goal_reward
+    
+    
+    return(list(reward = r, state_prime = sp))
+  }
+  
+  model <-
+    MDPE(
+      actions = actions,
+      transition_func = transition_func,
+      start = start,
+      absorbing_states = goal,
+      discount = discount,
+      horizon = horizon,
+      info = info,
+      name = name
+    )
   
   model
 }
@@ -953,10 +1021,10 @@ gw_maze_MDP <- function(dim,
 #' @param wall_prob probability to make a tile a wall.
 #' @export
 gw_random_maze <- function(dim,
-                                  wall_prob = .2,
-                                  start = NULL,
-                                  goal = NULL,
-                                  normalize = FALSE) {
+                           wall_prob = .2,
+                           start = NULL,
+                           goal = NULL,
+                           normalize = FALSE) {
   n <- dim[1]
   m <- dim[2]
   if (is.na(m))
@@ -964,7 +1032,7 @@ gw_random_maze <- function(dim,
   
   if (is.null(start))
     start <- "s(1,1)"
-    
+  
   if (is.null(goal))
     goal <- paste0("s(", n, ",", m, ")")
   
@@ -997,7 +1065,7 @@ gw_random_maze <- function(dim,
     maze <- make_maze()
     tries <- tries <- -1L
   }
-    
+  
   maze
 }
 
@@ -1010,9 +1078,9 @@ gw_random_maze <- function(dim,
 #' @param file filename for a maze text file.
 #' @export
 gw_read_maze <- function(file,
-                                discount = 1,
-                                restart = FALSE,
-                                name = "Maze") {
+                         discount = 1,
+                         restart = FALSE,
+                         name = "Maze") {
   rl <- readLines(file)
   m <- do.call(rbind, strsplit(rl, split = ""))
   
@@ -1082,13 +1150,13 @@ gw_path <- function(model,
   found <- match(goal, path$s_prime)
   solved <- !is.na(found)
   
-  if (solved) { 
+  if (solved) {
     if (found == nrow(path)) {
       reward <- s$reward
     } else {
       path <- path[seq(found), , drop = FALSE]
-      reward <- sum(path$r * model$discount ^ seq(found, 1))
-    } 
+      reward <- sum(path$r * model$discount^seq(found, 1))
+    }
   } else {
     reward <- NA_real_
     path <- NULL

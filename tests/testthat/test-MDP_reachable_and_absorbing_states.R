@@ -19,10 +19,19 @@ for (m in models_solve_no_chaching) {
     print(tr)
   expect_equal(tr, s_abs)
 }
+
+
+# absorbing states for MDPEs
+m <- gw_maze_MDPE(c(5,5), start = "s(1,1)", goal = "s(5,5)")
+expect_equal(absorbing_states(m), 
+             structure(c(5, 5), dim = 1:2, dimnames = list("s(5,5)", NULL)))
+
+expect_true(absorbing_states(m, "s(5,5)"))
+expect_true(absorbing_states(m, s(5,5)))
+
   
 # unreachable states
 (s_unreach <- character(0))
-
 
 for (m in models_solve_no_chaching) {
   # force recomputation

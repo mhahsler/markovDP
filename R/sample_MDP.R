@@ -1,8 +1,8 @@
 #' Sample Trajectories from an MDP
 #'
 #' Sample trajectories through an MDP. The start state for each
-#' trajectory is randomly chosen using the specified belief. The belief is used to choose actions
-#' from an epsilon-greedy policy and then update the state.
+#' trajectory is chosen using the start definition in the model. Actions are chosen
+#' randomly of using an epsilon-greedy policy.
 #'
 #' The default is a
 #' faster C++ implementation (`engine = 'cpp'`).
@@ -87,9 +87,18 @@
 #' # how often was each state visited?
 #' table(sim$trajectories$s)
 #' @export
-sample_MDP <-
+sample_MDP <- function(model,
+                       n,
+                       ...) {
+  UseMethod("sample_MDP")
+}
+
+
+#' @rdname sample_MDP
+#' @export
+sample_MDP.MDP <-
   function(model,
-           n = 100,
+           n,
            start = NULL,
            horizon = NULL,
            epsilon = NULL,
@@ -205,10 +214,10 @@ sample_MDP <-
     
     # R implementation starts here ##############
     
-    states <- as.character(S(model))
+    states <- S(model)
     n_states <- length(states)
     states_absorbing <- absorbing_states(model, sparse = "index")
-    actions <- as.character(A(model))
+    actions <- A(model)
     
     # for easier access
     pol <-
@@ -256,7 +265,6 @@ sample_MDP <-
       
       # find a initial state
       s <- sample.int(length(states), 1L, prob = start)
-      state_cnt[s] <- state_cnt[s] + 1L
       
       if (trajectories) {
         trajectory <- data.frame(
@@ -330,9 +338,9 @@ sample_MDP <-
     the_trajectories <- NULL
     if (trajectories) {
       the_trajectories <- Reduce(rbind, lapply(sim, "[[", "trajectory"))
-      the_trajectories$s <- .normalize_state(the_trajectories$s, model)
-      the_trajectories$a <- .normalize_action(the_trajectories$a, model)
-      the_trajectories$s_prime <- .normalize_state(the_trajectories$s_prime, model)
+      the_trajectories$s <- normalize_state(the_trajectories$s, model)
+      the_trajectories$a <- normalize_action(the_trajectories$a, model)
+      the_trajectories$s_prime <- normalize_state(the_trajectories$s_prime, model)
     }
     
     samp <- list(

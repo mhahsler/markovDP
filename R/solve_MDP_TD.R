@@ -1,24 +1,24 @@
 #' Solve MDPs using Temporal Differencing
 #'
-#' Solve MDPs using 1-step and n-step tabular temporal difference control 
+#' Solve MDPs using 1-step and n-step tabular temporal difference control
 #' methods like q-learning and Sarsa.
 #'
 #' @family solver
-#' 
+#'
 #' @details
 #' Implemented are several tabular temporal difference control methods
 #' described in Sutton and Barto (2018).
 #' Note that the MDP transition and reward models are used
 #' for these reinforcement learning methods only to sample from
 #' the environment.
-#' 
+#'
 #' The implementation uses an \eqn{\epsilon}-greedy behavior policy,
-#' where the parameter `epsilon` controls the degree of exploration. 
-#' The algorithms use a step size parameter \eqn{\alpha} (learning rate). 
-#' The learning rate `alpha` can be specified as a 
-#' function with the signature `function(t, n)`, where `t` is the number of episodes 
-#' processed and `n` is the number of updates for the entry in the Q-table. 
-#' 
+#' where the parameter `epsilon` controls the degree of exploration.
+#' The algorithms use a step size parameter \eqn{\alpha} (learning rate).
+#' The learning rate `alpha` can be specified as a
+#' function with the signature `function(t, n)`, where `t` is the number of episodes
+#' processed and `n` is the number of updates for the entry in the Q-table.
+#'
 #' The general 1-step update is
 #' \deqn{
 #' Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha [G_t - Q(S_t,A_t)],
@@ -34,69 +34,72 @@
 #'
 #' * **Q-Learning** (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 #'    an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
-#'    policy. The target value is estimated as the one-step bootstrapping using the 
-#'    target greedy policy: 
+#'    policy. The target value is estimated as the one-step bootstrapping using the
+#'    target greedy policy:
 #'    \deqn{G_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a)}
 #'
 #' * **Sarsa** (Rummery and Niranjan 1994) is an on-policy method that follows and learns
-#'    the same policy. Here a an \eqn{\epsilon}-greedy policy is used. 
+#'    the same policy. Here a an \eqn{\epsilon}-greedy policy is used.
 #'    The final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
-#'    \eqn{\epsilon} can be lowered over time (see parameter `continue`) 
-#'    to learn a greedy policy. The target is estimated 
+#'    \eqn{\epsilon} can be lowered over time (see parameter `continue`)
+#'    to learn a greedy policy. The target is estimated
 #'    as the one-step bootstrapping following the behavior policy:
 #'    \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
-#'    
 #'
-#' * **Expected Sarsa** (Sutton and Barto 2018). We implement an on-policy 
+#'
+#' * **Expected Sarsa** (Sutton and Barto 2018). We implement an on-policy
 #'   Sarsa with an \eqn{\epsilon}-greedy policy which uses the
 #'   the expected value under the current policy for the update.
 #'   It moves deterministically in the same direction as Sarsa would
-#'   move in expectation. 
+#'   move in expectation.
 #'   \deqn{G_t = R_{t+1} + \gamma \sum_a \pi(a|S_{t+1})Q(S_{t+1}, a)}
-#'   
-#'   
+#'
+#'
 #'   Because it uses the expectation, we can
 #'   set the step size \eqn{\alpha} to large values and 1 is common.
-#'   The off-policy use of expected Sarsa simplifies to 
-#'   the Q-learning algorithm.  
-#'   
+#'   The off-policy use of expected Sarsa simplifies to
+#'   the Q-learning algorithm.
+#'
 #' * **On and off-policy n-step Sarsa** (Sutton and Barto 2018).
 #'   Estimate the return using the last \eqn{n} time steps:
 #'   \deqn{
 #'   G_{t:t+n} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n})
 #'   }
-#'   
-#'   \eqn{n = 1} is regular 1-step Sarsa, \eqn{n = \inf} is equivalent to 
-#'   Monte Carlo Control.
-#'   
+#'
+#'   \eqn{n = 1} is regular 1-step Sarsa. Uaing \eqn{n = \inf} is equivalent to
+#'   Monte Carlo Control, howver, `solve_MDP_MC()` is more memory efficient.  
+#'
 #'   This estimate is used as the target for Sarsa. For the off-policy case,
-#'   the update uses the importance sampling ratio. Note that updates are delayed 
+#'   the update uses the importance sampling ratio. Note that updates are delayed
 #'   \eqn{n} steps in this backward looking algorithm.
-#' 
-#' @references 
-#'  
+#'
+#' @references
+#'
 #' Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
-#' 
+#'
 #' Sutton, R. 1988. "Learning to Predict by the Method of Temporal Differences." Machine Learning 3: 9-44. [https://link.springer.com/article/10.1007/BF00115009](https://link.springer.com/article/10.1007/BF00115009).
 #'
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
-#' 
+#'
 #' Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Learning 8 (3): 279-92. \doi{10.1007/BF00992698}.
-#' 
+#'
 #' @inheritParams solve_MDP
+#' @param method string; one of the following solution methods:
+#'  * for TD: `"sarsa"`, `"q_learning"`, or `"expected_sarsa"`
+#'  * for TDN: `"sarsa_on_policy"`, or `"sarsa_off_policy"`
 #' @param alpha step size as a function of the time step `t` and the number of times
 #'   the respective Q-value was updated `n` or a scalar. For expected Sarsa, alpha is
 #'   often set to 1.
 #' @param epsilon used for the \eqn{\epsilon}-greedy behavior policies.
 #' @param n number of episodes used for learning.
-#' @param Q an initial state-action value matrix. By default an all 0 matrix is 
+#' @param Q an initial state-action value matrix. By default an all 0 matrix is
 #'        used.
-#' 
-#' @inherit solve_MDP return 
-#' 
+#'
+#' @inherit solve_MDP return
+#'
 #' @examples
 #' data(Maze)
-#' 
+#'
 #' # Example 1: Learn a Policy using Q-Learning
 #' maze_learned <- solve_MDP(Maze, method = "TD:q_learning",
 #'     epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
@@ -118,7 +121,7 @@
 #' maze_learned <- solve_MDP(Maze, method = "TDN:sarsa_on_policy",
 #'     n_step = 3, n = 10, horizon = 100, verbose = TRUE)
 #' maze_learned
-#' 
+#'
 #' gw_plot(maze_learned)
 #' @export
 solve_MDP_TD <-
@@ -142,7 +145,7 @@ solve_MDP_TD <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
     
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
-     
+    
     if (!is.finite(model$horizon)) {
       stop("Finite horizon needed for exploration!")
     }
@@ -169,7 +172,7 @@ solve_MDP_TD <-
                ncol = ncol(Q),
                dimnames = dimnames(Q))
     }
-   
+    
     # return unconverged result when interrupted
     on.exit({
       if (progress) {
@@ -216,7 +219,7 @@ solve_MDP_TD <-
     start <- start_vector(model, sparse = FALSE)
     horizon <- model$horizon
     discount <- model$discount
-     
+    
     # loop episodes
     e <- 0L
     while (e < n) {
@@ -235,14 +238,14 @@ solve_MDP_TD <-
           pb$tick(0)
         
         # act
-        a_res <- act.int(model, s, a)
-        s_prime <- a_res$state_prime 
-        r <- a_res$r 
+        a_res <- act(model, s, a, fasyt = TRUE)
+        s_prime <- a_res$state_prime
+        r <- a_res$r
         
         # act without a function call
         #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
         #r <- reward_matrix(model, a, s, s_prime)
-       
+        
         
         # for Sarsa we need (s, a, r, s', a')
         a_prime <- greedy_action(Q, s_prime, epsilon)
@@ -332,17 +335,21 @@ solve_MDP_TDN <-
            ...) {
     .nodots(...)
     
+    method <-
+      match.arg(method, c("sarsa_on_policy", "sarsa_off_policy"))
+    
     if (missing(n_step))
       stop("argument \"n_step\" is missing!")
     
-    method <-
-      match.arg(method,
-                c("sarsa_on_policy", "sarsa_off_policy"))
-   
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (!is.finite(model$horizon)) {
-      stop("Finite horizon needed for exploration!")
+      stop("Finite horizon needs to be specified to avoid potential infinite loops!")
+    }
+    
+    # n_step = Inf: this is MC control. We size all the arrays to fit horizon
+    if (!is.finite(n_step)) {
+      n_step = horizon + 1
     }
     
     if (!is.function(alpha))
@@ -352,7 +359,6 @@ solve_MDP_TDN <-
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
       pb$tick(0)
     }
-    
     
     # Initialize Q and Q_N
     if (continue) {
@@ -426,8 +432,9 @@ solve_MDP_TDN <-
     gamma_n_steps <- discount^n_step
     
     # index in circular buffer
-    t2idx <- function(t) t %% (n_step + 1) + 1
-   
+    t2idx <- function(t)
+      t %% (n_step + 1) + 1
+    
     # loop episodes
     e <- 0L
     while (e < n) {
@@ -452,9 +459,9 @@ solve_MDP_TDN <-
         
         if (t < tt) {
           # take action a
-          a_res <- act.int(model, s, a)
-          s_prime <- a_res$state_prime 
-          r <- a_res$r 
+          a_res <- act(model, s, a, fast = TRUE)
+          s_prime <- a_res$state_prime
+          r <- a_res$r
           
           # no funciton call
           #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
@@ -540,15 +547,21 @@ solve_MDP_TDN <-
           Q[s_tau, a_tau] <- Q[s_tau, a_tau] + alpha_val * rho * (G - Q[s_tau, a_tau])
           
           if (verbose > 1) {
-            cat(sprintf(" %.3f (N: %i alpha: %.3f, rho: %.3f)", Q[s_tau, a_tau], Q_N[s_tau, a_tau], alpha_val, rho))
+            cat(sprintf(
+              " %.3f (N: %i alpha: %.3f, rho: %.3f)",
+              Q[s_tau, a_tau],
+              Q_N[s_tau, a_tau],
+              alpha_val,
+              rho
+            ))
           }
           
         }
-          
+        
         if (verbose > 1) {
           cat("\n")
-          }
-          
+        }
+        
         if (tau >= tt - 2)
           break
         

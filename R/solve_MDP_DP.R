@@ -115,7 +115,7 @@
 #' policy(maze_solved)
 #' 
 #' # use prioritized sweeping (which is known to be fast for mazes)
-#' maze_solved <- solve_MDP(Maze, method = "DP:PS_GenPS", verbose = TRUE)
+#' maze_solved <- solve_MDP(Maze, method = "DP:GenPS", verbose = TRUE)
 #' policy(maze_solved)
 #'
 #' # finite horizon
@@ -129,7 +129,7 @@
 #' @param method string; one of the following solution methods:
 #'    * `'VI'` - value iteration
 #'    * `'PI'` - policy iteration
-#'    * `'PS_GenPS'`, `'PS_error'`, `'PS_random'` - prioritized sweeping 
+#'    * `'GenPS'`, `'PS_error'`, `'PS_random'` - prioritized sweeping 
 #' @param V a vector with initial state values. If
 #'   `NULL`, then the default of a vector of all 0s ([V_zero()]) is used.
 #' @param n maximum number of iterations allowed to converge. If the
@@ -140,13 +140,6 @@
 #' @param k_backups policy iteration: maximum number of Bellman backups used in 
 #'    the iterative policy evaluation step. Policy evaluation typically converges earlier
 #'    with a maximum Bellman error less than `error`.  
-#' @param continue logical; Continue with an unconverged solution specified in `model`.
-#' @param matrix logical; if `TRUE` then matrices for the transition model and
-#'    the reward function are taken from the model first. This can be slow if functions
-#'    need to be converted or do not fit into memory if the models are large. If these
-#'    components are already matrices, then this is very fast. For `FALSE`, the
-#'    transition probabilities and the reward is extracted when needed. This is slower,
-#'    but removes the time and memory requirements needed to calculate the matrices.
 #' 
 #' @inherit solve_MDP return 
 #' 
@@ -168,7 +161,7 @@ solve_MDP_DP <- function(model,
   
   methods <- c("VI",
                "PI",
-               "PS_GenPS",
+               "GenPS",
                "PS_error",
                "PS_random")
   method <- match.arg(method, methods)
@@ -252,7 +245,7 @@ solve_MDP_DP <- function(model,
         stop("Method not implemented yet for finite horizon problems.")
       }
     },
-    PS_GenPS = {
+    GenPS = {
       if (is.infinite(model$horizon)) {
         MDP_PS_inf_horizon(
           model,

@@ -38,10 +38,11 @@
 #' # reward for starting next to the goal at s(1,3)
 #' reward(sol, start = "s(1,3)")
 #'
-#' # expected reward when we start from a random state
+#' # expected reward when we start from a random state as returned from the solver
 #' reward(sol, start = "uniform")
 #' 
-#' reward(sol, method = "sample", start = "uniform", horizon = 100)
+#' # estimate the reward using sampling following the policy
+#' reward(sol, method = "sample", start = "uniform", n = 10000, horizon = 1000)
 #' @export
 reward <- function(model, ...) {
   UseMethod("reward")

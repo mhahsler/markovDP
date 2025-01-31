@@ -36,8 +36,9 @@ which map each state/action pair to a utility value.
 \details{
 Implemented functions are:
 \itemize{
-\item \code{Q_values()} approximates
-Q values for a given model and value function using the Bellman
+\item \code{Q_values()} gets the Q-values from the model. If the value function
+\code{V} is specified or if the policy of a solved model contains a value
+function, then the Q-values are approximated using the Bellman
 optimality equation:
 
 \deqn{q_*(s,a) = \sum_{s'} p(s'|s,a) [r(s,a,s') + \gamma v_*(s')]}
@@ -46,6 +47,9 @@ Exact Q values are calculated if \eqn{v = v_*}, the optimal value function,
 otherwise we get an approximation that might not
 be consistent with \eqn{v} or the implied policy.
 Q values can be used as the input for several other functions.
+
+For solvers, that directly calculate Q-values or an approximate Q-function,
+then the solver's values are returned.
 \item \code{Q_zero()} and \code{Q_random()} create initial Q value matrices for algorithms.
 }
 }

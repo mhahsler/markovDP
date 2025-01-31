@@ -55,6 +55,15 @@ in an episode is used to update Q, otherwise, every-visit update is used.}
 
 \item{...}{further parameters are passed on to the solver function.}
 
+\item{matrix}{logical; if \code{TRUE} then matrices for the transition model and
+the reward function are taken from the model first. This can be slow if functions
+need to be converted or do not fit into memory if the models are large. If these
+components are already matrices, then this is very fast. For \code{FALSE}, the
+transition probabilities and the reward is extracted when needed. This is slower,
+but removes the time and memory requirements needed to calculate the matrices.}
+
+\item{continue}{logical; show a progress bar with estimated time for completion.}
+
 \item{progress}{logical; show a progress bar with estimated time for completion.}
 
 \item{verbose}{logical or a numeric verbose level; if set to \code{TRUE} or \code{1}, the

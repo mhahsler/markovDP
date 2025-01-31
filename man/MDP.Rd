@@ -26,7 +26,7 @@ S(model)
 
 A(model)
 
-is_solved_MDP(model, stop = FALSE)
+is_solved_MDP(model, allow_MDPE = FALSE, stop = FALSE)
 
 is_converged_MDP(model, stop = FALSE)
 
@@ -57,6 +57,8 @@ horizon.}
 \item{name}{a string to identify the MDP problem.}
 
 \item{model}{an \code{MDP} object.}
+
+\item{allow_MDPE}{logical; also accept \link{MDPE} objects.}
 
 \item{stop}{logical; stop with an error.}
 
