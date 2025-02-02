@@ -96,6 +96,24 @@ policy.MDP <- function(model, epoch = NULL, drop = TRUE) {
   policy
 }
 
+#' @export
+policy.MDPE <- function(model, epoch = NULL, drop = TRUE) {
+  if (is.null(model$solution$policy[[1]]))
+    stop("This MDPE is not solved or does not store an explicit policy.")
+  
+  policy <- model$solution$policy
+  
+  if (!is.null(epoch)) {
+    return(policy[[.get_pol_index(model, epoch)]])
+  }
+  
+  if (drop && length(policy) == 1) {
+    policy <- policy[[1]]
+  }
+  
+  policy
+}
+
 #' @rdname policy
 #'
 #' @param policy a policy data.frame.

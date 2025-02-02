@@ -333,7 +333,7 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
   )
   
   # for lists from gw_init()
-  if (!inherits(model, "MDP")) {
+  if (!inherits(model, "MDP") && !inherits(model, "MDPE") ) {
     class(model) <- "MDP"
   }
   
@@ -377,7 +377,8 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
     },
     absorbing = {
       l <- structure(rep(NA, length(all_states)), names = all_states)
-      l[S(model)] <- absorbing_states(model, sparse = TRUE)
+      l[S(model)] <- FALSE
+      l[absorbing_states(model, sparse = "states")] <- TRUE
       l
     },
     unreachable = {
@@ -440,7 +441,7 @@ gw_plot <-
     
     actions <-
       match.arg(actions, c("character", "unicode", "label", "none"))
-    solved <- is_solved_MDP(model)
+    solved <- is_solved_MDP(model, allow_MDPE = TRUE)
     nrows <- model$info$dim[1]
     ncols <- model$info$dim[2]
     
@@ -883,7 +884,7 @@ gw_maze_MDP <- function(dim,
                         horizon = Inf,
                         info = NULL,
                         normalize = FALSE,
-                        name = NA) {
+                        name = "Maze") {
   gw <-
     gw_init(
       dim,
@@ -967,10 +968,13 @@ gw_maze_MDPE <- function(dim,
                          horizon = Inf,
                          info = NULL,
                          normalize = FALSE,
-                         name = NA) {
+                         name = "Maze") {
   if (!is.null(walls))
     walls <- normalize_state_features(walls, NULL)
   
+  start <- normalize_state_features(start, NULL)
+  goal <- normalize_state_features(goal, NULL)
+   
   transition_func <- function(model, state, action) {
     if (absorbing_states(model, state))
       return(list(reward = 0, state_prime = state))
@@ -1000,7 +1004,19 @@ gw_maze_MDPE <- function(dim,
     
     return(list(reward = r, state_prime = sp))
   }
+ 
+  info <- list(
+    gridworld = TRUE,
+    dim = dim,
+    start = features2state(start),
+    goal = features2state(goal),
+    state_labels = list()
+    )
   
+  info$state_labels[[features2state(start)]] <- "Start"
+  info$state_labels[[features2state(goal)]] <- "Goal"
+  
+   
   model <-
     MDPE(
       actions = actions,
@@ -1012,7 +1028,16 @@ gw_maze_MDPE <- function(dim,
       info = info,
       name = name
     )
-  
+ 
+  # for convenience, we store the states  for the maze
+  model$states <- as.vector(outer(
+    seq_len(dim[1]),
+    seq_len(dim[2]),
+    FUN = function(x, y) {
+      paste0("s(", x, ",", y, ")")
+    }
+  ))
+   
   model
 }
 

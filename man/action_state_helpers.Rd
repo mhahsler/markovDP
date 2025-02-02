@@ -51,11 +51,16 @@ Functions ending in
 \itemize{
 \item \verb{_id} return an integer id,
 \item \verb{_label} return a character string,
+\item \verb{_features} return a state feature matrix,
 \item no ending return a factor.
 }
 
-\code{state2features()} returns a feature vector/matrix.
-\code{features2state(x)} returns a state label in the format \verb{s(feature list)}.
+Other functions:
+\itemize{
+\item \code{state2features()} returns a feature vector/matrix.
+\item \code{features2state(x)} returns a state label in the format \verb{s(feature list)}.
+\item \code{s()} returns a state features row vector.
+}
 }
 \description{
 Several helper functions to convert state and action (integer) IDs
@@ -68,10 +73,12 @@ integer id (i.e., the index) is needed, the additional functions can be used.
 These are typically a lot faster.
 
 To support a factored state representation as feature vectors,
-\code{state2features()} and \code{feature2states()} is provided.
+\code{state2features()} and \code{feature2states()} are provided.
 A factored state is represented as a \strong{row} vector for a single
-state or a matrix with row vectors for a set of states are used. State labels
-are constructed in the form \code{s(feature1, feature2, ...)}. Factored state representation
+state (ceonveniently created via \code{s()}) or a matrix with row vectors for a
+set of states are used. State labels
+are constructed in the form \code{s(feature1, feature2, ...)}.
+Factored state representation
 is used for value function approximation (see \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}) and
 for \link{MDPE} to describe MDP's via a transition function between factored
 states.

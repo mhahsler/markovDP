@@ -74,9 +74,6 @@
 #'           name = "5x5 Maze")
 #' m
 #' 
-#' # the same maze can be created with this helper
-#' # m <- gw_maze_MDPE(5,5, start = "s(1,1)", goal = "s(5,5)")
-#' 
 #' act(m, s(1,1), "down")
 #' 
 #' # Reach the goal: reward = 100
@@ -89,12 +86,18 @@
 #' act(m, s(5,5), "up")
 #' 
 #' # Example: Solve using Linear Feature Approximation
+#'
+#' # the same maze can be created with this helper and then gridworld helper 
+#' #    functions can be used
+#' m <- gw_maze_MDPE(c(5,5), start = "s(1,1)", goal = "s(5,5)")
 #' 
 #' m_approx <- add_linear_approx_Q_function(m)
 #' sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 10, 
-#'           alpha = 0.01, epsilon = 0.7, verbose = FALSE)
+#'           alpha = 0.01, epsilon = 0.8, verbose = FALSE)
+#' gw_plot(sol)
 #' sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100, 
-#'           alpha = 0.01, epsilon = 0.1, verbose = FALSE, continue = TRUE)
+#'           alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
+#' gw_plot(sol)
 #' 
 #' approx_greedy_action(sol, s(1,1))
 #' approx_greedy_action(sol, s(5,4))
@@ -103,12 +106,6 @@
 #'
 #' approx_Q_value(sol, s(1,1))
 #' approx_Q_value(sol, s(5,4))
-#' 
-#' # display the learned actions and the value function in the maze layout
-#' outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-#'            approx_greedy_action(sol, s(x,y)))) 
-#' outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-#'            approx_Q_value(sol, s(x,y), approx_greedy_action(sol, s(x,y)))))
 #' 
 #' # Example: Solve using order-2 Fourier Basis Features
 #' fourier_basis_trans <- function(x) {
@@ -120,14 +117,10 @@
 #' m_approx <- add_linear_approx_Q_function(m, transformation = fourier_basis_trans)
 #' sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 10, 
 #'           alpha = 0.01, epsilon = 0.7, verbose = FALSE)
+#' gw_plot(sol)
 #' sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100, 
-#'           alpha = 0.01, epsilon = 0.1, verbose = FALSE, continue = TRUE)
-#' 
-#' # display the learned actions and the value function in the maze layout
-#' outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-#'            approx_greedy_action(sol, s(x,y)))) 
-#' outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-#'            approx_Q_value(sol, s(x,y), approx_greedy_action(sol, s(x,y)))))
+#'           alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
+#' gw_plot(sol)
 #' @export
 MDPE <- function(
                 actions,

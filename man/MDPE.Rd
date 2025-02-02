@@ -66,7 +66,7 @@ these problems. See: \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}.
 # Define a simple 5x5 maze without walls
 
 transition_func <- function(model, state, action) {
-  if (all(state == c(5, 5)))
+  if (all(state == s(5, 5)))
     return(list(reward = 0, state_prime = state))
   
   action <- normalize_action_label(action, model)
@@ -85,7 +85,7 @@ transition_func <- function(model, state, action) {
    }
 
   # goal
-  if (all(sp == c(5, 5)))
+  if (all(sp == s(5, 5)))
     r <- 100
     
   return(list(reward = r, state_prime = sp))
@@ -93,24 +93,24 @@ transition_func <- function(model, state, action) {
 
 m <- MDPE(actions = c("up", "right", "down", "left"), 
           transition_func, 
-          start = t(c(1,1)), 
-          absorbing_states = rbind(c(5, 5)),
+          start = s(1,1), 
+          absorbing_states = s(5, 5),
           name = "5x5 Maze")
 m
 
 # the same maze can be created with this helper
 # m <- gw_maze_MDPE(5,5, start = "s(1,1)", goal = "s(5,5)")
 
-act(m, t(c(1,1)), "down")
+act(m, s(1,1), "down")
 
 # Reach the goal: reward = 100
-act(m, t(c(5,4)), "right")
+act(m, s(5,4), "right")
 
 # Illegal action: no movement and reward = -1
-act(m, t(c(1,1)), "up")
+act(m, s(1,1), "up")
 
 # Absorbing state: no movement and 0 reward
-act(m, t(c(5,5)), "up")
+act(m, s(5,5), "up")
 
 # Example: Solve using Linear Feature Approximation
 
@@ -120,19 +120,19 @@ sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 10,
 sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100, 
           alpha = 0.01, epsilon = 0.1, verbose = FALSE, continue = TRUE)
 
-approx_greedy_action(sol, t(c(1,1)))
-approx_greedy_action(sol, t(c(5,4)))
+approx_greedy_action(sol, s(1,1))
+approx_greedy_action(sol, s(5,4))
 # to use the greedy_action interface, the state label has to be used
 greedy_action(sol, "s(1,1)")
 
-approx_Q_value(sol, "s(1,1)")
-approx_Q_value(sol, (c(5,4)))
+approx_Q_value(sol, s(1,1))
+approx_Q_value(sol, s(5,4))
 
 # display the learned actions and the value function in the maze layout
 outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-           approx_greedy_action(sol, c(x,y)))) 
+           approx_greedy_action(sol, s(x,y)))) 
 outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-           approx_Q_value(sol, c(x,y), approx_greedy_action(sol, c(x,y)))))
+           approx_Q_value(sol, s(x,y), approx_greedy_action(sol, s(x,y)))))
 
 # Example: Solve using order-2 Fourier Basis Features
 fourier_basis_trans <- function(x) {
@@ -149,9 +149,9 @@ sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100,
 
 # display the learned actions and the value function in the maze layout
 outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-           approx_greedy_action(sol, c(x,y)))) 
+           approx_greedy_action(sol, s(x,y)))) 
 outer(1:5, 1:5, FUN = Vectorize(function(x, y) 
-           approx_Q_value(sol, c(x,y), approx_greedy_action(sol, c(x,y)))))
+           approx_Q_value(sol, s(x,y), approx_greedy_action(sol, s(x,y)))))
 }
 \seealso{
 Other MDPE: 

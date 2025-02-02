@@ -40,8 +40,6 @@
 #' @export
 absorbing_states <- function(model,
                              state = NULL,
-                             sparse = "states",
-                             use_precomputed = TRUE,
                              ...) {
   UseMethod("absorbing_states")
 }
@@ -105,17 +103,23 @@ absorbing_states.MDP <- function(model,
 #' @export
 absorbing_states.MDPE <- function(model,
                                  state = NULL,
-                                 sparse = "states",
+                                 sparse = "features",
                                  use_precomputed = TRUE,
                                  ...) {
+  sparse <- match.arg(sparse, c("features", "states"))
   
-  if(is.null(model$absorbing_states))
+  if (is.null(model$absorbing_states))
     stop("Model does not specify absorbing states!")
   
-  if(is.null(state))
-    return(model$absorbing_states)
+  if (is.null(state))
+    abs <- model$absorbing_states
+  else {
+    state <- drop(normalize_state_features(state, model))
+    abs <- any(apply(model$absorbing_states, MARGIN = 1, FUN = function(x) all(x == state)))
+  }
   
-  state <- drop(normalize_state_features(state, model))
+  if (sparse == "states")
+    abs <- features2state(abs)
   
-  any(apply(model$absorbing_states, MARGIN = 1, FUN = function(x) all(x == state)))
+  abs
 }

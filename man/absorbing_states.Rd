@@ -4,13 +4,7 @@
 \alias{absorbing_states}
 \title{Absorbing States}
 \usage{
-absorbing_states(
-  model,
-  state = NULL,
-  sparse = "states",
-  use_precomputed = TRUE,
-  ...
-)
+absorbing_states(model, state = NULL, ...)
 }
 \arguments{
 \item{model}{a \link{MDP} object.}
@@ -19,11 +13,11 @@ absorbing_states(
 the model contains a transition model implemented as a function.
 \code{NULL} means all states are checked.}
 
+\item{...}{further arguments are passed on.}
+
 \item{sparse}{logical; if return a sparse logical vector?}
 
 \item{use_precomputed}{logical; should precomputed values in the MDP be used?}
-
-\item{...}{further arguments are passed on.}
 }
 \value{
 \code{absorbing_states()} returns a logical vector indicating
