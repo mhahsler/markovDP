@@ -202,7 +202,7 @@ MDP <- function(states,
     info = info
   )
 
-  class(x) <- c("MDP", "list")
+  class(x) <- c("MDP", "MDPE")
   x <- check_and_fix_MDP(x)
     
   # this takes a while
@@ -292,18 +292,27 @@ A <- function(model) model$actions
 
 #' @rdname MDP
 #' @param stop logical; stop with an error.
-#' @param allow_MDPE logical; also accept [MDPE] objects.
+#' @param policy logical; solution is an explicit policy.
+#' @param approx logical; solution is an approximation function.
 #' @export
-is_solved_MDP <- function(model, allow_MDPE = FALSE, stop = FALSE) {
-  if (!inherits(model, "MDP") && !(allow_MDPE && inherits(model, "MDPE"))) {
-    stop("x needs to be an MDP object!")
+is_solved_MDP <- function(model, policy = TRUE, approx = FALSE, stop = FALSE) {
+  if (!inherits(model, "MDPE")) {
+    stop("x needs to be an MDP type object!")
   }
-  solved <- !is.null(model$solution)
-  if (stop && !solved) {
-    stop("model needs to contain a solution. Use solve_MDP() or add_policy() first.")
+  
+  if (is.null(model$solution)) {
+    if (stop)
+      stop("model needs to contain a solution. Use solve_MDP() or add_policy() first.")
+    return (FALSE)
   }
 
-  solved
+  if (policy && !is.null(model$solution$policy[[1L]]))
+    return (TRUE)
+  
+  if (approx && !is.null(model$solution$w))
+    return (TRUE)
+  
+  FALSE
 }
 
 #' @rdname MDP
@@ -344,25 +353,6 @@ is_converged_MDP <- function(model, stop = FALSE) {
   }
 
   return(epoch)
-}
-
-# convert names or ids to ids!
-.get_state_id <- function(model, state) {
-  id <- structure(seq_along(S(model)), names = S(model))[state]
-  if (any(is.na(id))) {
-    stop("Unknown state(s): ", paste(state[is.na(id)], collapse = ", "))
-  }
-
-  id
-}
-
-.get_action_id <- function(model, action) {
-  id <- structure(seq_along(model$action), names = model$action)[action]
-  if (any(is.na(id))) {
-    stop("Unknown action(s): ", paste(action[is.na(id)], collapse = ", "))
-  }
-
-  id
 }
 
 #' @rdname MDP

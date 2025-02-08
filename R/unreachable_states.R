@@ -59,8 +59,7 @@ unreachable_states.MDP <- function(model,
                                    sparse = "states",
                                    progress = TRUE,
                                    ...) {
-  if (is.null(sparse))
-    sparse <- TRUE
+  sparse <- sparse %||% TRUE
   
   .translate_logical(!.reachable_states(model, horizon = horizon, progress = progress),
                      S(model),

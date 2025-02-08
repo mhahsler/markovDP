@@ -29,10 +29,6 @@
 #' @family policy
 #' @author Michael Hahsler
 #'
-#' @param model an MDP problem specification.
-#' @param V the state values. If `model` is a solved model, then the state
-#'    values are taken from the solution.
-#'
 #' @references
 #' Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
 #' Second edition. The MIT Press.
@@ -54,26 +50,46 @@
 NULL
 
 #' @rdname Q_values
+#' @param model an MDP problem specification.
+#' @param state specify the state. If `NULL` then the Q-values for all states 
+#'    is returned as a matrix.
+#' @param V the state values. If `model` is a solved model, then the state
+#'    values are taken from the solution.
 #' @return `Q_values()` returns a state by action matrix specifying the Q-function,
 #'   i.e., the action value for executing each action in each state. The Q-values
 #'   are calculated from the value function (U) and the transition model.
 #' @export
-Q_values <- function(model, V = NULL) {
-  if (!is.null(V)) 
-    return(bellman_update(model, V)$Q)
-
-  is_solved_MDP(model, allow_MDPE = TRUE, stop = TRUE)   
+Q_values <- function(model, V = NULL, state = NULL) {
+  if (!is.null(V)) {
+    Q <- bellman_update(model, V)$Q
+    if (!is.null(state))
+      Q <- Q[normalize_state_id(state, model), ]
+    return (Q)
+  }
+  
+  is_solved_MDP(model, policy = TRUE, approx = TRUE, stop = TRUE)   
   
   # solved models may have Q 
-  if(!is.null(model$solution$Q))
-    return(model$solution$Q)
+  if(!is.null(model$solution$Q)) {
+    Q <- model$solution$Q
+    if (!is.null(state))
+      Q <- Q[normalize_state_id(state, model), ]
+    return (Q)
+  }
   
   # solved model may have an approx. Q-function
-  if(!is.null(model$solution$w))
-    return(approx_Q_value(model))
+  if(!is.null(model$solution$w)) {
+    if (is.null(state))
+      return(approx_Q_value(model))
+    else
+      return(approx_Q_value(model, state = state))
+  }
   
   # use the value function in the policy 
-  bellman_update(model, policy(model)$V)$Q
+  Q <- bellman_update(model, policy(model)$V)$Q
+  if (!is.null(state))
+    Q <- Q[normalize_state_id(state, model), ]
+  return (Q)
 }
 
 #' @rdname Q_values

@@ -4,7 +4,8 @@
 \alias{solve_MDP_APPROX}
 \alias{add_linear_approx_Q_function}
 \alias{add_linear_approx_Q_function.MDP}
-\alias{add_linear_approx_Q_function.MDPE}
+\alias{add_linear_approx_Q_function.MDPTF}
+\alias{transformation_fourier}
 \alias{approx_Q_value}
 \alias{approx_greedy_action}
 \alias{approx_greedy_policy}
@@ -35,9 +36,11 @@ add_linear_approx_Q_function(model, ...)
   ...
 )
 
-\method{add_linear_approx_Q_function}{MDPE}(model, transformation = NULL, ...)
+\method{add_linear_approx_Q_function}{MDPTF}(model, transformation = NULL, ...)
 
-approx_Q_value(model, state, action = NULL, w = NULL)
+transformation_fourier(min, max, order, cs = expand.grid(0:order, 0:order))
+
+approx_Q_value(model, state = NULL, action = NULL, w = NULL)
 
 approx_greedy_action(model, state, w = NULL, epsilon = 0)
 
@@ -86,6 +89,15 @@ vector for a state.}
 
 \item{transformation}{a transformation function that is applied to the feature vector
 before it is used in the linear approximation.}
+
+\item{min, max}{vectors with the minimum and maximum values for each feature.
+This is used to scale the feature to the \eqn{[0,1]} interval for the
+Fourier basis.}
+
+\item{order}{order for the Fourier basis.}
+
+\item{cs}{an optional matrix or a data frame to specify cs values for the
+Fourier features selectively (overrides \code{order}).}
 
 \item{state}{a state (index or name)}
 
@@ -168,7 +180,7 @@ The implementation follows the algorithm given in Sutton and Barto (2018).
 # This is the ideal problem for a linear approximation of the Q-function
 # using the x/y location as state features.
 
-m <- gw_random_maze(5, wall_prob = 0)
+m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 
 # construct state features as the x/y coordinates in the gridworld
 state_features <- gw_s2rc(S(m))
@@ -181,11 +193,23 @@ m <- add_linear_approx_Q_function(m, state_features)
 m$approx_Q_function
 
 sol <- solve_MDP_APPROX(m, horizon = 1000, n = 10,
-                     alpha = 0.01, epsilon = .7)
-sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100, 
-          alpha = 0.01, epsilon = 0.1, verbose = FALSE, continue = TRUE)
-
+                     alpha = 0.01, epsilon = .5)
 gw_plot(sol)
+sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100,
+          alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
+gw_plot(sol)
+
+### TESTS
+sol <- solve_MDP_APPROX(m, horizon = 1000, n = 1,
+                     alpha = 0.01, epsilon = .8, verbose = 2)
+Q_values(sol)
+gw_plot(sol)
+
+gw_animate(m, method = "APPROX:semi", horizon = 1000, n = 10,
+                     alpha = 0.01, epsilon = .8)
+
+###
+
 gw_matrix(sol, what = "value")
 
 # learned weights and state values
@@ -206,7 +230,6 @@ data(Maze)
 gw_plot(Maze)
 
 Maze_approx <- add_linear_approx_Q_function(Maze)
-
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
                      alpha = 0.01, epsilon = 0.3)
 gw_plot(sol)
@@ -219,9 +242,9 @@ cs <- expand.grid(0:order, 0:order)
 x <- state2features(S(Maze))
 x
 
-x <- sweep(x, MARGIN = 2, 
+x <- sweep(x, MARGIN = 2,
            STATS = apply(x, MARGIN = 2, max), FUN = "/")
-x <- apply(cs, MARGIN = 1, 
+x <- apply(cs, MARGIN = 1,
            FUN = function(c) cos(pi * x \%*\% c))
 rownames(x) <- S(Maze)
 x
@@ -229,7 +252,13 @@ x
 Maze_approx <- add_linear_approx_Q_function(Maze, state_features = x)
 
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .5)
-sol <- solve_MDP_APPROX(sol, horizon = 100, n = 100, alpha = 0.1, epsilon = .1, continue = TRUE)
+sol <- solve_MDP_APPROX(sol, horizon = 100, n = 1000, alpha = 0.1, epsilon = .1, continue = TRUE)
+gw_plot(sol)
+
+# order-2 fourier features can be specified easier
+Maze_approx <- add_linear_approx_Q_function(Maze, 
+      transformation = transformation_fourier(min = c(0,0), max = c(3,4), order = 2))
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 1000, n = 200, alpha = 0.1, epsilon = .1)
 gw_plot(sol)
 
 }
@@ -246,12 +275,13 @@ Other solver:
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
 
-Other MDPE: 
-\code{\link{MDPE}()},
+Other MDPTF: 
+\code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
-\code{\link{sample_MDP.MDPE}()},
-\code{\link{solve_MDP}()}
+\code{\link{sample_MDP.MDPTF}()},
+\code{\link{solve_MDP}()},
+\code{\link{start}()}
 }
-\concept{MDPE}
+\concept{MDPTF}
 \concept{solver}

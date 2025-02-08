@@ -6,7 +6,7 @@
 \alias{Q_random}
 \title{Q-Values}
 \usage{
-Q_values(model, V = NULL)
+Q_values(model, V = NULL, state = NULL)
 
 Q_zero(model, value = 0)
 
@@ -17,6 +17,9 @@ Q_random(model, min = 1e-06, max = 1)
 
 \item{V}{the state values. If \code{model} is a solved model, then the state
 values are taken from the solution.}
+
+\item{state}{specify the state. If \code{NULL} then the Q-values for all states
+is returned as a matrix.}
 
 \item{value}{value to initialize the Q-value matrix. Default is 0.}
 
@@ -86,6 +89,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},

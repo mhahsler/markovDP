@@ -77,6 +77,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},

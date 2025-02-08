@@ -2,9 +2,27 @@
 % Please edit documentation in R/absorbing_states.R
 \name{absorbing_states}
 \alias{absorbing_states}
+\alias{absorbing_states.MDP}
+\alias{absorbing_states.MDPTF}
 \title{Absorbing States}
 \usage{
 absorbing_states(model, state = NULL, ...)
+
+\method{absorbing_states}{MDP}(
+  model,
+  state = NULL,
+  sparse = "states",
+  use_precomputed = TRUE,
+  ...
+)
+
+\method{absorbing_states}{MDPTF}(
+  model,
+  state = NULL,
+  sparse = "features",
+  use_precomputed = TRUE,
+  ...
+)
 }
 \arguments{
 \item{model}{a \link{MDP} object.}
@@ -61,20 +79,22 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPE: 
-\code{\link{MDPE}()},
+Other MDPTF: 
+\code{\link{MDPTF}()},
 \code{\link{act}()},
-\code{\link{sample_MDP.MDPE}()},
+\code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()}
+\code{\link{solve_MDP_APPROX}()},
+\code{\link{start}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPE}
+\concept{MDPTF}

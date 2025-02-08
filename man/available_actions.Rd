@@ -4,13 +4,7 @@
 \alias{available_actions}
 \title{Available Actions in a State}
 \usage{
-available_actions(
-  model,
-  state = NULL,
-  neg_inf_reward = TRUE,
-  stay_in_place = FALSE,
-  drop = TRUE
-)
+available_actions(model, state, neg_inf_reward = TRUE, stay_in_place = FALSE)
 }
 \arguments{
 \item{model}{a \link{MDP} object.}
@@ -23,8 +17,6 @@ end states unavailable?}
 \item{stay_in_place}{logical; consider an action that results in the same state
 with a probability of 1 as unavailable. Note that this means that
 absorbing states have no available action!}
-
-\item{drop}{logical; drop to a vector if only one state is used.}
 }
 \value{
 a character vector with the available actions.
@@ -36,7 +28,7 @@ Determine the set of actions available in a state.
 }
 \details{
 Unavailable actions are modeled as actions that have an immediate
-reward of \code{-Inf} in the reward function. For maze, also actions that
+reward of \code{-Inf} in the reward function. For a maze, also actions that
 do not change the state can be considered unavailable.
 }
 \examples{
@@ -68,6 +60,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},

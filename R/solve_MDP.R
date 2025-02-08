@@ -17,14 +17,14 @@
 #' "Other solvers".
 #' 
 #' While [MDP] model contain an explicit specification of the state space,
-#' the transition probabilities and the reward structure, [MDPE] only contains a 
+#' the transition probabilities and the reward structure, [MDPTF] only contains a 
 #' transition function. This means that only a small subset of solvers can be 
-#' used for MDPEs. This currently includes only includes 
+#' used for MDPTFs. This currently includes only includes 
 #' the solvers in [`solve_MDP_APPROX()`].  
 #' 
 #' @family solver
 #' @family MDP
-#' @family MDPE
+#' @family MDPTF
 #'
 #' @param model an MDP problem specification.
 #' @param method string; Composed of the algorithm family abbreviation and the algorithm
@@ -118,7 +118,7 @@ solve_MDP.MDP <- function(model,
 
 #' @rdname solve_MDP
 #' @export
-solve_MDP.MDPE <- function(model,
+solve_MDP.MDPTF <- function(model,
                       method = "APPROX:semi_gradient_sarsa",
                       horizon = NULL,
                       discount = NULL,
@@ -152,12 +152,7 @@ solve_MDP.MDPE <- function(model,
                         discount = NULL,
                         matrix = FALSE,
                         verbose = FALSE,
-                        progress = TRUE,
-                        allow_MDPE = FALSE) {
-  
-  if (!inherits(model, "MDP") && !(allow_MDPE && inherits(model, "MDPE"))) {
-    stop("'model' needs to be of class 'MDP'.")
-  }
+                        progress = TRUE) {
   
   model$horizon <- horizon %||% model$horizon %||% Inf
   model$discount <- discount %||% model$discount %||% 1

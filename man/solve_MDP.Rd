@@ -3,7 +3,7 @@
 \name{solve_MDP}
 \alias{solve_MDP}
 \alias{solve_MDP.MDP}
-\alias{solve_MDP.MDPE}
+\alias{solve_MDP.MDPTF}
 \title{Solve an MDP Problem}
 \usage{
 solve_MDP(model, ...)
@@ -20,7 +20,7 @@ solve_MDP(model, ...)
   progress = !verbose
 )
 
-\method{solve_MDP}{MDPE}(
+\method{solve_MDP}{MDPTF}(
   model,
   method = "APPROX:semi_gradient_sarsa",
   horizon = NULL,
@@ -95,9 +95,9 @@ A list of available solvers can be found in the See Also section under
 "Other solvers".
 
 While \link{MDP} model contain an explicit specification of the state space,
-the transition probabilities and the reward structure, \link{MDPE} only contains a
+the transition probabilities and the reward structure, \link{MDPTF} only contains a
 transition function. This means that only a small subset of solvers can be
-used for MDPEs. This currently includes only includes
+used for MDPTFs. This currently includes only includes
 the solvers in \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}.
 }
 \examples{
@@ -142,21 +142,23 @@ Other MDP:
 \code{\link{policy_evaluation}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPE: 
-\code{\link{MDPE}()},
+Other MDPTF: 
+\code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
-\code{\link{sample_MDP.MDPE}()},
-\code{\link{solve_MDP_APPROX}()}
+\code{\link{sample_MDP.MDPTF}()},
+\code{\link{solve_MDP_APPROX}()},
+\code{\link{start}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPE}
+\concept{MDPTF}
 \concept{solver}

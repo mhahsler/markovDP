@@ -45,6 +45,10 @@ solve_MDP_SAMP <-
     .nodots(...)
     PROGRESS_INTERVAL <- 100
     
+    # this works for MDP and MDPTF with a defined state space
+    if (!inherits(model, "MDPE") || is.null(S(model)))
+      stop("The model needs to be an MDP description with a specified state space.")
+    
     method <-
       match.arg(method, c("q_planning"))
     
@@ -116,7 +120,6 @@ solve_MDP_SAMP <-
     
     S <- S(model)
     A <- A(model)
-    start <- start_vector(model, sparse = FALSE)
     gamma <- model$discount
     
     # loop through tries
@@ -133,6 +136,9 @@ solve_MDP_SAMP <-
       sp_r <- act(model, s, a, fast = TRUE)
       sp <- sp_r$state_prime
       r <- sp_r$r
+      
+      if (is.matrix(sp))
+        sp <- normalize_state_id(sp, model)
       
       # NOTE: we use as the default alpha = 1/N(s,a)
       #       then the expected error for each Q value is sigma_TD/sqrt(N(s,a))

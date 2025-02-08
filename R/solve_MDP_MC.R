@@ -76,6 +76,10 @@ solve_MDP_MC <-
            verbose = FALSE) {
     .nodots(...)
     
+    # this works for MDP and MDPTF with a defined state space
+    if (!inherits(model, "MDPE") || is.null(S(model)))
+      stop("The model needs to be an MDP description with a specified state space.")
+    
     methods <- c("exploring_starts", "on_policy", "off_policy")
     method <- match.arg(method, methods)
     
@@ -278,7 +282,7 @@ MC_on_policy <- function(model,
     G <- 0
     for (i in rev(seq_len(nrow(ep)))) {
       r_t_plus_1 <- ep$r[i]
-      s_t <- ep$s[i]
+      s_t <- normalize_state_id(ep$s[i], model)
       a_t <- ep$a[i]
       
       G <- discount * G + r_t_plus_1
@@ -331,7 +335,7 @@ MC_on_policy <- function(model,
         cat(paste0("; pi(", s_t, "): ", pi[s_t, "action"]))
       
       # the simulation takes care of the epsilon
-      pi$action[s_t] <- greedy_action(Q, s_t)
+      pi$action[s_t] <- greedy_action(model, s_t, Q)
       
       if (verbose > 1)
         cat(paste0(" -> ", pi[s_t, "action"], "\n"))
@@ -509,7 +513,7 @@ MC_off_policy <- function(model,
       if (verbose > 1)
         cat(paste0(" pi(", s_t, "): ", pi[s_t, "action"]))
       
-      pi$action[s_t] <- greedy_action(Q, s_t)
+      pi$action[s_t] <- greedy_action(model, s_t, Q)
       
       if (verbose > 1)
         cat(paste0(" -> ", pi[s_t, "action"], "\n"))

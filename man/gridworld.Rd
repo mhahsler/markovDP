@@ -15,7 +15,7 @@
 \alias{gw_transition_prob_named}
 \alias{gw_transition_prob_end_state}
 \alias{gw_maze_MDP}
-\alias{gw_maze_MDPE}
+\alias{gw_maze_MDPTF}
 \alias{gw_random_maze}
 \alias{gw_read_maze}
 \alias{gw_path}
@@ -90,10 +90,10 @@ gw_maze_MDP(
   horizon = Inf,
   info = NULL,
   normalize = FALSE,
-  name = NA
+  name = "Maze"
 )
 
-gw_maze_MDPE(
+gw_maze_MDPTF(
   dim,
   start,
   goal,
@@ -105,7 +105,7 @@ gw_maze_MDPE(
   horizon = Inf,
   info = NULL,
   normalize = FALSE,
-  name = NA
+  name = "Maze"
 )
 
 gw_random_maze(
@@ -456,6 +456,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},

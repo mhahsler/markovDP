@@ -2,29 +2,27 @@
 % Please edit documentation in R/action.R
 \name{action}
 \alias{action}
-\alias{action.MDP}
 \title{Choose an Action Given a Policy}
 \usage{
-action(model, ...)
-
-\method{action}{MDP}(model, state, epsilon = 0, epoch = 1, ...)
+action(model, state, epsilon = 0, epoch = 1, ...)
 }
 \arguments{
 \item{model}{a solved \link{MDP}.}
-
-\item{...}{further parameters are passed on.}
 
 \item{state}{the state.}
 
 \item{epsilon}{make the policy epsilon soft.}
 
 \item{epoch}{what epoch of the policy should be used. Use 1 for converged policies.}
+
+\item{...}{further parameters are passed on.}
 }
 \value{
 The name of the optimal action as a factor.
 }
 \description{
-Returns an action given a deterministic policy. The policy can be made epsilon-soft.
+Returns an action given a deterministic policy.
+The policy can be made epsilon-soft.
 }
 \examples{
 data("Maze")

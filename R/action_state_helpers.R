@@ -16,7 +16,7 @@
 #' are constructed in the form `s(feature1, feature2, ...)`. 
 #' Factored state representation
 #' is used for value function approximation (see [`solve_MDP_APPROX()`]) and
-#' for [MDPE] to describe MDP's via a transition function between factored 
+#' for [MDPTF] to describe MDP's via a transition function between factored 
 #' states.
 #'
 #' @name action_state_helpers
@@ -213,11 +213,18 @@ normalize_state_features <- function(state, model = NULL) {
   if (is.matrix(state))
     return(state)
   
+  if (!is.null(model$state_features)) 
+    return(model$state_features[state, ,drop = FALSE])
+  
   if (is.factor(state))
     state <- as.character(state)
   
   if (is.character(state))
     return(state2features(state))
-  
+
+  # integer vector is a state ids!
+  if (!is.null(S(model)))
+    return(state2features(S(model)[state]))
+    
   stop("Illegal state specification.")
   }

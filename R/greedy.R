@@ -36,13 +36,14 @@
 #' gw_plot(Maze_with_policy, main = "Maze: Greedy Policy")
 #'
 #' # find the greedy/ epsilon-greedy action for the top-left corner state 
-#' greedy_action(Q, "s(1,1)", epsilon = 0, prob = FALSE)
-#' greedy_action(Q, "s(1,1)", epsilon = 0, prob = TRUE)
-#' greedy_action(Q, "s(1,1)", epsilon = .1, prob = TRUE)
+#' greedy_action(Maze, "s(1,1)", Q, epsilon = 0, prob = FALSE)
+#' greedy_action(Maze, "s(1,1)", Q, epsilon = 0, prob = TRUE)
+#' greedy_action(Maze, "s(1,1)", Q, epsilon = .1, prob = TRUE)
 #'
-#' # we can also specify a model with a policy 
+#' # we can also specify a model with a policy and use the internal Q-values 
 #' greedy_action(Maze_with_policy, "s(1,1)", epsilon = .1, prob = TRUE)
 #' 
+#' @param Q an optional Q-matrix.
 #' @param epsilon an `epsilon > 0` applies an epsilon-greedy policy.
 #' @param prob logical; return a probability distribution over the actions.
 #' @return 
@@ -53,14 +54,14 @@
 #' @export
 greedy_action <- function(x,  
                           s,
+                          Q = NULL,
                           epsilon = 0,
                           prob = FALSE) {
   UseMethod("greedy_action")
 }
 
 # For a Q-matrix
-#' @export
-greedy_action.matrix <-
+greedy_action_int <-
   function(x,
            s,
            epsilon = 0,
@@ -102,18 +103,22 @@ greedy_action.matrix <-
 greedy_action.MDP <-
   function(x,
            s,
+           Q = NULL,
            epsilon = 0,
            prob = FALSE) {
-    greedy_action(Q_values(x), s, epsilon, prob)
+    Q <- Q %||% Q_values(x)
+    greedy_action_int(Q, normalize_state_id(s, x), epsilon, prob)
   }
 
 #' @export
-greedy_action.MDPE <- 
+greedy_action.MDPTF <- 
   function(x,
            s,
+           Q = NULL,
            epsilon = 0,
            prob = FALSE) {
-    greedy_action(rbind(approx_Q_value(x, s)), 1, epsilon, prob)
+    Q <- Q %||% rbind(approx_Q_value(x, s))
+    greedy_action_int(Q, 1L, epsilon, prob)
   }
 
 #' @rdname greedy_action
@@ -142,4 +147,13 @@ greedy_policy.matrix <-
 greedy_policy.MDP <-
   function(x) {
     greedy_policy(Q_values(x))
+  }
+
+#' @export
+greedy_policy.MDPTF <-
+  function(x) {
+    if (!is.null(S(x)))
+      stop("MDPTF does not specify the state space!")
+    
+    approx_greedy_policy(Q_values(x))
   }

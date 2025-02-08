@@ -80,26 +80,9 @@ policy <- function(model, epoch = NULL, drop = TRUE) {
 }
 
 #' @export
-policy.MDP <- function(model, epoch = NULL, drop = TRUE) {
-  is_solved_MDP(model, stop = TRUE)
-  
-  policy <- model$solution$policy
-  
-  if (!is.null(epoch)) {
-    return(policy[[.get_pol_index(model, epoch)]])
-  }
-  
-  if (drop && length(policy) == 1) {
-    policy <- policy[[1]]
-  }
-  
-  policy
-}
-
-#' @export
 policy.MDPE <- function(model, epoch = NULL, drop = TRUE) {
   if (is.null(model$solution$policy[[1]]))
-    stop("This MDPE is not solved or does not store an explicit policy.")
+    stop("This MDP is not solved or does not store an explicit policy.")
   
   policy <- model$solution$policy
   
@@ -139,6 +122,10 @@ add_policy.MDP <- function(model, policy) {
   
   model
 }
+
+#' @export
+add_policy.MDPTF <- add_policy.MDP
+
 
 .normalize_policy <- function(policy,
                               model,
@@ -191,8 +178,8 @@ random_policy <-
            estimate_V = FALSE,
            only_available_actions = FALSE,
            ...) {
-    if (!inherits(model, "MDP")) {
-      stop("'model' needs to be of class 'MDP'.")
+    if (!inherits(model, "MDPE") || is.null(S(model))) {
+      stop("'model' needs to be of class 'MDP' with a specified state space.")
     }
     
     A <- A(model)

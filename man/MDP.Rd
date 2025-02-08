@@ -26,7 +26,7 @@ S(model)
 
 A(model)
 
-is_solved_MDP(model, allow_MDPE = FALSE, stop = FALSE)
+is_solved_MDP(model, policy = TRUE, approx = FALSE, stop = FALSE)
 
 is_converged_MDP(model, stop = FALSE)
 
@@ -58,7 +58,9 @@ horizon.}
 
 \item{model}{an \code{MDP} object.}
 
-\item{allow_MDPE}{logical; also accept \link{MDPE} objects.}
+\item{policy}{logical; solution is an explicit policy.}
+
+\item{approx}{logical; solution is an approximation function.}
 
 \item{stop}{logical; stop with an error.}
 
@@ -247,6 +249,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},

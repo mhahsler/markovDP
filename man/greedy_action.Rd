@@ -5,7 +5,7 @@
 \alias{greedy_policy}
 \title{Greedy Actions and Policies}
 \usage{
-greedy_action(x, s, epsilon = 0, prob = FALSE)
+greedy_action(x, s, Q = NULL, epsilon = 0, prob = FALSE)
 
 greedy_policy(x)
 }
@@ -13,6 +13,8 @@ greedy_policy(x)
 \item{x}{a solved MDP model or a Q matrix.}
 
 \item{s}{a state.}
+
+\item{Q}{an optional Q-matrix.}
 
 \item{epsilon}{an \code{epsilon > 0} applies an epsilon-greedy policy.}
 
@@ -54,11 +56,11 @@ Maze_with_policy <- add_policy(Maze, pi_greedy)
 gw_plot(Maze_with_policy, main = "Maze: Greedy Policy")
 
 # find the greedy/ epsilon-greedy action for the top-left corner state 
-greedy_action(Q, "s(1,1)", epsilon = 0, prob = FALSE)
-greedy_action(Q, "s(1,1)", epsilon = 0, prob = TRUE)
-greedy_action(Q, "s(1,1)", epsilon = .1, prob = TRUE)
+greedy_action(Maze, "s(1,1)", Q, epsilon = 0, prob = FALSE)
+greedy_action(Maze, "s(1,1)", Q, epsilon = 0, prob = TRUE)
+greedy_action(Maze, "s(1,1)", Q, epsilon = .1, prob = TRUE)
 
-# we can also specify a model with a policy 
+# we can also specify a model with a policy and use the internal Q-values 
 greedy_action(Maze_with_policy, "s(1,1)", epsilon = .1, prob = TRUE)
 
 }
@@ -80,6 +82,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},

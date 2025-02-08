@@ -3,7 +3,7 @@
 #' Determine the set of actions available in a state.
 #'
 #' Unavailable actions are modeled as actions that have an immediate
-#' reward of `-Inf` in the reward function. For maze, also actions that
+#' reward of `-Inf` in the reward function. For a maze, also actions that
 #' do not change the state can be considered unavailable.
 #' @name available_actions
 #' @family MDP
@@ -15,7 +15,6 @@
 #' @param stay_in_place logical; consider an action that results in the same state
 #'  with a probability of 1 as unavailable. Note that this means that
 #'  absorbing states have no available action!
-#' @param drop logical; drop to a vector if only one state is used.
 #' @returns a character vector with the available actions.
 #'
 #' @author Michael Hahsler
@@ -36,11 +35,19 @@
 #' @returns a vector with the available actions.
 #' @export
 available_actions <- function(model,
-                              state = NULL,
+                                  state,
+                                  neg_inf_reward = TRUE,
+                                  stay_in_place = FALSE) {
+  UseMethod("available_actions")
+}
+
+#' @export
+available_actions.MDP <- function(model,
+                              state,
                               neg_inf_reward = TRUE,
-                              stay_in_place = FALSE,
-                              drop = TRUE) {
+                              stay_in_place = FALSE) {
   
+  # calculate using the transition probabilities
   # deal with a single state
   if (neg_inf_reward) {
     if (is.null(state)) {
@@ -82,10 +89,26 @@ available_actions <- function(model,
     acts <- acts_stay
   else 
     stop ("No available action rule selected!")
-
-  if (drop)
-    acts <- drop(acts)
   
   acts
+}
+
+
+#' @export
+available_actions.MDPTF <- function(model,
+                              state,
+                              neg_inf_reward = TRUE,
+                              stay_in_place = FALSE) {
+  # figure them out by trying. This may not be perfect!
+  A <- A(model)
+  res <- lapply(A, FUN = function (a) act(model, state, a))
+  
+  if (neg_inf_reward) rew <- sapply(res, "[[", 1L) != -Inf
+  else rew <- rep(TRUE, length(A))
+  
+  if (stay_in_place) sp <- sapply(res, "[[", 2L) != state
+  else sp <- rep(TRUE, length(A))
+  
+  normalize_action(A[rew & sp], model) 
 }
 

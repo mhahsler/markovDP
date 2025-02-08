@@ -132,7 +132,7 @@ solve_MDP_TD <-
            alpha = function(t, n)
              min(10 / n, 1),
            epsilon = 0.2,
-           n = 1000,
+           n,
            Q = 0,
            ...,
            matrix = TRUE,
@@ -141,8 +141,13 @@ solve_MDP_TD <-
            verbose = FALSE) {
     .nodots(...)
     
+    
     method <-
       match.arg(method, c("sarsa", "q_learning", "expected_sarsa"))
+    
+    # this works for MDP and MDPTF with a defined state space
+    if (!inherits(model, "MDPE") || is.null(S(model)))
+      stop("The model needs to be an MDP description with a specified state space.")
     
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
@@ -216,7 +221,7 @@ solve_MDP_TD <-
     
     S <- S(model)
     A <- A(model)
-    start <- start_vector(model, sparse = FALSE)
+    #start <- start_vector(model, sparse = FALSE)
     horizon <- model$horizon
     discount <- model$discount
     
@@ -227,8 +232,11 @@ solve_MDP_TD <-
       if (progress)
         pb$tick()
       
-      s <- sample(S, 1L, prob = start)
-      a <- greedy_action(Q, s, epsilon)
+      #s <- sample(S, 1L, prob = start)
+      s <- start(model)
+      a <- greedy_action(model, s, Q, epsilon)
+      
+      if (!is.integer(s)) s <- normalize_state_id(s, model)
       
       # loop steps in episode
       i <- 0L
@@ -238,17 +246,15 @@ solve_MDP_TD <-
           pb$tick(0)
         
         # act
-        a_res <- act(model, s, a, fasyt = TRUE)
+        a_res <- act(model, s, a, fast = TRUE)
         s_prime <- a_res$state_prime
         r <- a_res$r
         
-        # act without a function call
-        #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
-        #r <- reward_matrix(model, a, s, s_prime)
-        
-        
-        # for Sarsa we need (s, a, r, s', a')
-        a_prime <- greedy_action(Q, s_prime, epsilon)
+        # features -> id
+        if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
+      
+          # for Sarsa we need (s, a, r, s', a')
+        a_prime <- greedy_action(model, s_prime, Q, epsilon)
         
         if (verbose > 1) {
           if (i == 1L) {
@@ -285,7 +291,7 @@ solve_MDP_TD <-
           
           # on-policy: Uses expectation under the behavior policy
           # (off-policy would use the expectation under the greedy behavior policy -> q-learning)
-          expected_sarsa = sum(greedy_action(Q, s_prime, epsilon, prob = TRUE) * Q[s_prime, ], na.rm = TRUE)
+          expected_sarsa = sum(greedy_action(model, s_prime, Q, epsilon, prob = TRUE) * Q[s_prime, ], na.rm = TRUE)
         )
         
         Q[s, a] <- Q[s, a] + alpha_val * (r + discount * target - Q[s, a])
@@ -326,7 +332,7 @@ solve_MDP_TDN <-
            alpha = function(t, n)
              min(10 / n, 1),
            epsilon = 0.2,
-           n = 1000,
+           n,
            Q = 0,
            matrix = TRUE,
            continue = FALSE,
@@ -443,7 +449,7 @@ solve_MDP_TDN <-
         pb$tick()
       
       s <- sample.int(length(S), 1L, prob = start)
-      a <- greedy_action(Q, s, epsilon)
+      a <- greedy_action(model, s, Q, epsilon)
       
       S_t[1L] <- s
       A_t[1L] <- a
@@ -475,7 +481,7 @@ solve_MDP_TDN <-
             tt <- t + 1   # end of episode T
           } else {
             # choose an action using the behavior policy (which is epsilon greedy here)
-            a_prime <- greedy_action(Q, s_prime, epsilon)
+            a_prime <- greedy_action(model, s_prime, Q, epsilon)
             A_t[t_plus_1_idx] <- a_prime
           }
         } else {

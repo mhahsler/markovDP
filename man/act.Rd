@@ -3,14 +3,14 @@
 \name{act}
 \alias{act}
 \alias{act.MDP}
-\alias{act.MDPE}
+\alias{act.MDPTF}
 \title{Perform an Action}
 \usage{
 act(model, state, action, fast = FALSE, ...)
 
 \method{act}{MDP}(model, state, action = NULL, fast = FALSE, ...)
 
-\method{act}{MDPE}(model, state, action, fast = FALSE, ...)
+\method{act}{MDPTF}(model, state, action, fast = FALSE, ...)
 }
 \arguments{
 \item{model}{an MDP model.}
@@ -59,20 +59,22 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPE: 
-\code{\link{MDPE}()},
+Other MDPTF: 
+\code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
-\code{\link{sample_MDP.MDPE}()},
+\code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()}
+\code{\link{solve_MDP_APPROX}()},
+\code{\link{start}()}
 }
 \author{
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPE}
+\concept{MDPTF}

@@ -165,7 +165,10 @@ solve_MDP_DP <- function(model,
                "PS_error",
                "PS_random")
   method <- match.arg(method, methods)
- 
+
+  if (!inherits(model, "MDP"))
+    stop("This model requires transition probabilities in the MDP description.")
+  
   model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
    
   if (continue) {

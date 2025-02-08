@@ -75,6 +75,9 @@ solve_MDP_LP <- function(model,
   if (continue)
     stop("continue is not supported by LP methods!")
   
+  if (!inherits(model, "MDP"))
+    stop("This model requires transition probabilities in the MDP description.")
+  
   model <- .prep_model(model, horizon, discount, matrix = FALSE, verbose, progress)
   
   if (is.finite(model$horizon)) {

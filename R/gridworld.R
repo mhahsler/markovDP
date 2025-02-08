@@ -333,7 +333,7 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
   )
   
   # for lists from gw_init()
-  if (!inherits(model, "MDP") && !inherits(model, "MDPE") ) {
+  if (!inherits(model, "MDP") && !inherits(model, "MDPTF")) {
     class(model) <- "MDP"
   }
   
@@ -441,7 +441,7 @@ gw_plot <-
     
     actions <-
       match.arg(actions, c("character", "unicode", "label", "none"))
-    solved <- is_solved_MDP(model, allow_MDPE = TRUE)
+    solved <- is_solved_MDP(model)
     nrows <- model$info$dim[1]
     ncols <- model$info$dim[2]
     
@@ -902,7 +902,7 @@ gw_maze_MDP <- function(dim,
         transition_prob = gw$transition_prob,
         reward = rbind(
           R_(value = -step_cost),
-          R_(end.state = gw$info$goal, value = goal_reward),
+          R_(end.state = gw$info$goal, value = goal_reward - step_cost),
           R_(start.state = gw$info$goal, value = 0) # staying in the goal is 0
         ),
         discount = discount,
@@ -934,7 +934,7 @@ gw_maze_MDP <- function(dim,
       transition_prob = trans_restart,
       reward = rbind(
         R_(value = -step_cost),
-        R_(end.state = gw$info$goal, value = goal_reward),
+        R_(end.state = gw$info$goal, value = goal_reward - step_cost),
         R_(start.state = gw$info$goal, value = 0) # restarting is free
       ),
       discount = discount,
@@ -957,24 +957,24 @@ gw_maze_MDP <- function(dim,
 
 #' @rdname gridworld
 #' @export
-gw_maze_MDPE <- function(dim,
-                         start,
-                         goal,
-                         walls = NULL,
-                         actions = c("up", "right", "down", "left"),
-                         goal_reward = 100,
-                         step_cost = 1,
-                         discount = 1,
-                         horizon = Inf,
-                         info = NULL,
-                         normalize = FALSE,
-                         name = "Maze") {
+gw_maze_MDPTF <- function(dim,
+                          start,
+                          goal,
+                          walls = NULL,
+                          actions = c("up", "right", "down", "left"),
+                          goal_reward = 100,
+                          step_cost = 1,
+                          discount = 1,
+                          horizon = Inf,
+                          info = NULL,
+                          normalize = FALSE,
+                          name = "Maze") {
   if (!is.null(walls))
     walls <- normalize_state_features(walls, NULL)
   
   start <- normalize_state_features(start, NULL)
   goal <- normalize_state_features(goal, NULL)
-   
+  
   transition_func <- function(model, state, action) {
     if (absorbing_states(model, state))
       return(list(reward = 0, state_prime = state))
@@ -991,11 +991,18 @@ gw_maze_MDPE <- function(dim,
     )
     
     # check bounds and walls
-    if (any(sp < 1) || 
-        any(sp > dim) || 
+    if (any(sp < 1) ||
+        any(sp > dim) ||
         !is.null(walls) &&
-        any(apply(walls, MARGIN = 1, FUN = function(x) all(x == sp)))) 
+        any(apply(
+          walls,
+          MARGIN = 1,
+          FUN = function(x)
+            all(x == sp)
+        ))) {
       sp <- state
+      r <- -step_cost
+    }
     
     # goal
     if (all(sp == goal))
@@ -1004,41 +1011,40 @@ gw_maze_MDPE <- function(dim,
     
     return(list(reward = r, state_prime = sp))
   }
- 
+  
+  S <- 
+  
   info <- list(
     gridworld = TRUE,
     dim = dim,
     start = features2state(start),
     goal = features2state(goal),
     state_labels = list()
-    )
+  )
   
   info$state_labels[[features2state(start)]] <- "Start"
   info$state_labels[[features2state(goal)]] <- "Goal"
   
-   
-  model <-
-    MDPE(
-      actions = actions,
-      transition_func = transition_func,
-      start = start,
-      absorbing_states = goal,
-      discount = discount,
-      horizon = horizon,
-      info = info,
-      name = name
-    )
- 
-  # for convenience, we store the states  for the maze
-  model$states <- as.vector(outer(
-    seq_len(dim[1]),
-    seq_len(dim[2]),
-    FUN = function(x, y) {
-      paste0("s(", x, ",", y, ")")
-    }
-  ))
-   
-  model
+  MDPTF(
+    actions = actions,
+    transition_func = transition_func,
+    start = start,
+    states = setdiff(as.vector(
+      outer(
+        seq_len(dim[1]),
+        seq_len(dim[2]),
+        FUN = function(x, y) {
+          paste0("s(", x, ",", y, ")")
+        }
+      )
+    ), normalize_state_label(walls, NULL)),
+    absorbing_states = goal,
+    discount = discount,
+    horizon = horizon,
+    info = info,
+    name = name
+  )
+  
 }
 
 

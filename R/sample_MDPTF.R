@@ -1,12 +1,12 @@
-#' Sample Trajectories from an MDPE
+#' Sample Trajectories from an MDPTF
 #'
-#' Sample trajectories through using a MDPE.
+#' Sample trajectories through using a MDPTF.
 #'
-#' @family MDPE
+#' @family MDPTF
 
 #' @importFrom stats runif
 #'
-#' @param model an MDPE model.
+#' @param model an MDPTF model.
 #' @param n number of trajectories.
 #' @param start start state.
 #' @param horizon epochs end once an absorbing state is reached or after
@@ -14,6 +14,8 @@
 #'  horizon for the model is used.
 #' @param epsilon the probability of random actions for using an epsilon-greedy policy.
 #'  Default for solved models is 0 and for unsolved model 1.
+#' @param exploring_starts logical; randomly sample a start/action combination to
+#'  start the episode from.
 #' @param trajectories logical; return the complete trajectories.
 #' @param progress show a progress bar?
 #' @param verbose report used parameters
@@ -35,43 +37,58 @@
 #' # XXXXXX
 #' # XSX  X  
 #' # X    X
-#' # X  X X
+#' # X    X
 #' # X  XGX
 #' # XXXXXX
 #' 
-#' model <- gw_maze_MDPE(
-#'            dim = c(4, 4),
-#'            start = c(1, 1),
-#'            goal = c(4, 4),
-#'            walls = list(c(1, 2), c(3, 3), c(3, 4)),
+#' model <- gw_maze_MDPTF(
+#'            dim = s(4, 4),
+#'            start = s(1, 1),
+#'            goal = s(4, 4),
+#'            walls = rbind(s(1, 2), s(4, 3)),
 #'            discount = 0.95,
 #'            name = "Simple Maze"
 #'        )
 #' model
+#' gw_plot(model)
 #' 
 #' sim <- sample_MDP(model, horizon = 500, n = 1, 
 #'                    verbose = TRUE, trajectories = TRUE)
 #' sim
+#' 
+#' # sample from a solved MDPTF by following the policy
+#' model <- add_linear_approx_Q_function(model, 
+#'                transformation = transformation_fourier(
+#'                                      min = c(0, 0), 
+#'                                      max = c(4,4), 
+#'                                      order = 2))
+#' sol <- solve_MDP(model, horizon = 1000, n = 100, alpha = 0.01, epsilon = .1)
+#' gw_plot(sol)
+#' 
+#' sim <- sample_MDP(sol, horizon = 500, n = 1, 
+#'                    verbose = TRUE, trajectories = TRUE)
+#' sim
 #' @export
-sample_MDP.MDPE <-
+sample_MDP.MDPTF <-
   function(model,
            n,
            start = NULL,
            horizon = NULL,
            epsilon = NULL,
+           exploring_starts = FALSE,
            trajectories = FALSE,
            progress = TRUE,
            verbose = FALSE,
            ...) {
     .nodots(...)
     
-    #solved <- is_solved_MDP(model)
-    warning("Fix solved with policy!")
-    solved <- FALSE
+    solved <- is_solved_MDP(model, policy = TRUE, approx = TRUE)
     
     n <- as.integer(n)
     
-    start <- start %||% model$start
+    start <- start %||% start(model)
+    if (exploring_starts && is.null(S(model)))
+      stop("Exploring starts requires a specified state space!")
     
     horizon <- horizon %||% model$horizon %||% Inf
     if (is.infinite(horizon))
@@ -79,17 +96,16 @@ sample_MDP.MDPE <-
     horizon <- as.integer(horizon)
     
     epsilon <- epsilon %||% ifelse(solved, 0, 1)
-    
     if (!solved && epsilon != 1) {
       stop("epsilon has to be 1 for unsolved models.")
     }
     
     disc <- model$discount %||% 1
     
-    actions <- A(model)
+    A <- A(model)
     
     if (verbose) {
-      cat("Sampling MDPE trajectories.\n")
+      cat("Sampling MDPTF trajectories.\n")
       cat("- horizon:", horizon, "\n")
       cat("- n:",
           n,
@@ -106,7 +122,7 @@ sample_MDP.MDPE <-
       progress <- FALSE
     
     if (progress)
-      pb <- my_progress_bar(n, name = "sample_MDPE")
+      pb <- my_progress_bar(n, name = "sample_MDPTF")
    
     #warning("Debug mode on!!!")
     #sim <- for(i in 1:n){
@@ -114,14 +130,8 @@ sample_MDP.MDPE <-
       if (progress)
         pb$tick()
       
-      action_cnt <- rep(0L, length(actions))
-      names(action_cnt) <- actions
-      
+      action_cnt <- setNames(integer(length(A)), A)
       state_cnt <- fastmap()
-      rew <- 0
-      
-      # find a initial state
-      s <- start
       
       if (trajectories) {
         trajectory <- data.frame(
@@ -136,34 +146,36 @@ sample_MDP.MDPE <-
         trajectory <- NULL
       }
       
+      # initialize episode
+      if (exploring_starts)
+        s <- sample.int(length(S(model)), 1L)
+      else
+        s <- start
+      rew <- 0
+      
       for (j in seq_len(horizon)) {
-        # epsilon soft policy
-        #if (runif(1) < epsilon) {
-          a <- sample.int(length(actions), 1L, replace = TRUE)
-        #} else {
-        #  a <- pol[[.get_pol_index(model, j)]][s]
-        #}
+        # simulation step
+        a <- action(model, s, epsilon = epsilon) 
+        result <- act(model, s, action = a, fast = TRUE)
+        s_prime <- result$state_prime
+        r <- result$reward
         
+        rew <- rew + r * disc^(j - 1L)  
+        
+        # book keeping
         action_cnt[a] <- action_cnt[a] + 1L
         s_label <- features2state(s)
         state_cnt$set(s_label, state_cnt$get(s_label, missing = 0L) + 1L)
-        
-        s_prev <- s
-        result <- act(model, s, action = a, fast = TRUE)
-        s <- result$state_prime
-        r <- result$reward
-        rew <- rew + r * disc^(j - 1L)  
-        
         
         if (trajectories) {
           trajectory[j, ] <-
             data.frame(
               episode = i,
               time = j - 1L,
-              s = features2state(s_prev),
+              s = s_label,
               a = a,
               r = r,
-              s_prime = features2state(s)
+              s_prime = features2state(s_prime)
             )
         }
         
@@ -173,6 +185,8 @@ sample_MDP.MDPE <-
           }
           break
         }
+        
+        s <- s_prime
       }
       
       list(

@@ -21,8 +21,8 @@ for (m in models_solve_no_chaching) {
 }
 
 
-# absorbing states for MDPEs
-m <- gw_maze_MDPE(c(5,5), start = "s(1,1)", goal = "s(5,5)")
+# absorbing states for MDPTFs
+m <- gw_maze_MDPTF(c(5,5), start = "s(1,1)", goal = "s(5,5)")
 expect_equal(absorbing_states(m), 
              structure(c(5, 5), dim = 1:2, dimnames = list("s(5,5)", NULL)))
 
