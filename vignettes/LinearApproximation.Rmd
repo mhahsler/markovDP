@@ -1,0 +1,292 @@
+---
+title: "Solving MDPs with Linear Approximation"
+author: "Michael Hahsler"
+bibliography: references.bib
+link-citations: yes
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Solving MDPs with Linear Approximation}
+  %\VignetteEngine{knitr::rmarkdown}
+output:
+  rmarkdown::html_vignette
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+The package **markovDP** [@CRAN_markovDP]
+implements episodic semi-gradient Sarsa with linear 
+state-value function approximation following @Sutton1998.
+The state-action value construction uses the approach described in 
+@Geramifard2013. First, we will use the state features directly
+and then we will use a Fourier basis (see @Konidaris2011).
+
+## Linear Approximation
+The state-action value function is approximated by
+\deqn{\hat{q}(s,a) = \boldsymbol{w}^\top\phi(s,a),}
+
+where \eqn{\boldsymbol{w} \in \mathbb{R}^n} is a weight vector
+and \eqn{\phi: S \times A \rightarrow \mathbb{R}^n}  is a
+feature function that
+maps each state-action pair to a feature vector.
+The gradient of the state-action function is
+\deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
+
+## State-action Feature Vector Construction
+
+For a small number of actions, we can
+follow the construction described by @Geramifard2013
+which uses a state feature function \eqn{\phi: S \rightarrow \mathbb{R}^{m}}
+to construct the complete state-action feature vector.
+Here, we also add an intercept term.
+The state-action feature vector has length \eqn{1 + |A| \times m}.
+It has the intercept and then one component for each action. All these components
+are set to zero and only the active action component is set to \eqn{\phi(s)},
+where \eqn{s} is the current state.
+For example, for the state feature
+vector \eqn{\phi(s) = (3,4)} and action \eqn{a=2} out of three possible
+actions \eqn{A = \{1, 2, 3\}}, the complete
+state-action feature vector is \eqn{\phi(s,a) = (1,0,0,3,4,0,0)}.
+The leading 1 is for the intercept and the zeros represent the two not
+chosen actions.
+
+This construction is implemented in `add_linear_approx_Q_function()`.
+
+## Helper Functions
+
+The following helper functions for using approximation are available:
+
+* `approx_Q_value()` calculates approximate Q values given the weights in
+   the model or specified weights.
+* `approx_greedy_action()` uses approximate Q values given the weights in
+   the model or specified weights to find the the greedy action for a
+   state.
+* `approx_greedy_policy()` calculates the greedy-policy
+   for the approximate Q values given the weights in
+   the model or specified weights.
+
+## Episodic Semi-gradient Sarsa
+
+The implementation follows the algorithm given in @Sutton1998.
+
+
+
+## Example 1: A maze without walls
+
+The step cost is 1. The start is top-left and
+the goal (+100 reward) is bottom-right.
+This is the ideal problem for a linear approximation of the Q-function
+using the x/y location as state features.
+
+We start with defining an MDP for a small maze without walls.
+
+```{r }
+library(markovDP)
+m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
+```
+    
+We construct state features as the x/y coordinates in the gridworld.
+
+```{r }
+state_features <- gw_s2rc(S(m))
+state_features
+```
+
+We add the state features with the linear approximation function to the model.
+`add_linear_approx_Q_function()` constructs state-action features
+and adds them with an approximate Q function and a gradient function to the model.
+The state-action features are constructed as a vector with weights for an 
+intercept and the state features for each action.  
+Below, we see that the initial weight vector has names organized by action.
+`x0` represents the intercept and `x1` and `x2` represent the x and y coordinate in 
+the maze, respectively.
+
+```{r } 
+m <- add_linear_approx_Q_function(m, state_features)
+m$approx_Q_function
+```
+
+Now, we can solve the model. We initially use a large epsilon for the
+$\epsilon$-greedy behavior policy to make sure that the goal state can be 
+found with the initially bad policy.
+
+```{r, fig.asp = 1}
+set.seed(2000)
+sol <- solve_MDP_APPROX(m, horizon = 1000, n = 10,
+                     alpha = 0.01, epsilon = .5)
+gw_plot(sol)
+```
+
+We refine the policy using a reduced epsilon value.
+
+```{r, fig.asp = 1}
+sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100,
+          alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
+gw_plot(sol)
+```
+
+```{r }
+gw_matrix(sol, what = "value")
+```
+
+
+Here are the learned weights.
+```{r }
+sol$solution$w
+```
+
+The approximate value function is continuous and can also be displayed using 
+matrix shading and contours
+```{r, fig.asp = 1}
+approx_V_plot(sol)
+```
+
+
+
+## Example 2: Stuart Russell's 3x4 Maze using Linear Approximation
+
+```{r }
+data(Maze)
+gw_plot(Maze)
+```
+
+### Linear Basis
+
+The wall and the -1 absorbing state make linear approximation
+using just the position more difficult.
+
+
+Adding the linear approximation translates state names of the 
+format `s(feature list)` automatically.
+
+```{r, fig.asp = 3/4}
+Maze_approx <- add_linear_approx_Q_function(Maze)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+                     alpha = 0.01, epsilon = 0.3)
+gw_plot(sol)
+```
+
+```{r }
+gw_matrix(sol, what = "value")
+```
+
+The linear approximation cannot deal with the center wall and the -1 absorbing state.
+
+### Order-1 Polynomial Basis
+
+```{r}
+Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_polynomial_basis, order = 1)
+```
+
+
+```{r }
+set.seed(2000)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+gw_matrix(sol, what = "value")
+```
+
+```{r, fig.asp = 3/4}
+gw_plot(sol)
+```
+
+```{r, fig.asp = 3/4}
+approx_V_plot(sol)
+```
+
+### Radial Basis Function
+
+
+```{r}
+Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_RBF_basis, n = 5)
+```
+
+
+```{r }
+set.seed(2000)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+gw_matrix(sol, what = "value")
+```
+
+```{r, fig.asp = 3/4}
+gw_plot(sol)
+```
+
+```{r, fig.asp = 3/4}
+approx_V_plot(sol)
+```
+
+
+
+
+
+### Order-2 Fourier Basis
+
+
+```{r}
+Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 2)
+```
+
+
+```{r }
+set.seed(2000)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+gw_matrix(sol, what = "value")
+```
+
+```{r, fig.asp = 3/4}
+gw_plot(sol)
+```
+
+```{r, fig.asp = 3/4}
+approx_V_plot(sol)
+```
+
+# Example 3: Wall Maze
+
+```{r }
+Maze <- gw_read_maze(
+  textConnection(c("XXXXXXXXXXXX",
+                   "X          X",
+                   "X S        X",
+                   "X          X",
+                   "XXXXXXXXX  X",
+                   "X          X",
+                   "X G        X",
+                   "X          X",
+                   "XXXXXXXXXXXX"
+                   )))
+```
+
+We use a Fourier basis.
+
+
+```{r}
+Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 3)
+```
+
+
+```{r }
+set.seed(2000)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+gw_matrix(sol, what = "value")
+```
+
+```{r, fig.asp = 3/4}
+gw_plot(sol)
+```
+
+```{r, fig.asp = 3/4}
+approx_V_plot(sol)
+```
+
+
+# References

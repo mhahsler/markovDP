@@ -2,12 +2,20 @@
 % Please edit documentation in R/start.R
 \name{start}
 \alias{start}
+\alias{start.MDP}
+\alias{start.MDPTF}
 \title{Sample a Start State}
 \usage{
-start(model)
+\method{start}{MDP}(x, as = "factor", ...)
+
+\method{start}{MDPTF}(x, as = "features", ...)
 }
 \arguments{
-\item{model}{an MDP model.}
+\item{x}{a model.}
+
+\item{as}{a returned format. See parameter \code{as} in \code{\link[=normalize_state]{normalize_state()}}.}
+
+\item{...}{additional parameters are ignored.}
 }
 \value{
 a start state.
@@ -32,6 +40,7 @@ Other MDP:
 \code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
+\code{\link{reachable_states}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
@@ -44,6 +53,7 @@ Other MDPTF:
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
+\code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()}

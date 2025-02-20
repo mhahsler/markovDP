@@ -176,7 +176,7 @@ start
 
 # find the reachable state space
 S <- union(c('win', 'loss', 'draw', 'illegal'),
-          find_reachable_states(P, start_state = start, actions = A))
+          reachable_states(P, start_state = start, actions = A))
 head(S)
 
 tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")

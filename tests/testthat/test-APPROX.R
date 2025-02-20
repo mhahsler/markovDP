@@ -1,9 +1,17 @@
-m <- gw_maze_MDP(c(3, 3), start = "s(1,1)", goal = "s(3,3)")
+
+set.seed(1000)
+
+m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 
 benchmark <- solve_MDP(m)
 gw_plot(benchmark)
 policy(benchmark)
 gw_matrix(benchmark, what = "value")
+
+# goal state action is undefined!
+expect_true(all(gw_matrix(benchmark, what = "action")[-25] %in% c("down", "right")))
+
+
 
 # test MDP
 
@@ -27,58 +35,97 @@ m <- add_linear_approx_Q_function(m)
 # and gradient
 m$approx_Q_function
 
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 10,
+set.seed(1000)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
                      alpha = 0.01, epsilon = .1)
-
 
 policy(sol)
 gw_matrix(sol, what = "value")
 gw_plot(sol)
 
+expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
+
 sample_MDP(sol, n = 10, horizon = 100, verbose = interactive())
 
-## test MDPTF
-m <- gw_maze_MDPTF(c(3, 3), start = s(1,1), goal = s(3,3))
+approx_V_plot(sol)
 
-# linear approx. has issues with anchor state-action values (the goal)
-# when n increases!
-m <- add_linear_approx_Q_function(m)
-m$approx_Q_function
+## test MDPTF with state space
+m <- gw_maze_MDPTF(c(5, 5), start = s(1,1), goal = s(5,5))
 
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 10,
-                     alpha = 0.01, epsilon = .1)
-
+# FIXME: large n (1000) lead to anchoring problems for linear basis!
+m <- add_linear_approx_Q_function(m, transformation = transformation_linear_basis)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
 gw_matrix(sol, what = "value")
 gw_plot(sol)
 policy(sol)
+expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
 
-sample_MDP(sol, n = 10, horizon = 100, verbose = interactive())
+approx_V_plot(sol)
 
-# test approx without states
+###
+  
+m <- add_linear_approx_Q_function(m, transformation = transformation_polynomial_basis, order = 1)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
+gw_matrix(sol, what = "value")
+gw_plot(sol)
+policy(sol)
+expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
+  
+approx_V_plot(sol)
+  
+## FIXME!!! Location of RBFs?  
+m <- add_linear_approx_Q_function(m, transformation = transformation_RBF_basis, n = 4)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
+gw_matrix(sol, what = "value")
+gw_plot(sol)
+policy(sol)
+expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
+
+approx_V_plot(sol)
+
+##
+
+m <- add_linear_approx_Q_function(m, transformation = transformation_fourier_basis, order = 1)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
+gw_matrix(sol, what = "value")
+gw_plot(sol)
+policy(sol)
+expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
+
+approx_V_plot(sol)
+
+# test approx without state space
 states <- m$states
 m$states <- NULL
 S(m)
 
-m <- add_linear_approx_Q_function(m)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 10,
-                     alpha = 0.01, epsilon = .1)
-
-expect_error(policy(sol))
-approx_greedy_action(sol, s(1,1))
-
-expect_error(approx_greedy_policy(sol))
-action(sol, s(1,1))
-
-A <- matrix(sapply(states, FUN = function(s) approx_greedy_action(sol, s)), ncol = 3)
-A
-
-V <- matrix(apply(sapply(states, FUN = function(s) approx_Q_value(sol, s)), MARGIN = 2, max), ncol = 3)
-V
-
-# no policy!
-#gw_plot(sol)
-#gw_matrix(sol, what = "value")
+# FIXME: large n (1000) lead to anchoring problems for linear basis!
+m <- add_linear_approx_Q_function(m, transformation = transformation_linear_basis)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
+approx_V_plot(sol, 0, 5)
 
 
-sample_MDP(sol, n = 10, horizon = 100, verbose = interactive())
+m <- add_linear_approx_Q_function(m, transformation = transformation_polynomial_basis, order = 1)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
+approx_V_plot(sol, 0, 5)
+  
+  
+## FIXME: Better default location of RBFs?  
+m <- add_linear_approx_Q_function(m, transformation = transformation_RBF_basis, n = 4)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
 
+approx_V_plot(sol, 0, 5)
+
+##
+m <- add_linear_approx_Q_function(m, transformation = transformation_fourier_basis, order = 1)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100,
+                        alpha = 0.01, epsilon = .1)
+
+approx_V_plot(sol, 0, 5)

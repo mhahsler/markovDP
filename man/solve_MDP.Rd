@@ -140,6 +140,7 @@ Other MDP:
 \code{\link{greedy_action}()},
 \code{\link{gridworld}},
 \code{\link{policy_evaluation}()},
+\code{\link{reachable_states}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{start}()},
@@ -152,6 +153,7 @@ Other MDPTF:
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
+\code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP_APPROX}()},
 \code{\link{start}()}

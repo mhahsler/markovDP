@@ -49,6 +49,7 @@ gw_plot(
   cex = 1,
   offset = 0.5,
   lines = TRUE,
+  contour = FALSE,
   col = hcl.colors(100, "YlOrRd", rev = TRUE),
   blocked_col = "gray20",
   ...
@@ -167,6 +168,8 @@ supplied.}
 \item{offset}{move the state labels out of the way (in fractions of a character width).}
 
 \item{lines}{logical; draw lines to separate states.}
+
+\item{contour}{logical; add value function contours.}
 
 \item{col}{a colors for the utility values.}
 
@@ -453,6 +456,7 @@ Other MDP:
 \code{\link{convergence_horizon}()},
 \code{\link{greedy_action}()},
 \code{\link{policy_evaluation}()},
+\code{\link{reachable_states}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},

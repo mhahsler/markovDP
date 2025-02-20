@@ -41,7 +41,7 @@ value_function <- function(model, drop = TRUE) {
 }
 
 #' @export
-value_function.MDP <- function(model, drop = TRUE) {
+value_function.MDPE <- function(model, drop = TRUE) {
   is_solved_MDP(model, stop = TRUE)
   val <- sapply(policy(model, drop = FALSE), "[[", "V")
   rownames(val) <- S(model)
@@ -71,7 +71,7 @@ plot_value_function <- function(model,
 }
 
 #' @export
-plot_value_function.MDP <-
+plot_value_function.MDPE <-
   function(model,
            epoch = 1,
            legend = TRUE,

@@ -4,14 +4,16 @@
 #' to labels and vice versa.
 #' 
 #' `normalize_state()` and `normalize_action()` convert labels or ids into a
-#' factor which is the standard representation. If only the label or the 
+#' desired standard representation. If only the label or the 
 #' integer id (i.e., the index) is needed, the additional functions can be used.
 #' These are typically a lot faster.
 #' 
 #' To support a factored state representation as feature vectors, 
 #' `state2features()` and `feature2states()` are provided. 
-#' A factored state is represented as a **row** vector for a single 
-#' state (ceonveniently created via `s()`) or a matrix with row vectors for a 
+#' 
+#' **Note:** A factored state is represented as a **row** vector (matrix with a 
+#' single row) for a single 
+#' state (conveniently created via `s()`) or a matrix with row vectors for a 
 #' set of states are used. State labels
 #' are constructed in the form `s(feature1, feature2, ...)`. 
 #' Factored state representation
@@ -22,27 +24,55 @@
 #' @name action_state_helpers
 #' @aliases action_state_helpers
 #'
-#' @param state a state labels
-#' @param action a action labels
+#' @param state a state in any format
+#' @param action a action in any format
 #' @param model a MDP model
+#' @param as character; specifies the desired output format
 #'
 #' @returns
 #' Functions ending in
 #'
+#' * `_factor` return a factor,
 #' * `_id` return an integer id,
 #' * `_label` return a character string,
 #' * `_features` return a state feature matrix,
-#' * no ending return a factor.
+#' * no ending return the type specified as parameter `as`.
 #'
 #' Other functions: 
 #' * `state2features()` returns a feature vector/matrix.
 #' * `features2state(x)` returns a state label in the format `s(feature list)`.
 #' * `s()` returns a state features row vector.
+#' 
+#' @examples
+#' data(Maze)
+#' 
+#' normalize_state(1, Maze)
+#' normalize_state(1, Maze, as = "id")
+#' normalize_state(1, Maze, as = "label")
+#' normalize_state(1, Maze, as = "features")
+#'
+#' normalize_action(1, Maze)
+#' normalize_action(1, Maze, as = "id")
+#' normalize_action(1, Maze, as = "label")
+#'
+#' state2features("s(1,1)")
+#' s(1,1)
 NULL
 
 #' @rdname action_state_helpers
 #' @export
-normalize_state <- function(state, model) {
+normalize_state <- function(state, model, as = "factor") {
+  as <- match.arg(as, c("factor", "id", "label", "features"))
+  
+  switch(as, 
+         factor = normalize_state_factor(state, model),
+         id = normalize_state_id(state, model),
+         label = normalize_state_label(state, model),
+         features = normalize_state_features(state, model)
+         )
+}
+  
+normalize_state_factor <- function(state, model) {  
   if (is.null(state) || is.factor(state))
     return(state)
   
@@ -106,9 +136,44 @@ normalize_state_label <- function(state, model) {
   return(S(model)[state])
 }
 
+
+
 #' @rdname action_state_helpers
 #' @export
-normalize_action <- function(action, model) {
+normalize_state_features <- function(state, model = NULL) {
+  if (is.matrix(state))
+    return(state)
+  
+  if (!is.null(model$state_features)) 
+    return(model$state_features[state, ,drop = FALSE])
+  
+  if (is.factor(state))
+    state <- as.character(state)
+  
+  if (is.character(state))
+    return(state2features(state))
+  
+  # integer vector is a state ids!
+  if (!is.null(S(model)))
+    return(state2features(S(model)[state]))
+  
+  stop("Illegal state specification.")
+}
+
+
+#' @rdname action_state_helpers
+#' @export
+normalize_action <- function(action, model, as = "factor") {
+  as <- match.arg(as, c("factor", "id", "label"))
+  
+  switch(as, 
+         factor = normalize_action_factor(action, model),
+         id = normalize_action_id(action, model),
+         label = normalize_action_label(action, model)
+  )
+}
+
+normalize_action_factor <- function(action, model) {
   if (is.null(action) || is.factor(action))
     return(action)
   
@@ -137,6 +202,9 @@ normalize_action <- function(action, model) {
   
   stop("Unknown action label: ", sQuote(action))
 }
+
+
+
 
 #' @rdname action_state_helpers
 #' @export
@@ -186,6 +254,7 @@ state2features <- function(state) {
          " is not formated as 's(feature1, feature2, ...). Cannot extract features!'")
   
   rownames(x) <- state
+  colnames(x) <- paste0("x", seq_len(ncol(x)))
   
   x
 }
@@ -197,7 +266,7 @@ features2state <- function(x) {
   if (!is.matrix(x))
     stop("Factored state representation has to be a matrix or a row vector!")
       
-  paste0("s(", x[, 1], ",", x[, 2], ")")
+  paste0("s(", apply(x, MARGIN = 1, paste0, collapse = ","), ")")
 }
 
 #' @rdname action_state_helpers
@@ -206,25 +275,43 @@ features2state <- function(x) {
 #' @export
 s <- function(...) rbind(c(...))
 
-
 #' @rdname action_state_helpers
 #' @export
-normalize_state_features <- function(state, model = NULL) {
-  if (is.matrix(state))
-    return(state)
+get_state_features <- function(model) {
+  if (!is.null(model$state_features))
+    return(model$state_features)
   
-  if (!is.null(model$state_features)) 
-    return(model$state_features[state, ,drop = FALSE])
+  state_features <- NULL
+  try(state_features <- state2features(S(model)), silent = TRUE)
   
-  if (is.factor(state))
-    state <- as.character(state)
-  
-  if (is.character(state))
-    return(state2features(state))
+  return(state_features)
+}
 
-  # integer vector is a state ids!
-  if (!is.null(S(model)))
-    return(state2features(S(model)[state]))
-    
-  stop("Illegal state specification.")
+
+# internal: used by solve_MDP_APPROX's transformation functions
+get_state_feature_range <- function(model, min = NULL, max = NULL) {
+  state_features <- get_state_features(model)
+  
+  if (!is.null(state_features)) {
+    rng <- apply(state_features, MARGIN = 2, range)
+    rownames(rng) <- c("min", "max")
+    return(rng)
   }
+  
+  if (is.null(min) || is.null(max))
+    stop("min and max needs to be specified to scale state features to [0,1].")
+  
+  # we have a MDPTF at this point
+  example_state <- start(model)[1, , drop = FALSE]
+  if (length(min) == 1)
+    min <- rep(min, times = ncol(example_state))
+  if (length(max) == 1)
+    max <- rep(max, times = ncol(example_state))
+  
+  if(length(max) != ncol(example_state) ||
+     length(min) != ncol(example_state))
+    stop("min and max need to be the same length as the number of state features!")
+  
+  return(rbind(min, max))
+}
+

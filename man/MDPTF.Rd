@@ -42,18 +42,23 @@ The function returns an object of class MDPTF which is list with
 the model specification.
 }
 \description{
-Defines a discrete-time agent environment. The environment's MDP is defined
-via a transition function and states and the transition probabilities are not
-directly specified.
+Defines a discrete-time Markov decision process as a transition
+function between states using a factored state representation. The state space
+may be continuous and infinite.
 }
 \details{
-Defines a discrete-time agent environment. The environment is defined
-via a transition
-function using state features (i.e., using a factored state representation).
-In comparison to the \code{\link{MDP}}, where transition probabilities are directly
-specified and potentially used by solvers, the \code{MDPTF} has no specification
-of transition probabilities and the potentially infinite set of states is
-unknown.
+Defines a Markov decision process as a transition
+function between state represented as feature vectors
+(i.e., using a factored state representation). The state space may be
+\itemize{
+\item finite and discrete and specified in the problem,
+\item finite and discrete but not specified in the problem,
+\item continuous (implying infinite and not specified in the problem).
+}
+
+Compared to the specification in class \link{MDP}, no transition probabilities are
+available. Instead of the reward function, reward is only returned from
+called to the transition function via \code{\link[=act]{act()}}. The state space may be specified.
 
 To represent states, a factored state representation as a \strong{row} vector for a single
 state or a matrix with row vectors for a set of states are used. State labels
@@ -66,7 +71,7 @@ Reinforcement learning algorithms with approximation can be used to solve
 these problems. See: \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}.
 }
 \examples{
-# Define a simple 5x5 maze without walls
+# Example 1: Define a simple 5x5 maze without walls
 
 transition_func <- function(model, state, action) {
   if (all(state == s(5, 5)))
@@ -112,44 +117,52 @@ act(m, s(1,1), "up")
 # Absorbing state: no movement and 0 reward
 act(m, s(5,5), "up")
 
-# Example: Solve using Linear Feature Approximation
 
-# the same maze can be created with this helper and then gridworld helper
-#    functions can be used
+# Example 2: Solve using Linear Feature Approximation
+
+# Note that we have not specified the state space
+S(m)
+
+# To use value function approximation, we need to specify the minimum
+# and maximum of each state feature for scaling them to [0,1]. The rows
+# and column indices used are between 0 and 5.
+
+m_approx <- add_linear_approx_Q_function(m, min = c(0, 0), max = c(5, 5))
+
+set.seed(1000)
+sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 100,
+          alpha = 0.01, epsilon = 0.55, verbose = FALSE)
+
+# we can calculate the approximate q-values, but have to specify the states.
+Q_values(sol, state = rbind(s(1,2), s(4,5)))
+ 
+# Example 3: MDPTF with a specified state space  
+
+# The same maze as above can be created with this gridworld helper.
+# It specifies the finite state space and alows us to use function 
+# that rely on this information
 m <- gw_maze_MDPTF(c(5,5), start = "s(1,1)", goal = "s(5,5)")
+S(m)
 
+# linear approximation uses the state space to determin feature scaling
 m_approx <- add_linear_approx_Q_function(m)
-sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 10,
-          alpha = 0.01, epsilon = 0.8, verbose = FALSE)
+
+set.seed(1000)
+sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 100,
+          alpha = 0.01, epsilon = 0.55, verbose = FALSE)
+
+# we can use several gridworld helper
 gw_plot(sol)
+gw_matrix(sol, what = "value")
 
-approx_greedy_action(sol, s(1,1))
-approx_greedy_action(sol, s(5,4))
-# to use the greedy_action interface, the state label has to be used
-greedy_action(sol, "s(1,1)")
-
-approx_Q_value(sol, s(1,1))
-approx_Q_value(sol, s(5,4))
-
-# Example: Solve using order-2 Fourier Basis Features
-fourier_basis_trans <- function(x) {
-  x <- x / 10
-  cs <- expand.grid(0:2, 0:2)
-  apply(cs, MARGIN = 1, FUN = function(c) cos(pi * x \%*\% c))
-}
-
-m_approx <- add_linear_approx_Q_function(m, transformation = fourier_basis_trans)
-sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 10,
-          alpha = 0.01, epsilon = 0.7, verbose = FALSE)
-gw_plot(sol)
-sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100,
-          alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
-gw_plot(sol)
+# and get a policy table
+policy(sol)
 }
 \seealso{
 Other MDPTF: 
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
+\code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},

@@ -43,77 +43,21 @@
 #' unreachable_states(maze)
 #' gw_plot(maze)
 #' @importFrom Matrix colSums
-#' @importFrom fastmap fastmap faststack
 #' @export
 unreachable_states <- function(model,
-                               horizon = Inf,
-                               sparse = "states",
-                               progress = TRUE,
-                               ...) {
-  UseMethod("unreachable_states")
-}
-
-#' @export
-unreachable_states.MDP <- function(model,
                                    horizon = Inf,
                                    sparse = "states",
                                    progress = TRUE,
                                    ...) {
   sparse <- sparse %||% TRUE
+  if(is.null(S))
+    stop("Model needs a defined state space.")
   
-  .translate_logical(!.reachable_states(model, horizon = horizon, progress = progress),
+  states <- reachable_states(model, horizon = horizon, progress = progress, ...)
+  unreachable <- setdiff(S(model), states)
+  .translate_logical(unreachable,
                      S(model),
                      sparse = sparse)
-}
-
-# depth-first search
-.reachable_states <- function(model,
-                              horizon = Inf,
-                              progress = TRUE) {
-  reached <- fastmap()
-  frontier <- faststack()
-  
-  for (start_state in start_vector(model, sparse = "states")) {
-    frontier$push(start_state)
-    # key: state label; value: depth
-    reached$set(start_state, 0L)
-  }
-  
-  if (progress) {
-    pb <- my_progress_bar(N = length(S(model)), name = "unreachable_states")
-    pb$tick(0)
-  }
-  
-  while (frontier$size() > 0) {
-    state <- frontier$pop()
-    
-    if (progress) {
-      pb$tick()
-    }
-    
-    # available_actions is slow!
-    #for (action in available_actions(model, state)){
-    for (action in A(model)) {
-      next_states <- transition_matrix(model, action, state, sparse = "states")
-      
-      for (next_state in next_states) {
-        if (reached$has(next_state))
-          next()
-        
-        depth <- reached$get(state)
-        if (depth >= horizon)
-          next()
-        
-        frontier$push(next_state)
-        reached$set(next_state, depth + 1L)
-      }
-    }
-  }
-  
-  if (progress)
-    pb$terminate()
-  
-  S(model) %in% names(reached$as_list())
 }
 
 #' @rdname unreachable_states

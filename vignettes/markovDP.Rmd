@@ -1,11 +1,11 @@
 ---
-title: "markovDP: Discrete-Time Markov Decision Processes (MDPs)"
+title: "Introduction to Discrete-Time Markov Decision Processes"
 author: "Michael Hahsler"
 bibliography: references.bib
 link-citations: yes
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{markovDP: Discrete-Time Markov Decision Processes (MDPs)}
+  %\VignetteIndexEntry{Introduction to Discrete-Time Markov Decision Processes}
   %\VignetteEngine{knitr::rmarkdown}
 output:
   rmarkdown::html_vignette

@@ -3,7 +3,8 @@
 
 #' Episodic Semi-gradient Sarsa with Linear Function Approximation
 #'
-#' MDP control using state-value approximation. Semi-gradient Sarsa for
+#' Solve the MDP control problem using state-value approximation
+#' by semi-gradient Sarsa (temporal differencing) for
 #' episodic problems.
 #'
 #' ## Linear Approximation
@@ -14,7 +15,8 @@
 #' and \eqn{\phi: S \times A \rightarrow \mathbb{R}^n}  is a
 #' feature function that
 #' maps each state-action pair to a feature vector.
-#' The gradient of the state-action function is
+#' Linear approximation has a single optimum and can be optimized using
+#' a simple update rule following the gradient of the state-action function
 #' \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
 #'
 #' ## State-action Feature Vector Construction
@@ -31,11 +33,34 @@
 #' For example, for the state feature
 #' vector \eqn{\phi(s) = (3,4)} and action \eqn{a=2} out of three possible
 #' actions \eqn{A = \{1, 2, 3\}}, the complete
-#' state-action feature vector is \eqn{\phi(s,a) = (1,0,0,3,4,0,0)}.
-#' The leading 1 is for the intercept and the zeros represent the two not
-#' chosen actions.
+#' state-action feature vector is \eqn{\phi(s,a) = (0,0,0,1,3,4,0,0,0)}.
+#' Each action component has three entries and the 1 represent the intercept
+#' for the state feature vector. The zeros represent the components for the
+#' two not chosen actions.
 #'
-#' This construction is implemented in `add_linear_approx_Q_function()`.
+#' The construction of the state-action values is implemented in `add_linear_approx_Q_function()`.
+#'
+#' The state feature function \eqn{\phi()} starts with raw state feature vector
+#' \eqn{\mathbf{x} = (x_1,x_2, ..., x_m)} that
+#' are either user-specified or constructed by parsing the state labels of
+#' form `s(feature list)`.  Then an optional transformations called basis functions
+#' can be applied. Implemented basis functions are:
+#'
+#' * Linear: no additional transformation is applied giving \eqn{\phi_0(s) = 1}
+#'   for the intercept and \eqn{\phi_i(s) = x_i} for \eqn{i = \{1, 2, ..., m\}}.
+#'
+#' * Polynomial basis: \eqn{\phi_i(s) = \prod_{j=1}^m x_j^{c_{i,j}}}, where
+#'   \eqn{c_{1,j}} is an integer between 0 and \eqn{n} for and order \eqn{n} polynomial basis.
+#'
+#' * Fourier basis: \eqn{\phi_i(s) = \mathtext{cos}(\pi\mathbf{c}^i \cdot \mathbf{x})},
+#'   where \eqn{\mathbf{c}^i = [c_1, c_2, ..., c_m]} with \eqn{c_j = [0, ..., n]}, where
+#'   \eqn{n} is the order of the basis. The components of the feature vector
+#'   \eqn{x} are assumed to be scaled to the interval \eqn{[0,1]}. The fourier
+#'   basis transformation is implemented in `transformation_fourier_basis()`.
+#'   `min` and `max` are the minimums and maximums for each feature vector component
+#'   used to resale them to \eqn{[0,1]} using \eqn{\frac{x_i - min_i}{max_i - min_i}}
+#'
+#'   Details of this transformation are described in Konidaris et al (2011).
 #'
 #' ## Helper Functions
 #'
@@ -52,7 +77,8 @@
 #'
 #' ## Episodic Semi-gradient Sarsa
 #'
-#' The implementation follows the algorithm given in Sutton and Barto (2018).
+#' The implementation follows the temporal difference algorithm 
+#' episodic Semi-gradient Sarsa algorithm given in Sutton and Barto (2018).
 #'
 #' @family solver
 #' @family MDPTF
@@ -61,6 +87,8 @@
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
 #'
 #' Alborz Geramifard, Thomas J. Walsh, Stefanie Tellex, Girish Chowdhary, Nicholas Roy, and Jonathan P. How. 2013. A Tutorial on Linear Function Approximators for Dynamic Programming and Reinforcement Learning. Foundations and Trends in Machine Learning 6(4), December 2013, pp. 375-451. \doi{10.1561/2200000042}
+#'
+#' Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in Reinforcement Learning Using the Fourier Basis. Proceedings of the AAAI Conference on Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
 #'
 #' @examples
 #' # Example 1: A maze without walls. The step cost is 1. The start is top-left and
@@ -80,28 +108,18 @@
 #' # and gradient
 #' m$approx_Q_function
 #'
-#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 10,
-#'                      alpha = 0.01, epsilon = .5)
+#' set.seed(1000)
+#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
+#'                      alpha = 0.01, epsilon = .1)
 #' gw_plot(sol)
-#' sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100,
-#'           alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
-#' gw_plot(sol)
-#'
-#' ### TESTS
-#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 1,
-#'                      alpha = 0.01, epsilon = .8, verbose = 2)
-#' Q_values(sol)
-#' gw_plot(sol)
-#'
-#' gw_animate(m, method = "APPROX:semi", horizon = 1000, n = 10,
-#'                      alpha = 0.01, epsilon = .8)
-#'
-#' ###
-#'
 #' gw_matrix(sol, what = "value")
 #'
 #' # learned weights and state values
 #' sol$solution$w
+#'
+#' # the approximate value function can be visualized for states 
+#' # with two features.
+#' approx_V_plot(sol)
 #'
 #' # extracting approximate Q-values
 #' approx_greedy_action(sol, "s(4,5)")
@@ -111,44 +129,65 @@
 #' # extracting a greedy policy using the approximate Q-values
 #' approx_greedy_policy(sol)
 #'
-#' # Example 2: Stuart Russell's 3x4 Maze using approximation
+#'
+#' # Example 2: Stuart Russell's 3x4 Maze using linear basis approximation
 #' # The wall and the -1 absorbing state make linear approximation
-#' # using just the position more difficult.
+#' # using just the position directly more difficult.
+#'
 #' data(Maze)
 #' gw_plot(Maze)
 #'
+#' # if no state features are specified, then they are constructed
+#' # by parsing the state label of the form s(feature list).
 #' Maze_approx <- add_linear_approx_Q_function(Maze)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                      alpha = 0.01, epsilon = 0.3)
+#'                      alpha = 0.1, epsilon = 0.1)
 #' gw_plot(sol)
+#' gw_matrix(sol, what = "value")
+#' approx_V_plot(sol, res = 20)
 #'
-#' # Example 3: Use order-2 Fourier basis for features
-#' order <- 2
-#' cs <- expand.grid(0:order, 0:order)
 #'
-#' # convert state features to Fourier basis features
-#' x <- state2features(S(Maze))
-#' x
+#' # Example 3: Stuart Russell's 3x4 Maze using
+#' #            order-2 Fourier basis for approximation
 #'
-#' x <- sweep(x, MARGIN = 2,
-#'            STATS = apply(x, MARGIN = 2, max), FUN = "/")
-#' x <- apply(cs, MARGIN = 1,
-#'            FUN = function(c) cos(pi * x %*% c))
-#' rownames(x) <- S(Maze)
-#' x
+#' Maze_approx <- add_linear_approx_Q_function(Maze,
+#'       transformation = transformation_fourier_basis, order = 2)
 #'
-#' Maze_approx <- add_linear_approx_Q_function(Maze, state_features = x)
-#'
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .5)
-#' sol <- solve_MDP_APPROX(sol, horizon = 100, n = 1000, alpha = 0.1, epsilon = .1, continue = TRUE)
+#' set.seed(1000)
+#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+#'                     alpha = 0.1, epsilon = .1)
 #' gw_plot(sol)
-#' 
-#' # order-2 fourier features can be specified easier
-#' Maze_approx <- add_linear_approx_Q_function(Maze, 
-#'       transformation = transformation_fourier(min = c(0,0), max = c(3,4), order = 2))
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 1000, n = 200, alpha = 0.1, epsilon = .1)
+#' gw_matrix(sol, what = "value")
+#' approx_V_plot(sol, res = 20)
+#'
+#'
+#' # Example 4: Stuart Russell's 3x4 Maze using
+#' #            order-2 polynomial basis for approximation
+#'
+#' Maze_approx <- add_linear_approx_Q_function(Maze,
+#'       transformation = transformation_polynomial_basis, order = 2)
+#'
+#' set.seed(1000)
+#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+#'                     alpha = 0.1, epsilon = .1)
 #' gw_plot(sol)
-#' 
+#' gw_matrix(sol, what = "value")
+#' approx_V_plot(sol, res = 20)
+#'
+#' # Example 5: Stuart Russell's 3x4 Maze using RBF with
+#' #            4^2 centers for approximation
+#'
+#' Maze_approx <- add_linear_approx_Q_function(Maze,
+#'       transformation = transformation_RBF_basis, n = 4)
+#'
+#' set.seed(1000)
+#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+#'                     alpha = 0.3, epsilon = .1)
+#' gw_plot(sol)
+#' gw_matrix(sol, what = "value")
+#' approx_V_plot(sol, res = 20)
+#'
+#' # Note: polynomial basis and RBF need a larger n to converge to the value function.
 #' @inheritParams solve_MDP
 #' @param method string; one of the following solution methods: `'semi_gradient_sarsa'`
 #' @param alpha step size.
@@ -166,7 +205,7 @@ solve_MDP_APPROX <-
            discount = NULL,
            alpha = 0.01,
            epsilon = 0.2,
-           n = 1000,
+           n,
            w = NULL,
            ...,
            matrix = TRUE,
@@ -175,7 +214,6 @@ solve_MDP_APPROX <-
            verbose = FALSE) {
     .nodots(...)
     
-    ### FIXME: It should work with MDPF with states
     if (!inherits(model, "MDPE"))
       stop("This model needs to be a MDP environment.")
     
@@ -189,12 +227,7 @@ solve_MDP_APPROX <-
       )
     
     # this code solve MDP and MDPTF
-    model <- .prep_model(model,
-                         horizon,
-                         discount,
-                         matrix,
-                         verbose,
-                         progress)
+    model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (verbose)
       progress <- FALSE
@@ -251,7 +284,7 @@ solve_MDP_APPROX <-
       if (continue) {
         cat("\ncont. with w:\n")
         print(w)
-        }
+      }
     }
     
     A <- A(model)
@@ -346,7 +379,9 @@ solve_MDP_APPROX <-
         # note:  q$f(s_prime, a_prime, w) for absorbing states can be very off!
         td_error <- (r + discount * q$f(s_prime_features, a_prime, w) - q$f(s_features, a, w))
         if (td_error > 1e20)
-          stop("Temporal differencing error becomes too large which indicates instability. Reduce alpha.")
+          stop(
+            "Temporal differencing error becomes too large which indicates instability. Reduce alpha."
+          )
         
         w <- w + alpha * td_error * q$gradient(s_features, a, w)
         
@@ -381,61 +416,54 @@ add_linear_approx_Q_function <- function(model, ...) {
 #' @export
 add_linear_approx_Q_function.MDP <- function(model,
                                              state_features = NULL,
-                                             transformation = NULL,
+                                             transformation = transformation_linear_basis,
                                              ...) {
-  .nodots(...)
-  state_features <- state_features %||% state2features(S(model))
+  state_features <- state_features %||% get_state_features(model)
   
   if (!is.matrix(state_features) ||
       !nrow(state_features) == c(length(S(model))))
     stop("state_features needs to be a matrix with one row per state!")
   
+  if (is.null(colnames(state_features)))
+    colnames(state_features) <- paste0("x", seq_len(ncol(state_features)))
+  
   model$state_features <- state_features
   
-  # apply any transformation
-  if (is.null(transformation))
-    dim_s <- ncol(state_features)
-  else
-    dim_s <- length(transformation(state_features[1L, ]))
+  transformation <- transformation(model, ...)
   
+  
+  state_template <- transformation(state_features[1L, ])
+  dim_s <- length(state_template)
+  if (is.null(names(state_template)))
+    names(state_template) <- paste0("x", seq_len(dim_s))
   n_A <- length(A(model))
   
-  # for MDPTF we get state feature. Convert to action-state feature
+  # s are state features. Convert to action-state feature.
   x <- function(s, a) {
     # use a transformation function
-    if (!is.null(transformation))
-      s <- transformation(s)
-    
+    s <- transformation(s)
     a <- normalize_action_id(a, model)
     
-    # 1 intercept
-    #x <- numeric(1L + n_A * dim_s)
-    #x[1L] <- 1
-    #a_pos <- 2L + (a - 1L) * dim_s
-    #x[a_pos:(a_pos + dim_s - 1L)] <- s
+    # one component per action
+    x <- numeric(n_A * dim_s)
     
-    # no intercept
-    #x <- numeric(n_A * dim_s)
-    #a_pos <- 1L + (a - 1L) * dim_s
-    #x[a_pos:(a_pos + dim_s - 1L)] <- s
-    
-    # intercept per action
-    x <- numeric(n_A * (1L + dim_s))
-    a_pos <- 2L + (a - 1L) * (dim_s + 1L)
-    x[a_pos - 1L] <- 1
+    a_pos <- 1L + (a - 1L) * dim_s
     x[a_pos:(a_pos + dim_s - 1L)] <- s
     
     x
   }
   
   model$approx_Q_function <- list(
+    #x = x,
     f = function(s, a, w)
       sum(w * x(s, a)),
     gradient = function(s, a, w)
       x(s, a),
-    #w_init = numeric(1L + n_A * dim_s)
-    #w_init = numeric(n_A * dim_s)
-    w_init = numeric(n_A * (1L + dim_s))
+    #transformation = c(as.list(environment(transformation)), list(f = transformation)),
+    transformation = transformation,
+    w_init = setNames(numeric(n_A * dim_s), paste(
+      rep(A(model), each = dim_s), names(state_template), sep = "."
+    ))
   )
   
   model
@@ -444,72 +472,197 @@ add_linear_approx_Q_function.MDP <- function(model,
 
 #' @rdname solve_MDP_APPROX
 #' @export
-add_linear_approx_Q_function.MDPTF <- function(model, transformation = NULL, ...) {
-  .nodots(...)
-  if (is.null(transformation))
-    dim_s <- length(model$start)
-  else
-    dim_s <- length(transformation(model$start))
+add_linear_approx_Q_function.MDPTF <- function(model,
+                                               state_features = NULL,
+                                               transformation = transformation_linear_basis,
+                                               ...) {
+  # MDPTF may have states
+  if (!is.null(state_features))
+    stop(
+      "state_features cannot be specified for a MDPTF! The states are already in a factored representation."
+    )
   
+  # add state_features if we have a defined state space
+  if (!is.null(S(model)))
+    model$state_features <- state2features(S(model))
+  
+  # MDPTF has a start state matrix.
+  # This is used to get min, max, etc for transformation
+  start <- model$start[1, , drop = TRUE]
+  if (is.null(names(start)))
+    names(start) < paste0("x", seq_along(start))
+  
+  transformation <- transformation(model, ...)
+  
+  state_template <- transformation(start)
+  dim_s <- length(state_template)
+  if (is.null(names(state_template)))
+    names(state_template) <- paste0("x", seq_len(dim_s))
   n_A <- length(A(model))
   
-  # for MDPTF we get state feature. Convert to action-state feature
+  # s are state features. Convert to action-state feature.
   x <- function(s, a) {
     # use a transformation function
-    if (!is.null(transformation))
-      s <- transformation(s)
-    
+    s <- transformation(s)
     a <- normalize_action_id(a, model)
     
-    # 1 intercept
-    #x <- numeric(1L + n_A * dim_s)
-    #x[1L] <- 1
-    #a_pos <- 2L + (a - 1L) * dim_s
-    #x[a_pos:(a_pos + dim_s - 1L)] <- s
+    # one component per action
+    x <- numeric(n_A * dim_s)
     
-    # no intercept
-    #x <- numeric(n_A * dim_s)
-    #a_pos <- 1L + (a - 1L) * dim_s
-    #x[a_pos:(a_pos + dim_s - 1L)] <- s
-    
-    # intercept per action
-    x <- numeric(n_A * (1L + dim_s))
-    a_pos <- 2L + (a - 1L) * (dim_s + 1L)
-    x[a_pos - 1L] <- 1
+    a_pos <- 1L + (a - 1L) * dim_s
     x[a_pos:(a_pos + dim_s - 1L)] <- s
     
     x
   }
   
   model$approx_Q_function <- list(
+    #x = x,
     f = function(s, a, w)
       sum(w * x(s, a)),
     gradient = function(s, a, w)
       x(s, a),
-    #w_init = numeric(1L + n_A * dim_s)
-    #w_init = numeric(n_A * dim_s)
-    w_init = numeric(n_A * (1L + dim_s))
+    transformation = transformation,
+    w_init = setNames(numeric(n_A * dim_s), paste(
+      rep(A(model), each = dim_s), names(state_template), sep = "."
+    ))
   )
   
   model
 }
 
 #' @rdname solve_MDP_APPROX
-#' @param min,max vectors with the minimum and maximum values for each feature. 
-#'    This is used to scale the feature to the \eqn{[0,1]} interval for the 
+#' @param dim number of features to describe a state.
+#' @export
+create_basis_coefs <- function(dim, order) {
+  as.matrix(expand.grid(replicate(dim, 0:order, simplify = FALSE)))
+}
+
+#' @rdname solve_MDP_APPROX
+#' @param min,max vectors with the minimum and maximum values for each feature.
+#'    This is used to scale the feature to the \eqn{[0,1]} interval for the
 #'    Fourier basis.
-#' @param order order for the Fourier basis.
-#' @param cs an optional matrix or a data frame to specify cs values for the 
-#'    Fourier features selectively (overrides `order`).
+#' @param intercept logical; add an intercept term to the linear basis?
 #' @export
-transformation_fourier <- function(min, max, order, cs = expand.grid(0:order, 0:order)) {
+transformation_linear_basis <- function(model,
+                                        min = NULL,
+                                        max = NULL,
+                                        intercept = TRUE) {
+  rng <- get_state_feature_range(model, min, max)
+  min <- rng[1, ]
+  max <- rng[2, ]
+  
   function(x) {
-    x <- (x - min) / max
-    apply(cs, MARGIN = 1,
-          FUN = function(c) cos(pi * x %*% c))
+    x <- (x - min) / (max - min)
+    
+    if (intercept)
+      x <- c(x0 = 1, x)
+    x
   }
 }
+
+
+#' @rdname solve_MDP_APPROX
+#' @export
+transformation_polynomial_basis <- function(model,
+                                            min = NULL,
+                                            max = NULL,
+                                            order,
+                                            coefs = NULL) {
+  rng <- get_state_feature_range(model, min, max)
+  min <- rng[1, ]
+  max <- rng[2, ]
+  dim_s <- length(max)
   
+  if (is.null(coefs))
+    coefs <- create_basis_coefs(dim_s, order)
+  
+  function(x) {
+    x <- (x - min) / (max - min)
+    
+    apply(
+      coefs,
+      MARGIN = 1,
+      FUN = function(c)
+        prod(x^c)
+    )
+  }
+}
+
+#' @rdname solve_MDP_APPROX
+#' @param centers a matrix with the centers for the RBF. By default a regular 
+#'               grid with n steps per feature dimension is used.
+#' @param var a scalar with the variance used for the RBF.
+#' @export
+transformation_RBF_basis <- function(model,
+                                     min = NULL,
+                                     max = NULL,
+                                     n,
+                                     centers = NULL,
+                                     var = NULL) {
+  rng <- get_state_feature_range(model, min, max)
+  min <- rng[1, ]
+  max <- rng[2, ]
+  dim_s <- length(max)
+  
+  # create n^d centers
+  if (!is.null(centers)) {
+    n <- nrow(centers)
+  } else {
+    if (is.null(n))
+      stop("either n or centers has to be specified")
+    # create equally spaced centers
+    step_size <- 1 / n
+    centers <- expand.grid(replicate(dim_s, seq(
+      step_size / 2, 1 - (step_size / 2), length.out = n
+    ) , simplify = FALSE))
+  }
+  
+  var <- var %||% 2 / (n - 1)
+  
+  function(x) {
+    x <- (x - min) / (max - min)
+    apply(
+      centers,
+      MARGIN = 1,
+      FUN = function(c)
+        1 / (2 * pi * var)^.5 * exp(-1 * sum((c - x)^2) / 2 / var)
+    )
+  }
+}
+
+#' @rdname solve_MDP_APPROX
+#' @param order order for the Fourier basis.
+#' @param coefs an optional matrix or data frame to specify the set of
+#'    coefficient values for the
+#'    Fourier basis (overrides `order`).
+#' @export
+transformation_fourier_basis <- function(model,
+                                         min = NULL,
+                                         max = NULL,
+                                         order,
+                                         coefs = NULL) {
+  rng <- get_state_feature_range(model, min, max)
+  min <- rng[1, ]
+  max <- rng[2, ]
+  dim_s <- length(max)
+  
+  coefs <- coefs %||% create_basis_coefs(dim_s, order)
+  
+  function(x) {
+    x <- (x - min) / (max - min)
+    
+    apply(
+      coefs,
+      MARGIN = 1,
+      FUN = function(c)
+        cos(pi * x %*% c)
+    )
+  }
+}
+
+
+
+
 #' @rdname solve_MDP_APPROX
 #' @param state a state (index or name)
 #' @param action an action (index or name)
@@ -525,6 +678,13 @@ approx_Q_value <- function(model,
   if (is.null(state))
     stop("a state needs to be specified!")
   
+  w <- w %||% model$solution$w
+  if (is.null(w))
+    stop("weight vector w is missing.")
+ 
+  if(!is.matrix(state))
+    state <- normalize_state_features(state, model)
+   
   if (length(action) > 1L)
     return(sapply(
       action,
@@ -532,15 +692,10 @@ approx_Q_value <- function(model,
         approx_Q_value(model, state, a, w)
     ))
   
-  w <- w %||% model$solution$w
-  if (is.null(w))
-    stop("weight vector w is missing.")
-  
-  sf <- normalize_state_features(state, model)
-  if (nrow(sf) == 1L)
-    model$approx_Q_function$f(drop(sf), action, w)
+  if (nrow(state) == 1L)
+    model$approx_Q_function$f(drop(state), action, w)
   else
-    apply(sf, MARGIN = 1, model$approx_Q_function$f, action, w)
+    apply(state, MARGIN = 1, model$approx_Q_function$f, action, w)
 }
 
 #' @rdname solve_MDP_APPROX
@@ -550,7 +705,7 @@ approx_greedy_action <- function(model,
                                  w = NULL,
                                  epsilon = 0) {
   if (epsilon == 0 || runif(1) > epsilon) {
-    a <- which.max.random(approx_Q_value(model, state, w  = w))
+    a <- which.max.random(approx_Q_value(model, state, w = w))
   } else {
     a <- sample.int(length(A(model)), 1L)
   }
@@ -575,4 +730,81 @@ approx_greedy_policy <- function(model, w = NULL) {
     action = normalize_action(apply(qs, MARGIN = 1, which.max.random), model),
     row.names = NULL
   )
+}
+
+
+# internal: transpose and reorder rows for a proper image
+#' @importFrom graphics axis contour image
+pimage <- function (x1,
+                    x2,
+                    z,
+                    col = hcl.colors(12, "YlOrRd", rev = TRUE),
+                    image = TRUE,
+                    contour = TRUE,
+                    axes = TRUE,
+                    ...) {
+  
+  z <- t(z)[, rev(seq_len(nrow(z))), drop = FALSE]
+  
+  if (image) {
+    image(x2, x1, z, axes = FALSE, col = col, ...)
+    
+    if (contour)
+      contour(x2, x1, z, axes = FALSE, add = TRUE)
+  } else
+    contour(x2, x1, z, axes = FALSE, ...)
+ 
+  box()
+   
+  if (axes) {
+    p <- pretty(x2)
+    axis(1L,
+         at = seq(min(p), max(p), along.with = p),
+         labels = p)
+    p <- pretty(x1)
+    axis(2L,
+         at = seq(min(p), max(p), along.with = p),
+         labels = p)
+  }
+}
+
+#' @rdname solve_MDP_APPROX
+#' @param image,contour logical; include the false color image or the 
+#'        contours in the plot?
+#' @param main title for the plot.
+#' @param res resolution as the number of values sampled from each feature.
+#' @param col colors for the passed on to [`image()`].
+#' @export
+approx_V_plot <- function(model,
+                          min = NULL,
+                          max = NULL,
+                          w = NULL,
+                          res = 25,
+                          col = hcl.colors(res, "YlOrRd", rev = TRUE),
+                          image = TRUE,
+                          contour = TRUE,
+                          main = NULL,
+                          ...) {
+  if (is.null(main)) {
+    main <- paste("Approx. Value Function:",
+                  model$name,
+                  paste0("(", model$solution$method, ")"))
+  }
+  
+  rng <- get_state_feature_range(model, min, max)
+  min <- rng[1, ]
+  max <- rng[2, ]
+  dim_s <- length(max)
+ 
+  if (dim_s != 2)
+    stop("This visualization only works for states with 2 features!")
+  
+  x1 <- seq(min[1], max[1], length.out = res)
+  x2 <- seq(min[2], max[2], length.out = res)
+  
+  V_val <- Vectorize(function(x1, x2)
+    max(approx_Q_value(model, state = s(x1, x2), w = w)))
+  V <- outer(x1, x2, V_val)
+  
+  pimage(x1, x2, V, col, image, contour, main = main, ...)
 }

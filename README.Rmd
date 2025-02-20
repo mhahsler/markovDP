@@ -51,7 +51,7 @@ The package provides to the following popular tabular methods:
   - n-step Sarsa [@Sutton1998]
   
 * __Linear Function Approximation__
-  - Episodic Semi-gradient Sarsa [@Sutton1998]
+  - Episodic Semi-gradient Sarsa [@Sutton1998; @Geramifard2013]
   
 * __Sampling__
   - Random-sample one-step tabular Q-planning [@Sutton1998]

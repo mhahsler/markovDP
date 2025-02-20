@@ -58,10 +58,7 @@
 #' 
 #' # sample from a solved MDPTF by following the policy
 #' model <- add_linear_approx_Q_function(model, 
-#'                transformation = transformation_fourier(
-#'                                      min = c(0, 0), 
-#'                                      max = c(4,4), 
-#'                                      order = 2))
+#'                transformation = transformation_fourier_basis, order = 2)
 #' sol <- solve_MDP(model, horizon = 1000, n = 100, alpha = 0.01, epsilon = .1)
 #' gw_plot(sol)
 #' 

@@ -1,10 +1,10 @@
 ---
-title: "Gridworlds in Package markovDP"
+title: "Gridworlds as MDPs"
 author: "Michael Hahsler"
 bibliography: references.bib
 link-citations: yes
 vignette: >
-  %\VignetteIndexEntry{Gridworlds in Package markovDP}
+  %\VignetteIndexEntry{Gridworlds as MDPs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -33,8 +33,6 @@ The R package **markovDP** [@CRAN_markovDP] provides a set of helper functions s
 prefix `gw_`
 to make defining and experimenting with gridworlds easy. 
 
-Gridworlds can also easily be extended to Partially Observable Decision Problems (POMDPs)
-using the R package **pomdp** [@CRAN_pomdp].
 
 ## Defining a Gridworld
 

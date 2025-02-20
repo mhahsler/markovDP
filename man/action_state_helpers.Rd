@@ -5,22 +5,25 @@
 \alias{normalize_state}
 \alias{normalize_state_id}
 \alias{normalize_state_label}
+\alias{normalize_state_features}
 \alias{normalize_action}
 \alias{normalize_action_id}
 \alias{normalize_action_label}
 \alias{state2features}
 \alias{features2state}
 \alias{s}
-\alias{normalize_state_features}
+\alias{get_state_features}
 \title{Conversions for Action and State IDs and Labels}
 \usage{
-normalize_state(state, model)
+normalize_state(state, model, as = "factor")
 
 normalize_state_id(state, model)
 
 normalize_state_label(state, model)
 
-normalize_action(action, model)
+normalize_state_features(state, model = NULL)
+
+normalize_action(action, model, as = "factor")
 
 normalize_action_id(action, model)
 
@@ -32,14 +35,16 @@ features2state(x)
 
 s(...)
 
-normalize_state_features(state, model = NULL)
+get_state_features(model)
 }
 \arguments{
-\item{state}{a state labels}
+\item{state}{a state in any format}
 
 \item{model}{a MDP model}
 
-\item{action}{a action labels}
+\item{as}{character; specifies the desired output format}
+
+\item{action}{a action in any format}
 
 \item{x}{a state feature vector or a matrix of state feature vectors as rows.}
 
@@ -49,10 +54,11 @@ vector used to describe a state.}
 \value{
 Functions ending in
 \itemize{
+\item \verb{_factor} return a factor,
 \item \verb{_id} return an integer id,
 \item \verb{_label} return a character string,
 \item \verb{_features} return a state feature matrix,
-\item no ending return a factor.
+\item no ending return the type specified as parameter \code{as}.
 }
 
 Other functions:
@@ -68,18 +74,35 @@ to labels and vice versa.
 }
 \details{
 \code{normalize_state()} and \code{normalize_action()} convert labels or ids into a
-factor which is the standard representation. If only the label or the
+desired standard representation. If only the label or the
 integer id (i.e., the index) is needed, the additional functions can be used.
 These are typically a lot faster.
 
 To support a factored state representation as feature vectors,
 \code{state2features()} and \code{feature2states()} are provided.
-A factored state is represented as a \strong{row} vector for a single
-state (ceonveniently created via \code{s()}) or a matrix with row vectors for a
+
+\strong{Note:} A factored state is represented as a \strong{row} vector (matrix with a
+single row) for a single
+state (conveniently created via \code{s()}) or a matrix with row vectors for a
 set of states are used. State labels
 are constructed in the form \code{s(feature1, feature2, ...)}.
 Factored state representation
 is used for value function approximation (see \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}) and
 for \link{MDPTF} to describe MDP's via a transition function between factored
 states.
+}
+\examples{
+data(Maze)
+
+normalize_state(1, Maze)
+normalize_state(1, Maze, as = "id")
+normalize_state(1, Maze, as = "label")
+normalize_state(1, Maze, as = "features")
+
+normalize_action(1, Maze)
+normalize_action(1, Maze, as = "id")
+normalize_action(1, Maze, as = "label")
+
+state2features("s(1,1)")
+s(1,1)
 }

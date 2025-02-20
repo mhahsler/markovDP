@@ -35,12 +35,12 @@ expect_identical(normalize_state_label(factored, Maze), as.character(res))
 expect_identical(state2features("s(1,2)"), structure(
   c(1, 2),
   dim = c(1L, 2L),
-  dimnames = list(c("s(1,2)"), NULL)))
+  dimnames = list(c("s(1,2)"), c("x1", "x2"))))
 
 expect_identical(state2features(c("s(1,1)", "s(2,1)")), structure(
   c(1, 2, 1, 1),
   dim = c(2L, 2L),
-  dimnames = list(c("s(1,1)", "s(2,1)"), NULL)))
+  dimnames = list(c("s(1,1)", "s(2,1)"), c("x1", "x2"))))
 
 expect_error(state2features(c("s(1,1)", "s(2,1,3)")))
 expect_error(state2features(c("s(1,)", "s(2,1)")))

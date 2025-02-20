@@ -412,6 +412,7 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
 #' @param cex expansion factor for the action.
 #' @param offset move the state labels out of the way (in fractions of a character width).
 #' @param lines logical; draw lines to separate states.
+#' @param contour logical; add value function contours.
 #' @param col a colors for the utility values.
 #' @param blocked_col a color used for blocked states. Use `NA` for no
 #'   color.
@@ -432,12 +433,16 @@ gw_plot <-
            cex = 1,
            offset = .5,
            lines = TRUE,
+           contour = FALSE,
            col = hcl.colors(100, "YlOrRd", rev = TRUE),
            blocked_col = "gray20",
            ...) {
     if (is.null(model$info$gridworld)) {
       stop("'model' does not seem to be a gridworld!")
     }
+    
+    x1 <- seq(1, model$info$dim[1])
+    x2 <- seq(1, model$info$dim[2])
     
     actions <-
       match.arg(actions, c("character", "unicode", "label", "none"))
@@ -479,6 +484,8 @@ gw_plot <-
     
     # warns if we only have NAs
     suppressWarnings(image(
+      x2, 
+      x1,
       m_plot,
       main = main,
       axes = FALSE,
@@ -486,33 +493,38 @@ gw_plot <-
       ...
     ))
     
+    if (contour) 
+      suppressWarnings(contour(
+        x2, 
+        x1,
+        m_plot, 
+        add = TRUE)
+      )
+    
     # draw NAs (missing/unreachable states)
     if (!is.na(blocked_col)) {
       m <- is.na(m)
       if (any(m)) {
         m[!m] <- NA
-        image(m, col = blocked_col, add = TRUE)
+        image(x2, x1, m, col = blocked_col, add = TRUE)
       }
     }
     
     # lines
     if (lines) {
       box()
-      frac <- 1 / ((nrows - 1L) * 2)
-      abline(h = (((1:nrows) * 2L) - 1L) * frac)
-      frac <- 1 / ((ncols - 1L) * 2)
-      abline(v = (((1:ncols) * 2L) - 1L) * frac)
+      abline(h = x1 + .5)
+      abline(v = x2 + .5)
     }
     
-    g <- expand.grid(y = (nrows - 1L):0 / (nrows - 1L),
-                     x = 0:(ncols - 1L) / (ncols - 1L))
+    g <- expand.grid(x1 = x1, x2 = x2)
     
-    if (nrows < 2) {
-      g$y <- 0
-    }
-    if (ncols < 2) {
-      g$x <- 0
-    }
+  #  if (nrows < 2) {
+  #    g$x1 <- 0
+  #  }
+  #  if (ncols < 2) {
+  #    g$x2 <- 0
+  #  }
     
     # actions
     if (actions != "none") {
@@ -538,8 +550,8 @@ gw_plot <-
         label = g$actions,
         none = NA
       )
-      
-      text(g$x, g$y, g$actions, cex = cex)
+     
+      text(g$x2, rev(g$x1), g$actions, cex = cex)
     }
     
     if (states && !index) {
@@ -554,15 +566,14 @@ gw_plot <-
     
     if (states || index) {
       text(
-        g$x,
-        g$y,
+        g$x2,
+        rev(g$x1),
         g$state,
         pos = 3,
         offset = offset,
         cex = .5 * cex
       )
     }
-    # text(g$x, g$y, g$state, pos = 3, cex = .8)
     
     if (labels) {
       g$labels <-
@@ -570,8 +581,8 @@ gw_plot <-
       # hide X from drawing
       g$labels[g$labels == 'X'] <- ''
       text(
-        g$x,
-        g$y,
+        g$x2,
+        rev(g$x1),
         g$label,
         pos = 1,
         offset = offset,
@@ -579,6 +590,8 @@ gw_plot <-
       )
     }
   }
+
+
 
 #' @rdname gridworld
 #'
