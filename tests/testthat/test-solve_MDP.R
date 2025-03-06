@@ -218,8 +218,6 @@ for (model in models_solve) {
 }
 
 
-
-
 for (model in models_solve) {
   for (m in c(methods_MC)) {
     if (verbose)
@@ -253,7 +251,6 @@ for (model in models_solve) {
     # check_and_fix_MDP(sol)
   }
 }
-
 
 rownames(timing) <- NULL
 

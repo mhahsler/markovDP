@@ -445,7 +445,7 @@ sol$solution
 ```
 
 
-The policy can be accessed using the `polucy()` function.
+The policy can be accessed using the `policy()` function.
 
 ```{r}
 policy(sol)

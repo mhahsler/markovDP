@@ -52,7 +52,7 @@
 #' * Polynomial basis: \eqn{\phi_i(s) = \prod_{j=1}^m x_j^{c_{i,j}}}, where
 #'   \eqn{c_{1,j}} is an integer between 0 and \eqn{n} for and order \eqn{n} polynomial basis.
 #'
-#' * Fourier basis: \eqn{\phi_i(s) = \mathtext{cos}(\pi\mathbf{c}^i \cdot \mathbf{x})},
+#' * Fourier basis: \eqn{\phi_i(s) = \text{cos}(\pi\mathbf{c}^i \cdot \mathbf{x})},
 #'   where \eqn{\mathbf{c}^i = [c_1, c_2, ..., c_m]} with \eqn{c_j = [0, ..., n]}, where
 #'   \eqn{n} is the order of the basis. The components of the feature vector
 #'   \eqn{x} are assumed to be scaled to the interval \eqn{[0,1]}. The fourier
@@ -79,6 +79,12 @@
 #'
 #' The implementation follows the temporal difference algorithm 
 #' episodic Semi-gradient Sarsa algorithm given in Sutton and Barto (2018).
+#' 
+#' ## Schedules
+#' 
+#' * epsilon schedule: `t` is increased by each processed episode.
+#' * alpha schedule: `t` is increased by each processed episode.
+#' 
 #'
 #' @family solver
 #' @family MDPTF
@@ -109,8 +115,8 @@
 #' m$approx_Q_function
 #'
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
-#'                      alpha = 0.01, epsilon = .1)
+#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100)
+#' 
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #'
@@ -140,8 +146,11 @@
 #' # if no state features are specified, then they are constructed
 #' # by parsing the state label of the form s(feature list).
 #' Maze_approx <- add_linear_approx_Q_function(Maze)
+#' 
+#' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                      alpha = 0.1, epsilon = 0.1)
+#'                      alpha = schedule_harmonic(start = .2, n = n), 
+#'                      epsilon = schedule_harmonic(start = 10, n = n))
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
@@ -155,7 +164,9 @@
 #'
 #' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = 0.1, epsilon = .1)
+#'                     alpha = schedule_exp(0.2, .1),
+#'                     epsilon = schedule_exp(1, .1))
+#'                     
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
@@ -169,7 +180,9 @@
 #'
 #' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = 0.1, epsilon = .1)
+#'                     alpha = schedule_exp(0.2, .01),
+#'                     epsilon = schedule_exp(1, .1))
+#'   
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
@@ -182,17 +195,14 @@
 #'
 #' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = 0.3, epsilon = .1)
+#'                     alpha = schedule_exp(0.2, .001),
+#'                     epsilon = schedule_exp(1, .1))
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
-#'
-#' # Note: polynomial basis and RBF need a larger n to converge to the value function.
-#' @inheritParams solve_MDP
+#' 
+#' @inheritParams solve_MDP_TD
 #' @param method string; one of the following solution methods: `'semi_gradient_sarsa'`
-#' @param alpha step size.
-#' @param epsilon used for the \eqn{\epsilon}-greedy behavior policies.
-#' @param n number of episodes used for learning.
 #' @param w an initial weight vector. By default a vector with 0s is used.
 #'
 #' @inherit solve_MDP return
@@ -203,8 +213,8 @@ solve_MDP_APPROX <-
            method = "semi_gradient_sarsa",
            horizon = NULL,
            discount = NULL,
-           alpha = 0.01,
-           epsilon = 0.2,
+           alpha = schedule_exp(0.2, .1),
+           epsilon = schedule_exp(1, .1),
            n,
            w = NULL,
            ...,
@@ -219,6 +229,20 @@ solve_MDP_APPROX <-
     
     method <-
       match.arg(method, c("semi_gradient_sarsa"))
+    
+    ### alpha/epsilon func
+    alpha_seq <- NULL
+    if (is.function(alpha))
+      alpha_seq <- alpha(seq(1, n))
+    else if(length(alpha) == n)
+      alpha_seq <- alpha
+    
+    epsilon_seq <- NULL
+    if (is.function(epsilon))
+      epsilon_seq <- epsilon(seq(1, n))
+    else if(length(epsilon) == n)
+      epsilon_seq <- epsilon
+    ###
     
     q <- model$approx_Q_function
     if (is.null(q$w_init) || is.null(q$f) || is.null(q$gradient))
@@ -278,8 +302,8 @@ solve_MDP_APPROX <-
     
     if (verbose) {
       cat("Running", method)
-      cat("\nalpha:            ", deparse(alpha))
-      cat("\nepsilon:          ", epsilon)
+      cat("\nalpha:            ", show_schedule(alpha))
+      cat("\nepsilon:          ", show_schedule(epsilon))
       cat("\nn:                ", n)
       if (continue) {
         cat("\ncont. with w:\n")
@@ -297,6 +321,13 @@ solve_MDP_APPROX <-
       e <- e + 1L
       if (progress)
         pb$tick()
+      
+      ### alpha/epsilon func
+      if (!is.null(epsilon_seq)) 
+        epsilon <- epsilon_seq[e]
+      if (!is.null(alpha_seq)) 
+        alpha <- alpha_seq[e]
+      ###
       
       # MDP: state is an id, MDPTF: state is a features
       s <- start(model)
@@ -454,7 +485,7 @@ add_linear_approx_Q_function.MDP <- function(model,
   }
   
   model$approx_Q_function <- list(
-    #x = x,
+    x = x,
     f = function(s, a, w)
       sum(w * x(s, a)),
     gradient = function(s, a, w)

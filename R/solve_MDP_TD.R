@@ -32,6 +32,8 @@
 #' episodes are stopped after 1000 actions (with a warning). For models without absorbing states,
 #' the episode length has to be specified via `horizon`.
 #'
+#' ## Available methods
+#' 
 #' * **Q-Learning** (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 #'    an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
 #'    policy. The target value is estimated as the one-step bootstrapping using the
@@ -73,6 +75,12 @@
 #'   the update uses the importance sampling ratio. Note that updates are delayed
 #'   \eqn{n} steps in this backward looking algorithm.
 #'
+#' ## Schedules
+#' 
+#' * epsilon schedule: `t` is increased by each processed episode.
+#' * alpha schedule: `t` is set to the number of times the a Q-value for state 
+#'      `s` was updated. 
+#'
 #' @references
 #'
 #' Rummery, G., and Mahesan Niranjan. 1994. "On-Line Q-Learning Using Connectionist Systems." Techreport CUED/F-INFENG/TR 166. Cambridge University Engineering Department.
@@ -87,10 +95,10 @@
 #' @param method string; one of the following solution methods:
 #'  * for TD: `"sarsa"`, `"q_learning"`, or `"expected_sarsa"`
 #'  * for TDN: `"sarsa_on_policy"`, or `"sarsa_off_policy"`
-#' @param alpha step size as a function of the time step `t` and the number of times
-#'   the respective Q-value was updated `n` or a scalar. For expected Sarsa, alpha is
-#'   often set to 1.
-#' @param epsilon used for the \eqn{\epsilon}-greedy behavior policies.
+#' @param alpha step size (learning rate). A scalar value between 0 and 1 or a 
+#'    [schedule].
+#' @param epsilon used for the \eqn{\epsilon}-greedy behavior policies. A scalar value between 0 and 1 or a 
+#'    [schedule].
 #' @param n number of episodes used for learning.
 #' @param Q an initial state-action value matrix. By default an all 0 matrix is
 #'        used.
@@ -102,26 +110,26 @@
 #'
 #' # Example 1: Learn a Policy using Q-Learning
 #' maze_learned <- solve_MDP(Maze, method = "TD:q_learning",
-#'     epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
+#'     epsilon = 0.2, n = 500, horizon = 100)
 #' maze_learned
 #'
 #' policy(maze_learned)
-#' plot_value_function(maze_learned)
 #' gw_plot(maze_learned)
 #'
-#' # Keep on learning, but with a reduced epsilon
-#' maze_learned <- solve_MDP(maze_learned, method = "TD:q_learning",
-#'     epsilon = 0.01, n = 500, horizon = 100, continue = TRUE, verbose = TRUE)
+#' # Example 2: Learn a Policy using Sarsa
+#' maze_learned <- solve_MDP(Maze, method = "TD:sarsa",
+#'     epsilon = 0.2, n = 500, horizon = 100)
+#' maze_learned
 #'
 #' policy(maze_learned)
-#' plot_value_function(maze_learned)
 #' gw_plot(maze_learned)
 #'
-#' # Example 2: n-step Sarsa
+#' # Example 3: Learn a Policy using n-step Sarsa
 #' maze_learned <- solve_MDP(Maze, method = "TDN:sarsa_on_policy",
-#'     n_step = 3, n = 10, horizon = 100, verbose = TRUE)
+#'     n_step = 3, n = 500, horizon = 100)
 #' maze_learned
 #'
+#' policy(maze_learned)
 #' gw_plot(maze_learned)
 #' @export
 solve_MDP_TD <-
@@ -129,9 +137,8 @@ solve_MDP_TD <-
            method = "q_learning",
            horizon = NULL,
            discount = NULL,
-           alpha = function(t, n)
-             min(10 / n, 1),
-           epsilon = 0.2,
+           alpha = schedule_exp(0.2, .01),
+           epsilon = schedule_exp(1, 0.1),
            n,
            Q = 0,
            ...,
@@ -149,14 +156,23 @@ solve_MDP_TD <-
     if (!inherits(model, "MDPE") || is.null(S(model)))
       stop("The model needs to be an MDP description with a specified state space.")
     
+    ### alpha/epsilon func
+    alpha_func <- NULL
+    if (is.function(alpha))
+      alpha_func <- alpha
+    
+    epsilon_seq <- NULL
+    if (is.function(epsilon))
+      epsilon_seq <- epsilon(seq(1, n))
+    else if(length(epsilon) == n)
+      epsilon_seq <- epsilon
+    ###
+    
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (!is.finite(model$horizon)) {
       stop("Finite horizon needed for exploration!")
     }
-    
-    if (!is.function(alpha))
-      alpha_val <- alpha
     
     if (progress) {
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
@@ -207,8 +223,8 @@ solve_MDP_TD <-
     
     if (verbose) {
       cat("Running", method)
-      cat("\nalpha:            ", deparse(alpha))
-      cat("\nepsilon:          ", epsilon)
+      cat("\nalpha:            ", show_schedule(alpha))
+      cat("\nepsilon:          ", show_schedule(epsilon))
       cat("\nn                 ", n, "\n")
       
       cat("\nInitial Q (first 20 max):\n")
@@ -231,6 +247,11 @@ solve_MDP_TD <-
       e <- e + 1L
       if (progress)
         pb$tick()
+      
+      ### epsilon func
+      if (!is.null(epsilon_seq)) 
+        epsilon <- epsilon_seq[e]
+      ###
       
       #s <- sample(S, 1L, prob = start)
       s <- start(model)
@@ -277,9 +298,12 @@ solve_MDP_TD <-
         
         # update Q and Q_N and calculate alpha
         Q_N[s, a] <- Q_N[s, a] + 1L
-        if (is.function(alpha))
-          #alpha_val <- alpha(t, Q_N[s, a])
-          alpha_val <- alpha(t, sum(Q_N[s, ]))
+        
+        ### alpha/epsilon func
+        # alpha uses the count and not the episode number!
+        if (!is.null(alpha_func)) 
+          alpha <- alpha_func(sum(Q_N[s, ]))
+        ###
         
         target <- switch(
           method,
@@ -294,14 +318,14 @@ solve_MDP_TD <-
           expected_sarsa = sum(greedy_action(model, s_prime, Q, epsilon, prob = TRUE) * Q[s_prime, ], na.rm = TRUE)
         )
         
-        Q[s, a] <- Q[s, a] + alpha_val * (r + discount * target - Q[s, a])
+        Q[s, a] <- Q[s, a] + alpha * (r + discount * target - Q[s, a])
         
         if (is.na(Q[s, a])) {
           Q[s, a] <- -Inf
         }
         
         if (verbose > 1) {
-          cat(sprintf("%.3f (N: %i alpha: %.3f)\n", Q[s, a], Q_N[s, a], alpha_val))
+          cat(sprintf("%.3f (N: %i alpha: %.3f)\n", Q[s, a], Q_N[s, a], alpha))
         }
         
         s <- s_prime
@@ -328,17 +352,17 @@ solve_MDP_TDN <-
            method = "sarsa_on_policy",
            horizon = NULL,
            discount = NULL,
+           alpha = schedule_exp(0.2, .01),
+           epsilon = schedule_exp(1, 0.1),
            n_step,
-           alpha = function(t, n)
-             min(10 / n, 1),
-           epsilon = 0.2,
            n,
            Q = 0,
+           ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
-           verbose = FALSE,
-           ...) {
+           verbose = FALSE
+           ) {
     .nodots(...)
     
     method <-
@@ -353,13 +377,23 @@ solve_MDP_TDN <-
       stop("Finite horizon needs to be specified to avoid potential infinite loops!")
     }
     
+    
+    ### alpha/epsilon func
+    alpha_func <- NULL
+    if (is.function(alpha))
+      alpha_func <- alpha
+    
+    epsilon_seq <- NULL
+    if (is.function(epsilon))
+      epsilon_seq <- epsilon(seq(1, n))
+    else if(length(epsilon) == n)
+      epsilon_seq <- epsilon
+    ###
+    
     # n_step = Inf: this is MC control. We size all the arrays to fit horizon
     if (!is.finite(n_step)) {
       n_step = horizon + 1
     }
-    
-    if (!is.function(alpha))
-      alpha_val <- alpha
     
     if (progress) {
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
@@ -411,8 +445,8 @@ solve_MDP_TDN <-
     
     if (verbose) {
       cat("Running", method)
-      cat("\nalpha:            ", deparse(alpha))
-      cat("\nepsilon:          ", epsilon)
+      cat("\nalpha:            ", show_schedule(alpha))
+      cat("\nepsilon:          ", show_schedule(epsilon))
       cat("\nn                 ", n, "\n")
       cat("\nn_step            ", n_step, "\n")
       
@@ -448,6 +482,11 @@ solve_MDP_TDN <-
       if (progress)
         pb$tick()
       
+      ### epsilon func
+      if (!is.null(epsilon_seq)) 
+        epsilon <- epsilon_seq[e]
+      ###
+      
       s <- sample.int(length(S), 1L, prob = start)
       a <- greedy_action(model, s, Q, epsilon)
       
@@ -469,7 +508,7 @@ solve_MDP_TDN <-
           s_prime <- a_res$state_prime
           r <- a_res$r
           
-          # no funciton call
+          # no function call version (may be faster)
           #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
           #r <- reward_matrix(model, a, s, s_prime)
           
@@ -485,8 +524,8 @@ solve_MDP_TDN <-
             A_t[t_plus_1_idx] <- a_prime
           }
         } else {
-          # lean up memory
-          s_prime <- S_t[t_plus_1_idx] <- NA_integer_
+          # clean up memory
+          #s_prime <- S_t[t_plus_1_idx] <- NA_integer_
           r <- R_t[t_plus_1_idx] <- 0
         }
         
@@ -525,9 +564,12 @@ solve_MDP_TDN <-
           
           # update Q and Q_N and calculate alpha
           Q_N[s_tau, a_tau] <- Q_N[s_tau, a_tau] + 1L
-          if (is.function(alpha))
-            #alpha_val <- alpha(t, Q_N[s_tau, a_tau])
-            alpha_val <- alpha(t, sum(Q_N[s_tau, ]))
+          
+          ### alpha/epsilon func
+          # alpha uses the count and not the episode number!
+          if (!is.null(alpha_func)) 
+            alpha <- alpha_func(sum(Q_N[s, ]))
+          ###
           
           if (verbose > 1) {
             cat(sprintf("; q(%s,%i):%.3f ->", s_tau, a_tau, Q[s_tau, a_tau]))
@@ -550,14 +592,20 @@ solve_MDP_TDN <-
             }
           }
           
-          Q[s_tau, a_tau] <- Q[s_tau, a_tau] + alpha_val * rho * (G - Q[s_tau, a_tau])
+          Q[s_tau, a_tau] <- Q[s_tau, a_tau] + alpha * rho * (G - Q[s_tau, a_tau])
+          
+          if(is.na(Q)[s_tau, a_tau]) {
+            #browser()
+            stop("A NA Q value has been generated! Please report this with a code example as a bug.")
+          }
+          
           
           if (verbose > 1) {
             cat(sprintf(
               " %.3f (N: %i alpha: %.3f, rho: %.3f)",
               Q[s_tau, a_tau],
               Q_N[s_tau, a_tau],
-              alpha_val,
+              alpha,
               rho
             ))
           }

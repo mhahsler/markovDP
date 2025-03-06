@@ -9,7 +9,7 @@ solve_MDP_SAMP(
   method = "q_planning",
   horizon = NULL,
   discount = NULL,
-  alpha = function(t, n) min(10/n, 1),
+  alpha = schedule_exp(0.2, 0.1),
   n = 1000,
   Q = NULL,
   ...,
@@ -32,11 +32,10 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
-\item{alpha}{step size as a function of the time step \code{t} and the number of times
-the respective Q-value was updated \code{n} or a scalar. For expected Sarsa, alpha is
-often set to 1.}
+\item{alpha}{step size (learning rate). A scalar value between 0 and 1 or a
+\link{schedule}.}
 
-\item{n}{number of updates performed.}
+\item{n}{number of episodes used for learning.}
 
 \item{Q}{an initial state-action value matrix. By default an all 0 matrix is
 used.}
@@ -59,7 +58,7 @@ function displays the used algorithm parameters and progress information.
 Levels \verb{>1} provide more detailed solver output in the R console.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements:
 \itemize{
@@ -82,14 +81,22 @@ state/action pair and samples the following state \eqn{s'} to
 perform a single a one-step update:
 
 \deqn{Q(s,a) \leftarrow Q(s, a) + \alpha * (R + \gamma \max_a'(Q(s', a')) - Q(s, a))}
+\subsection{Schedules}{
+\itemize{
+\item alpha schedule: \code{t} is set to the number of times the a Q-value for state
+\code{s} was updated.
+}
+}
 }
 \references{
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
 }
 \seealso{
 Other solver: 
+\code{\link{schedule}},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_TD}()}

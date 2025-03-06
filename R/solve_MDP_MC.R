@@ -14,6 +14,8 @@
 #' respect to the new Q values. Then the next episode is simulated till 
 #' the predefined number of episodes is completed.  
 #' 
+#' ## Implemented methods
+#' 
 #' Implemented are the following temporal difference control methods
 #' described in Sutton and Barto (2018).
 #'
@@ -43,11 +45,16 @@
 #' inefficient in learning the beginning portion of long episodes. This problem 
 #' is especially problematic when larger values for \eqn{\epsilon} are used. 
 #'
+#' #' ## Schedules
+#' 
+#' * epsilon schedule: `t` is increased by each processed episode.
+#' * alpha schedule: `t` is set to the number of times the a Q-value for state-action
+#'      combination was updated. 
+#' 
 #' @references 
 #' 
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
 #' 
-#' @inheritParams solve_MDP
 #' @inheritParams solve_MDP_TD
 #' @param method string; one of the following solution methods:
 #'    * `'exploring_starts'` - on-policy MC control with exploring starts.
@@ -108,7 +115,7 @@ solve_MDP_MC <-
         Q,
         exploring_starts = TRUE,
         epsilon = epsilon,
-        alpha = alpha %||% function(t, n) 1/n,
+        alpha = alpha,
         first_visit = first_visit,
         progress = progress,
         verbose = verbose,
@@ -121,7 +128,7 @@ solve_MDP_MC <-
         Q,
         exploring_starts = FALSE,
         epsilon = epsilon,
-        alpha = alpha %||% function(t, n) 1/n,
+        alpha = alpha,
         first_visit = first_visit,
         progress = progress,
         verbose = verbose,
@@ -148,7 +155,7 @@ MC_on_policy <- function(model,
                          Q = NULL,
                          exploring_starts,
                          epsilon = NULL,
-                         alpha = function(t, n) 1/n,
+                         alpha = NULL,
                          first_visit = TRUE,
                          progress = TRUE,
                          verbose = FALSE,
@@ -168,11 +175,23 @@ MC_on_policy <- function(model,
     if (epsilon != 0)
       warning("epsilon should be 0 for exploring starts!")
   } else {
-    epsilon <- epsilon %||% .2
+    epsilon <- epsilon %||% schedule_exp(.5, .01)
   }
   
-  if (!is.function(alpha))
-    alpha_val <- alpha
+  
+  alpha <- alpha %||% schedule_exp(.2, .001)
+  
+  ### alpha/epsilon func
+  alpha_func <- NULL
+  if (is.function(alpha))
+    alpha_func <- alpha
+  
+  epsilon_seq <- NULL
+  if (is.function(epsilon))
+    epsilon_seq <- epsilon(seq(1, n))
+  else if(length(epsilon) == n)
+    epsilon_seq <- epsilon
+  ###
   
   S <- S(model)
   A <- A(model)
@@ -201,8 +220,8 @@ MC_on_policy <- function(model,
   
   if (verbose) {
     cat("Running MC_on_policy")
-    cat("\nalpha:            ", deparse(alpha))
-    cat("\nepsilon:          ", epsilon)
+    cat("\nalpha:            ", show_schedule(alpha)) 
+    cat("\nepsilon:          ", show_schedule(epsilon))
     cat("\nexploring starts: ", exploring_starts, "\n")
     
     cat("\nInitial policy (first 20 max):\n")
@@ -250,6 +269,15 @@ MC_on_policy <- function(model,
     e <- e + 1L
     if (progress)
       pb$tick()
+    
+    ### alpha/epsilon func
+    if (!is.null(epsilon_seq)) 
+      epsilon <- epsilon_seq[e]
+    
+    # alpha uses the count and not the episode number!
+    #if (!is.null(alpha_seq)) 
+    #  alpha <- alpha_seq[e]
+    ###
     
     # add faster without checks
     #model <- add_policy(model, policy = pi)
@@ -311,14 +339,15 @@ MC_on_policy <- function(model,
       # Q <- Q + alpha (G - Q) ... default alpha is 1/n
       Q_N[s_t, a_t] <- Q_N[s_t, a_t] + 1L
       
-      # we use number of episode for t
-      if (is.function(alpha))
-        #alpha_val <- alpha(t, Q_N[s_t, a_t])
-        alpha_val <- alpha(e, Q_N[s_t, a_t])
+      ### alpha/epsilon func
+      # alpha uses the count and not the episode number!
+      if (!is.null(alpha_func)) 
+        alpha <- alpha_func(Q_N[s_t, a_t])
+      ###
       
       err <- G - Q[s_t, a_t]
       if (!is.nan(err))
-        Q[s_t, a_t] <- Q[s_t, a_t] + alpha_val * (err)
+        Q[s_t, a_t] <- Q[s_t, a_t] + alpha * (err)
       
       if (verbose > 1)
         cat(paste0(
@@ -327,7 +356,7 @@ MC_on_policy <- function(model,
           " (G = ",
           round(G, 3),
           "; alpha = ",
-          signif(alpha_val, 3),
+          signif(alpha, 3),
           ")"
         ))
       

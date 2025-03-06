@@ -5,10 +5,12 @@ gw <- gw_init(
   dim = c(3, 4),
   blocked_states = "s(2,2)",
   absorbing_states = c("s(1,4)", "s(2,4)"),
+  start = "s(3,1)",
+  goal = "s(1,4)",
   state_labels = list(
-    "s(3,1)" = "Start",
-    "s(2,4)" = "-1",
-    "s(1,4)" = "Goal: +1"
+    `s(3,1)` = "Start",
+    `s(2,4)` = "-1",
+    `s(1,4)` = "Goal: +1"
   )
 )
 

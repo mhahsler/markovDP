@@ -44,11 +44,11 @@ discount factor specified in \code{model} will be used.}
 \item{Q}{an initial state-action value matrix. By default an all 0 matrix is
 used.}
 
-\item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies.}
+\item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies. A scalar value between 0 and 1 or a
+\link{schedule}.}
 
-\item{alpha}{step size as a function of the time step \code{t} and the number of times
-the respective Q-value was updated \code{n} or a scalar. For expected Sarsa, alpha is
-often set to 1.}
+\item{alpha}{step size (learning rate). A scalar value between 0 and 1 or a
+\link{schedule}.}
 
 \item{first_visit}{if \code{TRUE} then only the first visit of a state/action pair
 in an episode is used to update Q, otherwise, every-visit update is used.}
@@ -71,7 +71,7 @@ function displays the used algorithm parameters and progress information.
 Levels \verb{>1} provide more detailed solver output in the R console.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements:
 \itemize{
@@ -96,6 +96,7 @@ policy and uses the sampled reward to update the Q values. For on-policy
 methods, the behavior policy is updated to be greedy (i.e., optimal) with
 respect to the new Q values. Then the next episode is simulated till
 the predefined number of episodes is completed.
+\subsection{Implemented methods}{
 
 Implemented are the following temporal difference control methods
 described in Sutton and Barto (2018).
@@ -123,6 +124,14 @@ importance sampling. Note: This method can only learn from the tail of the
 sampled runs where greedy actions are chosen. This means that it is very
 inefficient in learning the beginning portion of long episodes. This problem
 is especially problematic when larger values for \eqn{\epsilon} are used.
+}
+
+#' ## Schedules
+\itemize{
+\item epsilon schedule: \code{t} is increased by each processed episode.
+\item alpha schedule: \code{t} is set to the number of times the a Q-value for state-action
+combination was updated.
+}
 }
 }
 \references{

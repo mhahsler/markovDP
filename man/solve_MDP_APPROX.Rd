@@ -21,8 +21,8 @@ solve_MDP_APPROX(
   method = "semi_gradient_sarsa",
   horizon = NULL,
   discount = NULL,
-  alpha = 0.01,
-  epsilon = 0.2,
+  alpha = schedule_exp(0.2, 0.1),
+  epsilon = schedule_exp(1, 0.1),
   n,
   w = NULL,
   ...,
@@ -109,9 +109,11 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
-\item{alpha}{step size.}
+\item{alpha}{step size (learning rate). A scalar value between 0 and 1 or a
+\link{schedule}.}
 
-\item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies.}
+\item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies. A scalar value between 0 and 1 or a
+\link{schedule}.}
 
 \item{n}{number of episodes used for learning.}
 
@@ -165,13 +167,15 @@ grid with n steps per feature dimension is used.}
 
 \item{res}{resolution as the number of values sampled from each feature.}
 
+\item{col}{colors for the passed on to \code{\link[=image]{image()}}.}
+
 \item{image, contour}{logical; include the false color image or the
 contours in the plot?}
 
 \item{main}{title for the plot.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements:
 \itemize{
@@ -233,7 +237,7 @@ can be applied. Implemented basis functions are:
 for the intercept and \eqn{\phi_i(s) = x_i} for \eqn{i = \{1, 2, ..., m\}}.
 \item Polynomial basis: \eqn{\phi_i(s) = \prod_{j=1}^m x_j^{c_{i,j}}}, where
 \eqn{c_{1,j}} is an integer between 0 and \eqn{n} for and order \eqn{n} polynomial basis.
-\item Fourier basis: \eqn{\phi_i(s) = \mathtext{cos}(\pi\mathbf{c}^i \cdot \mathbf{x})},
+\item Fourier basis: \eqn{\phi_i(s) = \text{cos}(\pi\mathbf{c}^i \cdot \mathbf{x})},
 where \eqn{\mathbf{c}^i = [c_1, c_2, ..., c_m]} with \eqn{c_j = [0, ..., n]}, where
 \eqn{n} is the order of the basis. The components of the feature vector
 \eqn{x} are assumed to be scaled to the interval \eqn{[0,1]}. The fourier
@@ -265,6 +269,13 @@ the model or specified weights.
 The implementation follows the temporal difference algorithm
 episodic Semi-gradient Sarsa algorithm given in Sutton and Barto (2018).
 }
+
+\subsection{Schedules}{
+\itemize{
+\item epsilon schedule: \code{t} is increased by each processed episode.
+\item alpha schedule: \code{t} is increased by each processed episode.
+}
+}
 }
 \examples{
 # Example 1: A maze without walls. The step cost is 1. The start is top-left and
@@ -285,8 +296,8 @@ m <- add_linear_approx_Q_function(m, state_features)
 m$approx_Q_function
 
 set.seed(1000)
-sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
-                     alpha = 0.01, epsilon = .1)
+sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100)
+
 gw_plot(sol)
 gw_matrix(sol, what = "value")
 
@@ -316,8 +327,11 @@ gw_plot(Maze)
 # if no state features are specified, then they are constructed
 # by parsing the state label of the form s(feature list).
 Maze_approx <- add_linear_approx_Q_function(Maze)
+
+set.seed(1000)
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-                     alpha = 0.1, epsilon = 0.1)
+                     alpha = schedule_harmonic(start = .2, n = n), 
+                     epsilon = schedule_harmonic(start = 10, n = n))
 gw_plot(sol)
 gw_matrix(sol, what = "value")
 approx_V_plot(sol, res = 20)
@@ -331,7 +345,9 @@ Maze_approx <- add_linear_approx_Q_function(Maze,
 
 set.seed(1000)
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-                    alpha = 0.1, epsilon = .1)
+                    alpha = schedule_exp(0.2, .1),
+                    epsilon = schedule_exp(1, .1))
+                    
 gw_plot(sol)
 gw_matrix(sol, what = "value")
 approx_V_plot(sol, res = 20)
@@ -345,7 +361,9 @@ Maze_approx <- add_linear_approx_Q_function(Maze,
 
 set.seed(1000)
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-                    alpha = 0.1, epsilon = .1)
+                    alpha = schedule_exp(0.2, .01),
+                    epsilon = schedule_exp(1, .1))
+  
 gw_plot(sol)
 gw_matrix(sol, what = "value")
 approx_V_plot(sol, res = 20)
@@ -358,12 +376,12 @@ Maze_approx <- add_linear_approx_Q_function(Maze,
 
 set.seed(1000)
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-                    alpha = 0.3, epsilon = .1)
+                    alpha = schedule_exp(0.2, .001),
+                    epsilon = schedule_exp(1, .1))
 gw_plot(sol)
 gw_matrix(sol, what = "value")
 approx_V_plot(sol, res = 20)
 
-# Note: polynomial basis and RBF need a larger n to converge to the value function.
 }
 \references{
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
@@ -374,7 +392,9 @@ Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in
 }
 \seealso{
 Other solver: 
+\code{\link{schedule}},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_SAMP}()},
@@ -387,6 +407,7 @@ Other MDPTF:
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{start}()}
 }
 \concept{MDPTF}

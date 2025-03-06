@@ -10,8 +10,8 @@ solve_MDP_TD(
   method = "q_learning",
   horizon = NULL,
   discount = NULL,
-  alpha = function(t, n) min(10/n, 1),
-  epsilon = 0.2,
+  alpha = schedule_exp(0.2, 0.01),
+  epsilon = schedule_exp(1, 0.1),
   n,
   Q = 0,
   ...,
@@ -26,16 +26,16 @@ solve_MDP_TDN(
   method = "sarsa_on_policy",
   horizon = NULL,
   discount = NULL,
+  alpha = schedule_exp(0.2, 0.01),
+  epsilon = schedule_exp(1, 0.1),
   n_step,
-  alpha = function(t, n) min(10/n, 1),
-  epsilon = 0.2,
   n,
   Q = 0,
+  ...,
   matrix = TRUE,
   continue = FALSE,
   progress = TRUE,
-  verbose = FALSE,
-  ...
+  verbose = FALSE
 )
 }
 \arguments{
@@ -55,11 +55,11 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
-\item{alpha}{step size as a function of the time step \code{t} and the number of times
-the respective Q-value was updated \code{n} or a scalar. For expected Sarsa, alpha is
-often set to 1.}
+\item{alpha}{step size (learning rate). A scalar value between 0 and 1 or a
+\link{schedule}.}
 
-\item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies.}
+\item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies. A scalar value between 0 and 1 or a
+\link{schedule}.}
 
 \item{n}{number of episodes used for learning.}
 
@@ -86,7 +86,7 @@ Levels \verb{>1} provide more detailed solver output in the R console.}
 \item{n_step}{integer; steps for bootstrapping}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements:
 \itemize{
@@ -127,6 +127,7 @@ If the model has absorbing states to terminate episodes, then no maximal episode
 be specified. To make sure that the algorithm does finish in a reasonable amount of time,
 episodes are stopped after 1000 actions (with a warning). For models without absorbing states,
 the episode length has to be specified via \code{horizon}.
+\subsection{Available methods}{
 \itemize{
 \item \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy temporal difference method that uses
 an \eqn{\epsilon}-greedy behavior policy and learns a greedy target
@@ -165,31 +166,40 @@ the update uses the importance sampling ratio. Note that updates are delayed
 \eqn{n} steps in this backward looking algorithm.
 }
 }
+
+\subsection{Schedules}{
+\itemize{
+\item epsilon schedule: \code{t} is increased by each processed episode.
+\item alpha schedule: \code{t} is set to the number of times the a Q-value for state
+\code{s} was updated.
+}
+}
+}
 \examples{
 data(Maze)
 
 # Example 1: Learn a Policy using Q-Learning
 maze_learned <- solve_MDP(Maze, method = "TD:q_learning",
-    epsilon = 0.2, n = 500, horizon = 100, verbose = TRUE)
+    epsilon = 0.2, n = 500, horizon = 100)
 maze_learned
 
 policy(maze_learned)
-plot_value_function(maze_learned)
 gw_plot(maze_learned)
 
-# Keep on learning, but with a reduced epsilon
-maze_learned <- solve_MDP(maze_learned, method = "TD:q_learning",
-    epsilon = 0.01, n = 500, horizon = 100, continue = TRUE, verbose = TRUE)
+# Example 2: Learn a Policy using Sarsa
+maze_learned <- solve_MDP(Maze, method = "TD:sarsa",
+    epsilon = 0.2, n = 500, horizon = 100)
+maze_learned
 
 policy(maze_learned)
-plot_value_function(maze_learned)
 gw_plot(maze_learned)
 
-# Example 2: n-step Sarsa
+# Example 3: Learn a Policy using n-step Sarsa
 maze_learned <- solve_MDP(Maze, method = "TDN:sarsa_on_policy",
-    n_step = 3, n = 10, horizon = 100, verbose = TRUE)
+    n_step = 3, n = 500, horizon = 100)
 maze_learned
 
+policy(maze_learned)
 gw_plot(maze_learned)
 }
 \references{
@@ -203,8 +213,10 @@ Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Lear
 }
 \seealso{
 Other solver: 
+\code{\link{schedule}},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_SAMP}()}

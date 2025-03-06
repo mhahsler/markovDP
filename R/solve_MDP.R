@@ -50,7 +50,7 @@
 #'   Levels `>1` provide more detailed solver output in the R console.
 #' @param ... further parameters are passed on to the solver function.
 #'
-#' @return `solve_MDP()` returns an object of class MDP which is a list with the
+#' @return `solve_MDP()` returns an object of class MDP or MDPTF which is a list with the
 #'   model specifications (`model`), the solution (`solution`).
 #'   The solution is a list with the elements:
 #'   - `policy` a list representing the policy graph. The list only has one

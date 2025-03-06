@@ -233,8 +233,10 @@ gw_init <-
     # }
     
     # add start and goal to state labels
-    state_labels[start] <- "Start"
-    state_labels[goal] <- "Goal"
+    if (!is.null(start))
+      state_labels[[start]] <- state_labels[[start]] %||% "Start"
+    if (!is.null(goal))
+      state_labels[[goal]] <- state_labels[[goal]] %||% "Goal"
     
     l <- list(
       states = S,
@@ -1035,8 +1037,8 @@ gw_maze_MDPTF <- function(dim,
     state_labels = list()
   )
   
-  info$state_labels[[features2state(start)]] <- "Start"
-  info$state_labels[[features2state(goal)]] <- "Goal"
+  info$state_labels[[features2state(start)]] <- info$state_labels[[features2state(start)]] %||% "Start"
+  info$state_labels[[features2state(goal)]] <- info$state_labels[[features2state(goal)]] %||% "Goal"
   
   MDPTF(
     actions = actions,

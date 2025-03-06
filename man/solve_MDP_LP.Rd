@@ -51,7 +51,7 @@ Levels \verb{>1} provide more detailed solver output in the R console.}
 \item{progress}{not supported by this solver.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements:
 \itemize{
@@ -107,8 +107,10 @@ Puterman, Martin L. 1996. Markov decision processes: discrete stochastic dynamic
 }
 \seealso{
 Other solver: 
+\code{\link{schedule}},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}

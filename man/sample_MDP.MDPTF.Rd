@@ -102,6 +102,7 @@ Other MDPTF:
 \code{\link{reachable_states}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{start}()}
 }
 \author{

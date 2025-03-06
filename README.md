@@ -43,6 +43,9 @@ tabular methods:
     2018](#ref-Sutton1998))
   - Off-policy Monte Carlo Control ([Sutton and Barto
     2018](#ref-Sutton1998))
+- **Sampling**
+  - Random-sample one-step tabular Q-planning ([Sutton and Barto
+    2018](#ref-Sutton1998))
 - **Termporal Differencing**
   - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
   - Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
@@ -50,10 +53,10 @@ tabular methods:
   - n-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
 - **Linear Function Approximation**
   - Episodic Semi-gradient Sarsa ([Sutton and Barto
-    2018](#ref-Sutton1998))
-- **Sampling**
-  - Random-sample one-step tabular Q-planning ([Sutton and Barto
-    2018](#ref-Sutton1998))
+    2018](#ref-Sutton1998); [Geramifard et al.
+    2013](#ref-Geramifard2013))
+  - True Sarsa(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
+  - GTD(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
 
 These implementations follow the description is ([Russell and Norvig
 2020](#ref-Russell2020)) and ([Sutton and Barto 2018](#ref-Sutton1998)).
@@ -100,7 +103,7 @@ data("Maze")
 Maze
 ```
 
-    ## MDP, list - Stuart Russell's 3x4 Maze
+    ## MDP, MDPE - Stuart Russell's 3x4 Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
@@ -123,14 +126,14 @@ sol <- solve_MDP(model = Maze)
 sol
 ```
 
-    ## MDP, list - Stuart Russell's 3x4 Maze
+    ## MDP, MDPE - Stuart Russell's 3x4 Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
     ##   Size: 11 states / 4 actions
     ##   Storage: transition prob as matrix / reward as matrix. Total size: 32.3 Kb
     ##   Start: s(3,1)
     ##   Solved:
-    ##     Method: 'value_iteration'
+    ##     Method: 'VI'
     ##     Solution converged: TRUE
     ## 
     ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
@@ -179,6 +182,14 @@ Press.
 Bellman, Richard. 1957. “A Markovian Decision Process.” *Indiana
 University Mathematics Journal* 6: 679–84.
 <https://www.jstor.org/stable/24900506>.
+
+</div>
+
+<div id="ref-Geramifard2013" class="csl-entry">
+
+Geramifard, Alborz, Thomas J. Walsh, Tellex Stefanie, Girish Chowdhary,
+Nicholas Roy, and Jonathan P. How. 2013.
+<https://doi.org/10.1561/2200000042>.
 
 </div>
 

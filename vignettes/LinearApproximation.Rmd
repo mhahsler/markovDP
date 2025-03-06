@@ -115,24 +115,20 @@ m <- add_linear_approx_Q_function(m, state_features)
 m$approx_Q_function
 ```
 
-Now, we can solve the model. We initially use a large epsilon for the
-$\epsilon$-greedy behavior policy to make sure that the goal state can be 
-found with the initially bad policy.
+Now, we can solve the model. Both, alpha and epsilon follow an exponential schedule.
+Epsilon used for the \eqn{\epsilon}-greedy behavior policy starts at 1 and decays
+by a factor of 0.1 per episode. The step size alpha starts at 0.2 and also decays bu
+0.1 per episode.
 
 ```{r, fig.asp = 1}
-set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 1000, n = 10,
-                     alpha = 0.01, epsilon = .5)
+set.seed(1000)
+sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
+                        alpha = schedule_exp(0.2, 0.1),
+                        epsilon = schedule_exp(1, 0.1))
 gw_plot(sol)
 ```
 
-We refine the policy using a reduced epsilon value.
 
-```{r, fig.asp = 1}
-sol <- solve_MDP_APPROX(sol, horizon = 1000, n = 100,
-          alpha = 0.01, epsilon = 0.05, verbose = FALSE, continue = TRUE)
-gw_plot(sol)
-```
 
 ```{r }
 gw_matrix(sol, what = "value")
@@ -171,7 +167,8 @@ format `s(feature list)` automatically.
 ```{r, fig.asp = 3/4}
 Maze_approx <- add_linear_approx_Q_function(Maze)
 sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-                     alpha = 0.01, epsilon = 0.3)
+                        alpha = schedule_exp(0.2, 0.01),
+                        epsilon = schedule_exp(1, 0.1))
 gw_plot(sol)
 ```
 
@@ -190,7 +187,9 @@ Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformatio
 
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, 
+                        alpha = schedule_exp(0.2, 0.01),
+                        epsilon = schedule_exp(1, 0.1))
 gw_matrix(sol, what = "value")
 ```
 
@@ -212,7 +211,9 @@ Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformatio
 
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, 
+                        alpha = schedule_exp(0.2, 0.01),
+                        epsilon = schedule_exp(1, 0.1))
 gw_matrix(sol, what = "value")
 ```
 
@@ -232,13 +233,15 @@ approx_V_plot(sol)
 
 
 ```{r}
-Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 2)
+Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 1)
 ```
 
 
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 500, 
+                        alpha = schedule_exp(0.2, 0.01),
+                        epsilon = schedule_exp(1, 0.1))
 gw_matrix(sol, what = "value")
 ```
 
@@ -270,13 +273,15 @@ We use a Fourier basis.
 
 
 ```{r}
-Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 3)
+Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 2)
 ```
 
 
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, alpha = 0.1, epsilon = .1)
+sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, 
+                        alpha = schedule_exp(0.2, 0.01),
+                        epsilon = schedule_exp(1, 0.01))
 gw_matrix(sol, what = "value")
 ```
 

@@ -44,6 +44,7 @@ Other MDP:
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
 \code{\link{unreachable_states}()},
@@ -56,7 +57,8 @@ Other MDPTF:
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()}
+\code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_APPROX_LAMBDA}()}
 }
 \author{
 Michael Hahsler
