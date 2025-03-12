@@ -26,7 +26,7 @@ matrix <- TRUE
 methods_DP <- c("DP:VI", "DP:PI", "DP:GenPS", "DP:PS_error", "DP:PS_random")
 methods_LP <- c("LP:LP")
 methods_TD <- c("TD:sarsa", "TD:q_learning", "TD:expected_sarsa")
-methods_TDN <- c("TDN:sarsa_on_policy", "TDN:sarsa_off_policy")
+methods_TDN <- c("TD:sarsa")
 methods_MC <- c("MC:exploring_starts", "MC:on_policy", "MC:off_policy")
 methods_sampling <- c("SAMP:q_planning")
 

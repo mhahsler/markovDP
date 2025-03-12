@@ -175,7 +175,7 @@ MC_on_policy <- function(model,
     if (epsilon != 0)
       warning("epsilon should be 0 for exploring starts!")
   } else {
-    epsilon <- epsilon %||% schedule_exp(.5, .01)
+    epsilon <- epsilon %||% schedule_exp(1, -log(1e-5)/n)
   }
   
   
@@ -375,6 +375,10 @@ MC_on_policy <- function(model,
   # return is handled by on.exit()
 }
 
+
+# Note: this is different from off-policy learning for Sarsa and does not use 
+# the importance sampling ratio. It only uses the from the end of the episode as
+# long as all actions match the greedy actions.
 
 MC_off_policy <- function(model,
                           method,

@@ -87,7 +87,6 @@ legend("topright",
 Other solver: 
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_SAMP}()},

@@ -24,8 +24,8 @@ R. The focus is on convenience in formulating MDPs with small to medium
 sized state spaces in multiple ways, the support of sparse
 representations (using sparse matrices, lists and data.frames) and
 visualization of results. Some key components are implemented in C++ to
-speed up computation. The package provides to the following popular
-tabular methods:
+speed up computation. The package provides the following popular tabular
+methods:
 
 - **Dynamic Programming**
   - Value Iteration ([Bellman 1957](#ref-Bellman1957))
@@ -48,14 +48,14 @@ tabular methods:
     2018](#ref-Sutton1998))
 - **Termporal Differencing**
   - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
-  - Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
+  - 1-step Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
   - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
   - n-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
-- **Linear Function Approximation**
-  - Episodic Semi-gradient Sarsa ([Sutton and Barto
-    2018](#ref-Sutton1998); [Geramifard et al.
-    2013](#ref-Geramifard2013))
-  - True Sarsa(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
+  - Sarsa(lamba) ([Sutton and Barto 2018](#ref-Sutton1998))
+- **Temporal Differencing with Function Approximation**
+  - 1-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998); [Geramifard
+    et al. 2013](#ref-Geramifard2013))
+  - Sarsa(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
   - GTD(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
 
 These implementations follow the description is ([Russell and Norvig

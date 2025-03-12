@@ -90,7 +90,7 @@ schedule_log <- function(start) {
 #' @rdname schedule
 #' @export
 schedule_linear <- function(start, end, n) {
-  step <- (start - end) / n; 
+  step <- (start - end) / n
   function(t) start - t * step
 }
 

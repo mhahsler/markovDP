@@ -67,13 +67,14 @@ Levels \verb{>1} provide more detailed solver output in the R console.}
 \value{
 \code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
-The solution is a list with the elements:
+The solution is a list with the elements that depend on the used method. Common
+elements are:
 \itemize{
+\item \code{method} with the name of the used method
+\item parameters used.
+\item \code{converged} did the algorithm converge (\code{NA}) for finite-horizon problems.
 \item \code{policy} a list representing the policy graph. The list only has one
 element for converged solutions.
-\item \code{converged} did the algorithm converge (\code{NA}) for finite-horizon problems.
-\item \code{delta} final \eqn{\delta} (value iteration and infinite-horizon only)
-\item \code{iterations} number of iterations to convergence (infinite-horizon only)
 }
 }
 \description{
@@ -125,7 +126,6 @@ Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introd
 Other solver: 
 \code{\link{schedule}},
 \code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_SAMP}()},
@@ -145,7 +145,6 @@ Other MDP:
 \code{\link{reachable_states}()},
 \code{\link{regret}()},
 \code{\link{sample_MDP}()},
-\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{start}()},
 \code{\link{transition_graph}()},
 \code{\link{transition_matrix}()},
@@ -159,7 +158,6 @@ Other MDPTF:
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_APPROX_LAMBDA}()},
 \code{\link{start}()}
 }
 \author{

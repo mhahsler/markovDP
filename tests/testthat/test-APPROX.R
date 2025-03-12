@@ -1,6 +1,3 @@
-
-set.seed(1000)
-
 m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 
 benchmark <- solve_MDP(m)
@@ -129,3 +126,4 @@ m <- add_linear_approx_Q_function(m, transformation = transformation_fourier_bas
 set.seed(2000)
 sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
 approx_V_plot(sol, 0, 5)
+

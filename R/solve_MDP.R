@@ -52,12 +52,13 @@
 #'
 #' @return `solve_MDP()` returns an object of class MDP or MDPTF which is a list with the
 #'   model specifications (`model`), the solution (`solution`).
-#'   The solution is a list with the elements:
+#'   The solution is a list with the elements that depend on the used method. Common
+#'   elements are:
+#'   - `method` with the name of the used method
+#'   - parameters used.
+#'   - `converged` did the algorithm converge (`NA`) for finite-horizon problems.
 #'   - `policy` a list representing the policy graph. The list only has one
 #'      element for converged solutions.
-#'   - `converged` did the algorithm converge (`NA`) for finite-horizon problems.
-#'   - `delta` final \eqn{\delta} (value iteration and infinite-horizon only)
-#'   - `iterations` number of iterations to convergence (infinite-horizon only)
 #'
 #' @author Michael Hahsler
 #' @references

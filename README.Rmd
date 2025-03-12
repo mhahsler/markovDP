@@ -29,7 +29,7 @@ sparse representations (using sparse matrices, lists and data.frames) and
 visualization of results. 
 Some key components are implemented in
 C++ to speed up computation.
-The package provides to the following popular tabular methods:
+The package provides the following popular tabular methods:
 
 * __Dynamic Programming__
   - Value Iteration [@Bellman1957]
@@ -49,13 +49,14 @@ The package provides to the following popular tabular methods:
 
 * __Termporal Differencing__
   - Q-Learning [@Watkins1992]
-  - Sarsa [@Rummery1994]
+  - 1-step Sarsa [@Rummery1994]
   - Expected Sarsa [@Sutton1998]
   - n-step Sarsa [@Sutton1998]
+  - Sarsa(lamba) [@Sutton1998]
   
-* __Linear Function Approximation__
-  - Episodic Semi-gradient Sarsa [@Sutton1998; @Geramifard2013]
-  - True Sarsa(lambda) [@Sutton1998]
+* __Temporal Differencing with Function Approximation__
+  - 1-step Sarsa [@Sutton1998; @Geramifard2013]
+  - Sarsa(lambda) [@Sutton1998]
   - GTD(lambda) [@Sutton1998]
   
 

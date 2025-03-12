@@ -1,7 +1,7 @@
 # Explanation for how to parametrize q(s,a):
 # https://danieltakeshi.github.io/2016/10/31/going-deeper-into-reinforcement-learning-understanding-q-learning-and-linear-function-approximation/
 
-#' Episodic Semi-gradient Sarsa with Linear Function Approximation
+#' Solve MDPs with Temporal Differencing and Linear Function Approximation
 #'
 #' Solve the MDP control problem using state-value approximation
 #' by semi-gradient Sarsa (temporal differencing) for
@@ -43,25 +43,9 @@
 #' The state feature function \eqn{\phi()} starts with raw state feature vector
 #' \eqn{\mathbf{x} = (x_1,x_2, ..., x_m)} that
 #' are either user-specified or constructed by parsing the state labels of
-#' form `s(feature list)`.  Then an optional transformations called basis functions
-#' can be applied. Implemented basis functions are:
-#'
-#' * Linear: no additional transformation is applied giving \eqn{\phi_0(s) = 1}
-#'   for the intercept and \eqn{\phi_i(s) = x_i} for \eqn{i = \{1, 2, ..., m\}}.
-#'
-#' * Polynomial basis: \eqn{\phi_i(s) = \prod_{j=1}^m x_j^{c_{i,j}}}, where
-#'   \eqn{c_{1,j}} is an integer between 0 and \eqn{n} for and order \eqn{n} polynomial basis.
-#'
-#' * Fourier basis: \eqn{\phi_i(s) = \text{cos}(\pi\mathbf{c}^i \cdot \mathbf{x})},
-#'   where \eqn{\mathbf{c}^i = [c_1, c_2, ..., c_m]} with \eqn{c_j = [0, ..., n]}, where
-#'   \eqn{n} is the order of the basis. The components of the feature vector
-#'   \eqn{x} are assumed to be scaled to the interval \eqn{[0,1]}. The fourier
-#'   basis transformation is implemented in `transformation_fourier_basis()`.
-#'   `min` and `max` are the minimums and maximums for each feature vector component
-#'   used to resale them to \eqn{[0,1]} using \eqn{\frac{x_i - min_i}{max_i - min_i}}
-#'
-#'   Details of this transformation are described in Konidaris et al (2011).
-#'
+#' form `s(feature list)`.  Then an optional nonlinear transformation
+#' can be performed (see [transformation]). 
+#' 
 #' ## Helper Functions
 #'
 #' The following helper functions for using approximation are available:
@@ -85,7 +69,6 @@
 #' * epsilon schedule: `t` is increased by each processed episode.
 #' * alpha schedule: `t` is increased by each processed episode.
 #' 
-#'
 #' @family solver
 #' @family MDPTF
 #'
@@ -149,60 +132,50 @@
 #' 
 #' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                      alpha = schedule_harmonic(start = .2, n = n), 
-#'                      epsilon = schedule_harmonic(start = 10, n = n))
+#'                         alpha = schedule_exp(0.3, 0.01),
+#'                         epsilon = schedule_exp(1, 0.1))
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
 #'
 #'
 #' # Example 3: Stuart Russell's 3x4 Maze using
-#' #            order-2 Fourier basis for approximation
+#' #            order-1 Fourier basis for approximation
 #'
 #' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_fourier_basis, order = 2)
+#'       transformation = transformation_fourier_basis, order = 1)
 #'
 #' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = schedule_exp(0.2, .1),
+#'                     alpha = schedule_exp(0.3, .01),
 #'                     epsilon = schedule_exp(1, .1))
 #'                     
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
 #'
-#'
 #' # Example 4: Stuart Russell's 3x4 Maze using
-#' #            order-2 polynomial basis for approximation
+#' #            order-2 Fourier basis for approximation
+#' #            and eligibility traces: Sarsa(lambda)
 #'
 #' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_polynomial_basis, order = 2)
+#'       transformation = transformation_fourier_basis, order = 1)
 #'
 #' set.seed(1000)
 #' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = schedule_exp(0.2, .01),
-#'                     epsilon = schedule_exp(1, .1))
-#'   
-#' gw_plot(sol)
-#' gw_matrix(sol, what = "value")
-#' approx_V_plot(sol, res = 20)
-#'
-#' # Example 5: Stuart Russell's 3x4 Maze using RBF with
-#' #            4^2 centers for approximation
-#'
-#' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_RBF_basis, n = 4)
-#'
-#' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = schedule_exp(0.2, .001),
-#'                     epsilon = schedule_exp(1, .1))
+#'                     alpha = schedule_exp(0.3, .01),
+#'                     epsilon = schedule_exp(1, .1),
+#'                     lambda = 0.1)
+#'                     
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
 #' 
+#'  
 #' @inheritParams solve_MDP_TD
-#' @param method string; one of the following solution methods: `'semi_gradient_sarsa'`
+#' @param method string; one of the following solution methods: `'sarsa'`
+#' @param lambda the trace-decay parameter for the an accumulating trace. If `lambda = 0`
+#'      then 1-step Sarsa is used.
 #' @param w an initial weight vector. By default a vector with 0s is used.
 #'
 #' @inherit solve_MDP return
@@ -210,7 +183,55 @@
 #' @export
 solve_MDP_APPROX <-
   function(model,
-           method = "semi_gradient_sarsa",
+           method = "sarsa",
+           horizon = NULL,
+           discount = NULL,
+           alpha = schedule_exp(0.2, .1),
+           epsilon = schedule_exp(1, .1),
+           lambda = 0,
+           n,
+           w = NULL,
+           ...,
+           matrix = TRUE,
+           continue = FALSE,
+           progress = TRUE,
+           verbose = FALSE) {
+    .nodots(...)
+    if (lambda == 0)
+      solve_MDP_APPROX_1_step(model,
+                              method,
+                              horizon,
+                              discount,
+                              alpha,
+                              epsilon,
+                              n,
+                              w = NULL,
+                              ...,
+                              matrix = matrix,
+                              continue = continue,
+                              progress = progress,
+                              verbose = verbose)
+    else
+      solve_MDP_APPROX_lambda(model,
+                              method,
+                              horizon,
+                              discount,
+                              alpha,
+                              epsilon,
+                              lambda,
+                              n,
+                              w = NULL,
+                              ...,
+                              matrix = matrix,
+                              continue = continue,
+                              progress = progress,
+                              verbose = verbose)
+      
+  }
+  
+solve_MDP_APPROX_1_step <-
+  function(model,
+           method = "sarsa",
            horizon = NULL,
            discount = NULL,
            alpha = schedule_exp(0.2, .1),
@@ -228,7 +249,7 @@ solve_MDP_APPROX <-
       stop("This model needs to be a MDP environment.")
     
     method <-
-      match.arg(method, c("semi_gradient_sarsa"))
+      match.arg(method, c("sarsa"))
     
     ### alpha/epsilon func
     alpha_seq <- NULL
@@ -433,6 +454,229 @@ solve_MDP_APPROX <-
     # return via on.exit()
   }
 
+
+solve_MDP_APPROX_lambda <-
+  function(model,
+           method = "sarsa",
+           horizon = NULL,
+           discount = NULL,
+           alpha = schedule_exp(0.2, .1),
+           epsilon = schedule_exp(1, .1),
+           lambda = 0.1,
+           n,
+           w = NULL,
+           ...,
+           matrix = TRUE,
+           continue = FALSE,
+           progress = TRUE,
+           verbose = FALSE) {
+    .nodots(...)
+    
+    if (!inherits(model, "MDPE"))
+      stop("This model needs to be a MDP environment.")
+    
+    methods <- c("Sarsa", "GTD")
+    method <- match.arg(tolower(method), tolower(methods))
+    method_id <- match(tolower(method), tolower(methods))
+    
+    ### alpha/epsilon func
+    alpha_seq <- NULL
+    if (is.function(alpha))
+      alpha_seq <- alpha(seq(1, n))
+    else if(length(alpha) == n)
+      alpha_seq <- alpha
+    
+    epsilon_seq <- NULL
+    if (is.function(epsilon))
+      epsilon_seq <- epsilon(seq(1, n))
+    else if(length(epsilon) == n)
+      epsilon_seq <- epsilon
+    ###
+    
+    
+    qf <- model$approx_Q_function
+    if (is.null(qf$w_init) || is.null(qf$f) || is.null(qf$gradient))
+      stop(
+        "Approx q-function f, the gradient, or w_init are missing in the q_function element in the model!"
+      )
+    
+    # this code solve MDP and MDPTF
+    model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
+    
+    if (verbose)
+      progress <- FALSE
+    
+    if (progress) {
+      pb <- my_progress_bar(n + 1L, name = "solve_MDP")
+      pb$tick(0)
+    }
+    
+    # Initialize w
+    if (continue) {
+      if (!is.null(w))
+        stop("continue and w cannot be both specified!")
+      w <- model$solution$w
+    } else {
+      w <- w %||% qf$w_init
+    }
+    
+    # return unconverged result when interrupted
+    on.exit({
+      if (progress) {
+        pb$tick(0)
+        pb$terminate()
+      }
+      
+      if (e < n)
+        warning("Manual interupt: MDP solver stopped at episode ", e)
+      
+      if (verbose) {
+        cat("\nTerminated at episode:", e, "\n")
+      }
+      
+      model$solution <- list(
+        method = method,
+        alpha = alpha,
+        epsilon = epsilon,
+        lambda = lambda,
+        n = n,
+        w = w,
+        converged = NA,
+        policy = if (!is.null(S(model)))
+          list(approx_greedy_policy(model, w = w))
+        else
+          NULL
+      )
+      return(model)
+    })
+    
+    if (verbose) {
+      cat("Running", method)
+      cat("\nalpha:            ", show_schedule(alpha))
+      cat("\nepsilon:          ", show_schedule(epsilon))
+      cat("\nlambda:           ", lambda)
+      cat("\nn:                ", n)
+      if (continue) {
+        cat("\ncont. with w:\n")
+        print(w)
+      }
+    }
+    
+    A <- A(model)
+    gamma <- model$discount
+    
+    # loop for each episodes
+    e <- 0L
+    while (e < n) {
+      e <- e + 1L
+      if (progress)
+        pb$tick()
+      
+      
+      ### alpha/epsilon func
+      if (!is.null(epsilon_seq)) 
+        epsilon <- epsilon_seq[e]
+      if (!is.null(alpha_seq)) 
+        alpha <- alpha_seq[e]
+      ###
+      
+      # Initialize s and choose first action
+      # MDP: state is an id, MDPTF: state is a features
+      s <- start(model)
+      a <- approx_greedy_action(model, s, w, epsilon)
+      
+      x <- qf$x(normalize_state_features(s, model), a)
+      z <- qf$w_init 
+      q_old <- 0
+      
+      # loop steps in episode
+      i <- 0L
+      while (TRUE) {
+        i <- i + 1L
+        if ((i %% 100 == 0) && progress && !pb$finished)
+          pb$tick(0)
+        
+        # take action a and observe r and s'
+        a_res <- act(model, s, a, fast = TRUE)
+        s_prime <- a_res$state_prime
+        r <- a_res$r
+        
+        # choose a'
+        a_prime <- approx_greedy_action(model, s_prime, w, epsilon)
+        
+        # get x'
+        x_prime <- qf$x(normalize_state_features(s_prime, model), a_prime)
+        
+        q <- sum(x * w)
+        q_prime <- sum(x_prime * w)
+        delta <- r + gamma * q_prime - q
+        
+        if (delta > 1e20)
+          stop(
+            "Temporal differencing error becomes too large which indicates instability. Reduce alpha or lambda."
+          )
+        
+        z <- gamma * lambda * z + (1 - alpha + gamma * lambda * sum(z*x)) * x
+        
+        # Sarsa(lambda) .. on-policy true online
+        if (method_id == 1L) {
+          w <- w + alpha * (delta + q - q_old) * z - alpha * (q - q_old) * x
+        }
+        
+        # GTD(lambda)
+        else if (method_id == 2) {
+          w <- w + alpha * delta * z - alpha * gamma * (1 - lambda) * sum(z*q) * x
+        }
+        
+        # GQ(lambda)
+        # average is only one since the target policy is not soft.
+        #x_bar <- qf$x(normalize_state_features(s, model), approx_greedy_action(model, s, w, epsilon = 0))
+        #delta_a <- r + gamma * sum(w*x_bar - sum(w*x))
+        #w <- w + alpha * delta_a * z - alpha * gamma * (1 - lambda) * (sum(z*q)) * x_bar
+        #
+        
+        if (verbose > 1) {
+          if (i == 1L) {
+            cat("\n*** Episode", e, "***\n")
+          }
+          cat(
+            sprintf(
+              "\nStep %i - s=%s a=%s r=%.3f s'=%s a'=%s - q(s,a)=%.3f q(s',a')=%.3f delta=%.3f\n",
+              i,
+              normalize_state_label(s, model),
+              normalize_action_label(a, model),
+              r,
+              normalize_state_label(s_prime, model),
+              normalize_action_label(a_prime, model),
+              q,
+              q_prime,
+              delta
+            )
+          )
+          # print(w)
+          print(z)
+        }
+        
+        if (i >= horizon)
+          break
+        
+        if(absorbing_states(Maze, state = s_prime))
+          break
+        
+        q_old <- q_prime
+        x <- x_prime
+        s <- s_prime
+        a <- a_prime
+        
+      }
+    }
+    
+    # return via on.exit()
+  }
+
+
+
+
 #' @rdname solve_MDP_APPROX
 #' @export
 add_linear_approx_Q_function <- function(model, ...) {
@@ -443,7 +687,7 @@ add_linear_approx_Q_function <- function(model, ...) {
 #' @param state_features a matrix with state features. Each row is the feature
 #'    vector for a state.
 #' @param transformation a transformation function that is applied to the feature vector
-#'    before it is used in the linear approximation.
+#'    before it is used in the linear approximation. See [transformation].
 #' @export
 add_linear_approx_Q_function.MDP <- function(model,
                                              state_features = NULL,
@@ -560,138 +804,6 @@ add_linear_approx_Q_function.MDPTF <- function(model,
   
   model
 }
-
-#' @rdname solve_MDP_APPROX
-#' @param dim number of features to describe a state.
-#' @export
-create_basis_coefs <- function(dim, order) {
-  as.matrix(expand.grid(replicate(dim, 0:order, simplify = FALSE)))
-}
-
-#' @rdname solve_MDP_APPROX
-#' @param min,max vectors with the minimum and maximum values for each feature.
-#'    This is used to scale the feature to the \eqn{[0,1]} interval for the
-#'    Fourier basis.
-#' @param intercept logical; add an intercept term to the linear basis?
-#' @export
-transformation_linear_basis <- function(model,
-                                        min = NULL,
-                                        max = NULL,
-                                        intercept = TRUE) {
-  rng <- get_state_feature_range(model, min, max)
-  min <- rng[1, ]
-  max <- rng[2, ]
-  
-  function(x) {
-    x <- (x - min) / (max - min)
-    
-    if (intercept)
-      x <- c(x0 = 1, x)
-    x
-  }
-}
-
-
-#' @rdname solve_MDP_APPROX
-#' @export
-transformation_polynomial_basis <- function(model,
-                                            min = NULL,
-                                            max = NULL,
-                                            order,
-                                            coefs = NULL) {
-  rng <- get_state_feature_range(model, min, max)
-  min <- rng[1, ]
-  max <- rng[2, ]
-  dim_s <- length(max)
-  
-  if (is.null(coefs))
-    coefs <- create_basis_coefs(dim_s, order)
-  
-  function(x) {
-    x <- (x - min) / (max - min)
-    
-    apply(
-      coefs,
-      MARGIN = 1,
-      FUN = function(c)
-        prod(x^c)
-    )
-  }
-}
-
-#' @rdname solve_MDP_APPROX
-#' @param centers a matrix with the centers for the RBF. By default a regular 
-#'               grid with n steps per feature dimension is used.
-#' @param var a scalar with the variance used for the RBF.
-#' @export
-transformation_RBF_basis <- function(model,
-                                     min = NULL,
-                                     max = NULL,
-                                     n,
-                                     centers = NULL,
-                                     var = NULL) {
-  rng <- get_state_feature_range(model, min, max)
-  min <- rng[1, ]
-  max <- rng[2, ]
-  dim_s <- length(max)
-  
-  # create n^d centers
-  if (!is.null(centers)) {
-    n <- nrow(centers)
-  } else {
-    if (is.null(n))
-      stop("either n or centers has to be specified")
-    # create equally spaced centers
-    step_size <- 1 / n
-    centers <- expand.grid(replicate(dim_s, seq(
-      step_size / 2, 1 - (step_size / 2), length.out = n
-    ) , simplify = FALSE))
-  }
-  
-  var <- var %||% 2 / (n - 1)
-  
-  function(x) {
-    x <- (x - min) / (max - min)
-    apply(
-      centers,
-      MARGIN = 1,
-      FUN = function(c)
-        1 / (2 * pi * var)^.5 * exp(-1 * sum((c - x)^2) / 2 / var)
-    )
-  }
-}
-
-#' @rdname solve_MDP_APPROX
-#' @param order order for the Fourier basis.
-#' @param coefs an optional matrix or data frame to specify the set of
-#'    coefficient values for the
-#'    Fourier basis (overrides `order`).
-#' @export
-transformation_fourier_basis <- function(model,
-                                         min = NULL,
-                                         max = NULL,
-                                         order,
-                                         coefs = NULL) {
-  rng <- get_state_feature_range(model, min, max)
-  min <- rng[1, ]
-  max <- rng[2, ]
-  dim_s <- length(max)
-  
-  coefs <- coefs %||% create_basis_coefs(dim_s, order)
-  
-  function(x) {
-    x <- (x - min) / (max - min)
-    
-    apply(
-      coefs,
-      MARGIN = 1,
-      FUN = function(c)
-        cos(pi * x %*% c)
-    )
-  }
-}
-
-
 
 
 #' @rdname solve_MDP_APPROX
