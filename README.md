@@ -46,12 +46,13 @@ methods:
 - **Sampling**
   - Random-sample one-step tabular Q-planning ([Sutton and Barto
     2018](#ref-Sutton1998))
-- **Termporal Differencing**
+- **Tabular Termporal Differencing**
   - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
   - 1-step Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
   - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
   - n-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
   - Sarsa(lamba) ([Sutton and Barto 2018](#ref-Sutton1998))
+  - Watkins’s Q(lamba) ([Sutton and Barto 2018](#ref-Sutton1998))
 - **Temporal Differencing with Function Approximation**
   - 1-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998); [Geramifard
     et al. 2013](#ref-Geramifard2013))

@@ -6,7 +6,7 @@
 \usage{
 solve_MDP_TD(
   model,
-  method = "q_learning",
+  method = "sarsa",
   horizon = NULL,
   discount = NULL,
   alpha = schedule_exp(0.2, 0.01),
@@ -27,7 +27,8 @@ solve_MDP_TD(
 \item{model}{an MDP problem specification.}
 
 \item{method}{string; one of the following solution methods:
-\code{"sarsa"}, \code{"q_learning"}, or \code{"expected_sarsa"}}
+\code{"sarsa"}, \code{"q"}, \code{"q_learning"}, or \code{"expected_sarsa"}. Not all methods are available
+for all setting s of \code{n_step} and \code{lambda} (see Details).}
 
 \item{horizon}{an integer with the number of epochs for problems with a
 finite planning horizon. If set to \code{Inf}, the algorithm continues
@@ -87,7 +88,8 @@ element for converged solutions.
 }
 \description{
 Solve MDPs using tabular temporal difference control
-methods like q-learning and 1-step, n-step Sarsa, and Sarsa(\eqn{\lambda}).
+methods like q-learning and 1-step, n-step Sarsa, Sarsa(\eqn{\lambda}),
+and Q(\eqn{\lambda}).
 }
 \details{
 Implemented are several tabular temporal difference control methods
@@ -119,19 +121,19 @@ the episode length has to be specified via \code{horizon}.
 
 1-step methods estimate the return by just looking one state ahead.
 \itemize{
-\item \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy (learns a greedy target policy)
+\item \code{q_learning}: \strong{Q-Learning} (Watkins and Dayan 1992) is an off-policy (learns a greedy target policy)
 temporal difference method. We use here an \eqn{\epsilon}-greedy behavior policy.
 The update target value is estimated by one-step bootstrapping using the
 reward and the value of the state following the current greedy target policy:
 \deqn{G_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a)}
-\item \strong{Sarsa} (Rummery and Niranjan 1994) is an on-policy method (behavior and
+\item \code{sarsa}: \strong{Sarsa} (Rummery and Niranjan 1994) is an on-policy method (behavior and
 target policy are the same). We use an \eqn{\epsilon}-greedy policy
 and the final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
 \eqn{\epsilon} can be lowered over time (see \link{schedule} and parameter \code{continue})
 to learn a approximately greedy policy. The target is estimated
 as the one-step bootstrap estimate following the current behavior policy:
 \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
-\item \strong{Expected Sarsa} (Sutton and Barto 2018) learns the behavior policy
+\item \code{expected_sarsa} \strong{Expected Sarsa} (Sutton and Barto 2018) learns the behavior policy
 (on-policy learning).
 We use Sarsa with an \eqn{\epsilon}-greedy policy which uses the
 the expected value under the current policy for the update:
@@ -161,8 +163,10 @@ the rewards and then the value of the reached state:
 While n-step methods conceptually look ahead, the implementation has to wait
 for the values to become available. This means that updates are \eqn{n}
 steps delayed, i.e., the update for step \eqn{t} is performed at \eqn{t+n}.
+
+Methods:
 \itemize{
-\item \strong{n-step Sarsa} (Sutton and Barto 2018).
+\item \code{sarsa}: \strong{n-step Sarsa} (Sutton and Barto 2018).
 The estimated return is used as the update target for Sarsa.
 
 \code{n_step = 1} is regular 1-step Sarsa. Using \code{n_step = Inf} is equivalent to
@@ -194,6 +198,16 @@ The trace is updated at each time step as
 \deqn{z_t(s,a) = \gamma z_{t-1}(s,a) \qquad \forall s, a}
 and \eqn{z_t(S_t,A_t) = z_t(S_t,A_t) + 1}. This means, the trace is set to one
 for the current state and action and then decays with the parameter \eqn{\lambda}.
+
+Methods:
+\itemize{
+\item \code{sarsa}: \strong{Sarsa(lambda)} (Sutton and Barto 2018).
+\item \code{q}: \strong{Watkins's Q(lambda)} (Sutton and Barto 2018). An off-policy
+learning algorithm similar to Q-learning which looks only ahead as far as the next
+exploratory action (i.e., the eligibility vector \eqn{z_t(\cdot,\cdot)}
+is set to zero whenever an exploratory
+non-greedy exploratory action is taken).
+}
 }
 
 \subsection{Schedules}{
@@ -246,7 +260,7 @@ gw_plot(maze_learned)
 
 # Example: Tabular Sarsa(lambda)
 maze_learned <- solve_MDP(Maze, method = "TD:sarsa",
-    lambda = .1, n = 1, horizon = 100)
+    lambda = .1, n = 100, horizon = 100)
 maze_learned
 policy(maze_learned)
 gw_plot(maze_learned)

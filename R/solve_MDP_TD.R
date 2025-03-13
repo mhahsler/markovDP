@@ -1,7 +1,8 @@
 #' Solve MDPs using Tabular Temporal Differencing
 #'
 #' Solve MDPs using tabular temporal difference control
-#' methods like q-learning and 1-step, n-step Sarsa, and Sarsa(\eqn{\lambda}).
+#' methods like q-learning and 1-step, n-step Sarsa, Sarsa(\eqn{\lambda}),
+#' and Q(\eqn{\lambda}).
 #'
 #' @family solver
 #'
@@ -37,13 +38,13 @@
 #' 
 #' 1-step methods estimate the return by just looking one state ahead.
 #' 
-#' * **Q-Learning** (Watkins and Dayan 1992) is an off-policy (learns a greedy target policy) 
+#' * `q_learning`: **Q-Learning** (Watkins and Dayan 1992) is an off-policy (learns a greedy target policy) 
 #'    temporal difference method. We use here an \eqn{\epsilon}-greedy behavior policy. 
 #'    The update target value is estimated by one-step bootstrapping using the
 #'    reward and the value of the state following the current greedy target policy:
 #'    \deqn{G_t = R_{t+1} + \gamma \max_a Q(S_{t+1}, a)}
 #'
-#' * **Sarsa** (Rummery and Niranjan 1994) is an on-policy method (behavior and 
+#' * `sarsa`: **Sarsa** (Rummery and Niranjan 1994) is an on-policy method (behavior and 
 #'    target policy are the same). We use an \eqn{\epsilon}-greedy policy
 #'    and the final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
 #'    \eqn{\epsilon} can be lowered over time (see [schedule] and parameter `continue`)
@@ -51,7 +52,7 @@
 #'    as the one-step bootstrap estimate following the current behavior policy:
 #'    \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
 #'
-#' * **Expected Sarsa** (Sutton and Barto 2018) learns the behavior policy 
+#' * `expected_sarsa` **Expected Sarsa** (Sutton and Barto 2018) learns the behavior policy 
 #'   (on-policy learning).
 #'   We use Sarsa with an \eqn{\epsilon}-greedy policy which uses the
 #'   the expected value under the current policy for the update:
@@ -80,7 +81,8 @@
 #' for the values to become available. This means that updates are \eqn{n} 
 #' steps delayed, i.e., the update for step \eqn{t} is performed at \eqn{t+n}.
 #'   
-#' * **n-step Sarsa** (Sutton and Barto 2018).
+#' Methods:
+#' * `sarsa`: **n-step Sarsa** (Sutton and Barto 2018).
 #'   The estimated return is used as the update target for Sarsa. 
 #'   
 #'   `n_step = 1` is regular 1-step Sarsa. Using `n_step = Inf` is equivalent to
@@ -112,6 +114,14 @@
 #' and \eqn{z_t(S_t,A_t) = z_t(S_t,A_t) + 1}. This means, the trace is set to one
 #' for the current state and action and then decays with the parameter \eqn{\lambda}.
 #' 
+#' Methods:
+#' 
+#'  * `sarsa`: **Sarsa(lambda)** (Sutton and Barto 2018).
+#'  * `q`: **Watkins's Q(lambda)** (Sutton and Barto 2018). An off-policy 
+#'    learning algorithm similar to Q-learning which looks only ahead as far as the next 
+#'    exploratory action (i.e., the eligibility vector \eqn{z_t(\cdot,\cdot)} 
+#'    is set to zero whenever an exploratory 
+#'    non-greedy exploratory action is taken).
 #'
 #' ## Schedules
 #' 
@@ -131,7 +141,8 @@
 #'
 #' @inheritParams solve_MDP
 #' @param method string; one of the following solution methods:
-#'  `"sarsa"`, `"q_learning"`, or `"expected_sarsa"`
+#'  `"sarsa"`, `"q"`, `"q_learning"`, or `"expected_sarsa"`. Not all methods are available 
+#'  for all setting s of `n_step` and `lambda` (see Details).
 #' @param alpha step size (learning rate). A scalar value between 0 and 1 or a 
 #'    [schedule].
 #' @param epsilon used for the \eqn{\epsilon}-greedy behavior policies. A scalar value between 0 and 1 or a 
@@ -188,7 +199,7 @@
 #' 
 #' # Example: Tabular Sarsa(lambda)
 #' maze_learned <- solve_MDP(Maze, method = "TD:sarsa",
-#'     lambda = .1, n = 1, horizon = 100)
+#'     lambda = .1, n = 100, horizon = 100)
 #' maze_learned
 #' policy(maze_learned)
 #' gw_plot(maze_learned)
@@ -803,7 +814,10 @@ solve_MDP_TD_lambda <-
     .nodots(...)
     
     method <-
-      match.arg(method, c("sarsa"))
+      match.arg(method, c("sarsa", "q"))
+    # Q is Watkins's Q (off policy) looks only ahead as far as the next 
+    # exploratory action (i.e., z is set to zero whenever an exploratory 
+    # (nongreedy) action is taken)
     
     # this works for MDP and MDPTF with a defined state space
     if (!inherits(model, "MDPE") || is.null(S(model)))
@@ -969,6 +983,10 @@ solve_MDP_TD_lambda <-
         
         z[s,a] <- z[s,a] + 1 
         
+        # Watkins's Q sets z to 0 if an exploratory action was chosen
+        if (method == "q")
+          if (Q[s,a] != max(Q[s,])) z[] <- 0
+        
         # FIXME: maybe we need individual alphas!
         Q <- Q + alpha * delta * z
          
@@ -987,8 +1005,10 @@ solve_MDP_TD_lambda <-
           print(z)
         }
         
-        # decay aligibility trace vector
+        # decay eligibility trace vector
         z <- gamma * lambda * z 
+        
+        
         
         s <- s_prime
         a <- a_prime
