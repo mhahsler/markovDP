@@ -22,4 +22,5 @@ gw_plot(sol)
 
 expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
 
-
+# cleanup
+unlink("Rplots.pdf")

@@ -127,3 +127,5 @@ set.seed(2000)
 sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
 approx_V_plot(sol, 0, 5)
 
+# cleanup
+unlink("Rplots.pdf")
