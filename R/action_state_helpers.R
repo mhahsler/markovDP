@@ -9,7 +9,9 @@
 #' These are typically a lot faster.
 #' 
 #' To support a factored state representation as feature vectors, 
-#' `state2features()` and `feature2states()` are provided. 
+#' `state2features()`, `feature2states()`, and `get_state_features()` are provided.
+#'  `get_state_features()` is only available if the model explicitly 
+#'  stores a finite state space.
 #' 
 #' **Note:** A factored state is represented as a **row** vector (matrix with a 
 #' single row) for a single 
@@ -46,15 +48,20 @@
 #' @examples
 #' data(Maze)
 #' 
+#' # states
 #' normalize_state(1, Maze)
 #' normalize_state(1, Maze, as = "id")
 #' normalize_state(1, Maze, as = "label")
 #' normalize_state(1, Maze, as = "features")
 #'
+#' get_state_features(Maze)
+#'
+#' # actions
 #' normalize_action(1, Maze)
 #' normalize_action(1, Maze, as = "id")
 #' normalize_action(1, Maze, as = "label")
 #'
+#' # state label to feature conversion
 #' state2features("s(1,1)")
 #' s(1,1)
 NULL
@@ -141,8 +148,11 @@ normalize_state_label <- function(state, model) {
 #' @rdname action_state_helpers
 #' @export
 normalize_state_features <- function(state, model = NULL) {
-  if (is.matrix(state))
+  if (is.matrix(state)) {
+    if (is.null(colnames(state)))
+      colnames(state) <- paste0("x", 1:ncol(state))
     return(state)
+  }
   
   if (!is.null(model$state_features)) 
     return(model$state_features[state, ,drop = FALSE])
@@ -291,18 +301,21 @@ get_state_features <- function(model) {
 # internal: used by solve_MDP_APPROX's transformation functions
 get_state_feature_range <- function(model, min = NULL, max = NULL) {
   state_features <- get_state_features(model)
-  
+    
   if (!is.null(state_features)) {
     rng <- apply(state_features, MARGIN = 2, range)
     rownames(rng) <- c("min", "max")
     return(rng)
+  } else if (model$info$gridworld) {
+    # MDPTF can have no state space, check if is a gridworld
+    return(rbind(min = 1, max = model$info$dim))
   }
   
+  # we have a MDPTF that is not a gridworld at this point
   if (is.null(min) || is.null(max))
     stop("min and max needs to be specified to scale state features to [0,1].")
   
-  # we have a MDPTF at this point
-  example_state <- start(model)[1, , drop = FALSE]
+  example_state <- start(model, as = "features")[1, , drop = FALSE]
   if (length(min) == 1)
     min <- rep(min, times = ncol(example_state))
   if (length(max) == 1)

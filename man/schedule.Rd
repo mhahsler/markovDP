@@ -85,10 +85,11 @@ legend("topright",
 }
 \seealso{
 Other solver: 
+\code{\link{add_linear_approx_Q_function}()},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
+\code{\link{solve_MDP_PG}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
 }

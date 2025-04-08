@@ -62,6 +62,7 @@ transformation_linear_basis <- function(model,
   max <- rng[2, ]
   
   function(x) {
+    # linear basis
     x <- (x - min) / (max - min)
     
     if (intercept)
@@ -87,6 +88,7 @@ transformation_polynomial_basis <- function(model,
     coefs <- create_basis_coefs(dim_s, order)
   
   function(x) {
+    # polynomial basis 
     x <- (x - min) / (max - min)
     
     apply(
@@ -130,6 +132,7 @@ transformation_RBF_basis <- function(model,
   var <- var %||% 2 / (n - 1)
   
   function(x) {
+    # RBF basis 
     x <- (x - min) / (max - min)
     apply(
       centers,
@@ -159,6 +162,7 @@ transformation_fourier_basis <- function(model,
   coefs <- coefs %||% create_basis_coefs(dim_s, order)
   
   function(x) {
+    # Fourier basis
     x <- (x - min) / (max - min)
     
     apply(

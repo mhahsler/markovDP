@@ -13,14 +13,14 @@
 #' 
 #' Compared to the specification in class [MDP], no transition probabilities are 
 #' available. Instead of the reward function, reward is only returned from 
-#' called to the transition function via [`act()`]. The state space may be specified.
+#' calls to the transition function via [`act()`]. The state space may be specified.
 #' 
 #' To represent states, a factored state representation as a **row** vector for a single
 #' state or a matrix with row vectors for a set of states are used. State labels
-#' are constructed in the form `s(feature1, feature2, ...)`. Conversion between the factored
+#' can be constructed in the form `s(feature1, feature2, ...)`. Conversion between the factored
 #' representation and state labels is available in [`state2features()`]
 #' and [`features2state()`]. Since the state set is not directly represented,
-#' **state ids are cannot be used!**
+#' **state ids cannot be used!**
 #'
 #' Reinforcement learning algorithms with approximation can be used to solve
 #' these problems. See: [`solve_MDP_APPROX()`].

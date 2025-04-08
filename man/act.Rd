@@ -69,10 +69,11 @@ Other MDP:
 Other MDPTF: 
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
+\code{\link{add_linear_approx_Q_function}()},
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
 }
 \author{

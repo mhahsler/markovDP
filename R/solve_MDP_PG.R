@@ -1,179 +1,19 @@
-# Explanation for how to parametrize q(s,a):
-# https://danieltakeshi.github.io/2016/10/31/going-deeper-into-reinforcement-learning-understanding-q-learning-and-linear-function-approximation/
-# See file linear_function_approximation!
-
-
-#' Solve MDPs with Temporal Differencing with Linear Function Approximation
+#' Solve MDPs with Policy Gradient Methods
 #'
-#' Solve the MDP control problem using state-value approximation
-#' by semi-gradient Sarsa (temporal differencing) for
-#' episodic problems.
+#' Solve the MDP control problem using
+#' a parameterized policy and policy gradient methods.
+#' The implemented method one-step actor-critic control and
+#' actor-critic control with eligibility traces.
 #'
-#' ## Linear Approximation
-#' The state-action value function is approximated by
-#' \deqn{\hat{q}(s,a) = \boldsymbol{w}^\top\phi(s,a),}
 #'
-#' where \eqn{\boldsymbol{w} \in \mathbb{R}^n} is a weight vector
-#' and \eqn{\phi: S \times A \rightarrow \mathbb{R}^n}  is a
-#' feature function that
-#' maps each state-action pair to a feature vector.
-#' Linear approximation has a single optimum and can be optimized using
-#' a simple update rule following the gradient of the state-action function
-#' \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
-#'
-#' ## State-action Feature Vector Construction
-#'
-#' For a small number of actions, we can
-#' follow the construction described by Geramifard et al (2013)
-#' which uses a state feature function \eqn{\phi: S \rightarrow \mathbb{R}^{m}}
-#' to construct the complete state-action feature vector.
-#' Here, we also add an intercept term.
-#' The state-action feature vector has length \eqn{1 + |A| \times m}.
-#' It has the intercept and then one component for each action. All these components
-#' are set to zero and only the active action component is set to \eqn{\phi(s)},
-#' where \eqn{s} is the current state.
-#' For example, for the state feature
-#' vector \eqn{\phi(s) = (3,4)} and action \eqn{a=2} out of three possible
-#' actions \eqn{A = \{1, 2, 3\}}, the complete
-#' state-action feature vector is \eqn{\phi(s,a) = (0,0,0,1,3,4,0,0,0)}.
-#' Each action component has three entries and the 1 represent the intercept
-#' for the state feature vector. The zeros represent the components for the
-#' two not chosen actions.
-#'
-#' The construction of the state-action values is implemented in `add_linear_approx_Q_function()`.
-#'
-#' The state feature function \eqn{\phi()} starts with raw state feature vector
-#' \eqn{\mathbf{x} = (x_1,x_2, ..., x_m)} that
-#' are either user-specified or constructed by parsing the state labels of
-#' form `s(feature list)`.  Then an optional nonlinear transformation
-#' can be performed (see [transformation]). 
-#' 
-#' ## Helper Functions
-#'
-#' The following helper functions for using approximation are available:
-#'
-#' * `approx_Q_value()` calculates approximate Q values given the weights in
-#'    the model or specified weights.
-#' * `approx_greedy_action()` uses approximate Q values given the weights in
-#'    the model or specified weights to find the the greedy action for a
-#'    state.
-#' * `approx_greedy_policy()` calculates the greedy-policy
-#'    for the approximate Q values given the weights in
-#'    the model or specified weights.
-#'
-#' ## Episodic Semi-gradient Sarsa
-#'
-#' The implementation follows the temporal difference algorithm 
-#' episodic Semi-gradient Sarsa algorithm given in Sutton and Barto (2018).
-#' 
-#' ## Schedules
-#' 
-#' * epsilon schedule: `t` is increased by each processed episode.
-#' * alpha schedule: `t` is increased by each processed episode.
-#' 
 #' @family solver
 #' @family MDPTF
 #'
 #' @references
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
 #'
-#' Alborz Geramifard, Thomas J. Walsh, Stefanie Tellex, Girish Chowdhary, Nicholas Roy, and Jonathan P. How. 2013. A Tutorial on Linear Function Approximators for Dynamic Programming and Reinforcement Learning. Foundations and Trends in Machine Learning 6(4), December 2013, pp. 375-451. \doi{10.1561/2200000042}
-#'
-#' Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in Reinforcement Learning Using the Fourier Basis. Proceedings of the AAAI Conference on Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
-#'
 #' @examples
-#' # Example 1: A maze without walls. The step cost is 1. The start is top-left and
-#' # the goal (+100 reward) is bottom-right.
-#' # This is the ideal problem for a linear approximation of the Q-function
-#' # using the x/y location as state features.
-#'
-#' m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
-#'
-#' # construct state features as the x/y coordinates in the gridworld
-#' state_features <- gw_s2rc(S(m))
-#' state_features
-#'
-#' m <- add_linear_approx_Q_function(m, state_features)
-#'
-#' # constructed state-action features (X) and approximate Q function
-#' # and gradient
-#' m$approx_Q_function
-#'
-#' set.seed(1000)
-#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100)
-#' 
-#' gw_plot(sol)
-#' gw_matrix(sol, what = "value")
-#'
-#' # learned weights and state values
-#' sol$solution$w
-#'
-#' # the approximate value function can be visualized for states 
-#' # with two features.
-#' approx_V_plot(sol)
-#'
-#' # extracting approximate Q-values
-#' approx_greedy_action(sol, "s(4,5)")
-#' approx_Q_value(sol, "s(4,5)", "down")
-#' approx_Q_value(sol)
-#'
-#' # extracting a greedy policy using the approximate Q-values
-#' approx_greedy_policy(sol)
-#'
-#'
-#' # Example 2: Stuart Russell's 3x4 Maze using linear basis approximation
-#' # The wall and the -1 absorbing state make linear approximation
-#' # using just the position directly more difficult.
-#'
-#' data(Maze)
-#' gw_plot(Maze)
-#'
-#' # if no state features are specified, then they are constructed
-#' # by parsing the state label of the form s(feature list).
-#' Maze_approx <- add_linear_approx_Q_function(Maze)
-#' 
-#' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                         alpha = schedule_exp(0.3, 0.01),
-#'                         epsilon = schedule_exp(1, 0.1))
-#' gw_plot(sol)
-#' gw_matrix(sol, what = "value")
-#' approx_V_plot(sol, res = 20)
-#'
-#'
-#' # Example 3: Stuart Russell's 3x4 Maze using
-#' #            order-1 Fourier basis for approximation
-#'
-#' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_fourier_basis, order = 1)
-#'
-#' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = schedule_exp(0.3, .01),
-#'                     epsilon = schedule_exp(1, .1))
-#'                     
-#' gw_plot(sol)
-#' gw_matrix(sol, what = "value")
-#' approx_V_plot(sol, res = 20)
-#'
-#' # Example 4: Stuart Russell's 3x4 Maze using
-#' #            order-2 Fourier basis for approximation
-#' #            and eligibility traces: Sarsa(lambda)
-#'
-#' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_fourier_basis, order = 1)
-#'
-#' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-#'                     alpha = schedule_exp(0.3, .01),
-#'                     epsilon = schedule_exp(1, .1),
-#'                     lambda = 0.1)
-#'                     
-#' gw_plot(sol)
-#' gw_matrix(sol, what = "value")
-#' approx_V_plot(sol, res = 20)
-#' 
-#'  
+#' E EXAMPLE
 #' @inheritParams solve_MDP_TD
 #' @param method string; one of the following solution methods: `'sarsa'`
 #' @param lambda the trace-decay parameter for the an accumulating trace. If `lambda = 0`
@@ -183,69 +23,88 @@
 #' @inherit solve_MDP return
 #'
 #' @export
-solve_MDP_APPROX <-
+solve_MDP_PG <-
   function(model,
-           method = "sarsa",
+           method = "actor-critic",
            horizon = NULL,
            discount = NULL,
-           alpha = schedule_exp(0.2, .1),
+           alpha_actor = schedule_exp(0.2, .1),
+           alpha_critic = schedule_exp(0.2, .1),
            epsilon = schedule_exp(1, .1),
            lambda = 0,
            n,
            w = NULL,
+           theta = NULL,
            ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
     .nodots(...)
+    
+    method <-
+      match.arg(method, c("actor-critic"))
+    
+   warning("remove epsilon?")
+     
     if (lambda == 0)
-      solve_MDP_APPROX_1_step(model,
-                              method,
-                              horizon,
-                              discount,
-                              alpha,
-                              epsilon,
-                              n,
-                              w = NULL,
-                              ...,
-                              matrix = matrix,
-                              continue = continue,
-                              progress = progress,
-                              verbose = verbose)
+      solve_MDP_AC_1_step(
+        model,
+        method,
+        horizon,
+        discount,
+        alpha_actor,
+        alpha_critic,
+        epsilon,
+        n,
+        w = NULL,
+        theta = NULL,
+        ...,
+        matrix = matrix,
+        continue = continue,
+        progress = progress,
+        verbose = verbose
+      )
     else
-      solve_MDP_APPROX_lambda(model,
-                              method,
-                              horizon,
-                              discount,
-                              alpha,
-                              epsilon,
-                              lambda,
-                              n,
-                              w = NULL,
-                              ...,
-                              matrix = matrix,
-                              continue = continue,
-                              progress = progress,
-                              verbose = verbose)
-      
+      solve_MDP_APPROX_lambda(
+        model,
+        method,
+        horizon,
+        discount,
+        alpha_actor,
+        alpha_critic,
+        epsilon,
+        lambda,
+        n,
+        w = NULL,
+        theta = NULL,
+        ...,
+        matrix = matrix,
+        continue = continue,
+        progress = progress,
+        verbose = verbose
+      )
+    
   }
-  
-solve_MDP_APPROX_1_step <-
+
+solve_MDP_PG_AC_1_step <-
   function(model,
            method = "sarsa",
            horizon = NULL,
            discount = NULL,
-           alpha = schedule_exp(0.2, .1),
+           alpha_actor = schedule_exp(0.2, .1),
+           alpha_critic = schedule_exp(0.2, .1),
            epsilon = schedule_exp(1, .1),
            n,
            w = NULL,
+           theta = NULL,
            ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
     .nodots(...)
+    stop("DO IT!")
     
     if (!inherits(model, "MDPE"))
       stop("This model needs to be a MDP environment.")
@@ -254,44 +113,58 @@ solve_MDP_APPROX_1_step <-
       match.arg(method, c("sarsa"))
     
     ### alpha/epsilon func
-    alpha_seq <- NULL
-    if (is.function(alpha))
-      alpha_seq <- alpha(seq(1, n))
-    else if(length(alpha) == n)
-      alpha_seq <- alpha
-    
-    epsilon_seq <- NULL
-    if (is.function(epsilon))
-      epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
-      epsilon_seq <- epsilon
+    # alpha_seq <- NULL
+    # if (is.function(alpha))
+    #   alpha_seq <- alpha(seq(1, n))
+    # else if (length(alpha) == n)
+    #   alpha_seq <- alpha
+    # 
+    # epsilon_seq <- NULL
+    # if (is.function(epsilon))
+    #   epsilon_seq <- epsilon(seq(1, n))
+    # else if (length(epsilon) == n)
+    #   epsilon_seq <- epsilon
     ###
     
-    q <- model$approx_Q_function
-    if (is.null(q$w_init) || is.null(q$f) || is.null(q$gradient))
-      stop(
-        "Approx q-function f, the gradient, or w_init are missing in the q_function element in the model!"
-      )
+    # get the approximation functions
+    v <- model$approx_V_function
+    pi <- model$approx_pi_function
     
+    if (is.null(v$w_init) || is.null(v$f) || is.null(v$gradient))
+      stop(
+        "Approx. value function f, the gradient, or w_init are missing in the q_function element in the model!"
+      )
+    if (is.null(pi$w_init) || is.null(pi$f) || is.null(pi$gradient))
+      stop(
+        "Approx. value function f, the gradient, or w_init are missing in the q_function element in the model!"
+      )
+   
     # this code solve MDP and MDPTF
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (verbose)
       progress <- FALSE
     
-    
     if (progress) {
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
       pb$tick(0)
     }
     
-    # Initialize w
+    # Initialize w and theta
     if (continue) {
       if (!is.null(w))
         stop("continue and w cannot be both specified!")
       w <- model$solution$w
     } else {
-      w <- w %||% q$w_init
+      w <- w %||% v$w_init
+    }
+    
+    if (continue) {
+      if (!is.null(theta))
+        stop("continue and w cannot be both specified!")
+      theta <- model$solution$theta
+    } else {
+      theta <- theta %||% pi$w_init
     }
     
     # return unconverged result when interrupted
@@ -307,13 +180,16 @@ solve_MDP_APPROX_1_step <-
       if (verbose) {
         cat("\nTerminated at episode:", e, "\n")
       }
-      
+    
+      warning("Fix how policy is calcualted!!!")
+        
       model$solution <- list(
         method = method,
         alpha = alpha,
         epsilon = epsilon,
         n = n,
         w = w,
+        theta = theta,
         converged = NA,
         policy = if (!is.null(S(model)))
           list(approx_greedy_policy(model, w = w))
@@ -345,17 +221,18 @@ solve_MDP_APPROX_1_step <-
       if (progress)
         pb$tick()
       
+      warning("reduce alpha missing!")
       ### alpha/epsilon func
-      if (!is.null(epsilon_seq)) 
-        epsilon <- epsilon_seq[e]
-      if (!is.null(alpha_seq)) 
-        alpha <- alpha_seq[e]
+      #if (!is.null(epsilon_seq))
+      #  epsilon <- epsilon_seq[e]
+      #if (!is.null(alpha_seq))
+      #  alpha <- alpha_seq[e]
       ###
       
       # MDP: state is an id, MDPTF: state is a features
       s <- start(model)
       
-      a <- approx_greedy_action(model, s, w, epsilon)
+      effective_discount <- 1 # called I in book
       
       # loop steps in episode
       i <- 0L
@@ -364,7 +241,8 @@ solve_MDP_APPROX_1_step <-
         if ((i %% 100 == 0) && progress && !pb$finished)
           pb$tick(0)
         
-        # take action a
+        # choose and take action a
+        a <- approx_action(pi, s, theta)
         a_res <- act(model, s, a, fast = TRUE)
         s_prime <- a_res$state_prime
         r <- a_res$r
@@ -457,22 +335,26 @@ solve_MDP_APPROX_1_step <-
   }
 
 
-solve_MDP_APPROX_lambda <-
+solve_MDP_PG_AC_lambda <-
   function(model,
            method = "sarsa",
            horizon = NULL,
            discount = NULL,
-           alpha = schedule_exp(0.2, .1),
+           alpha_actor = schedule_exp(0.2, .1),
+           alpha_critic = schedule_exp(0.2, .1),
            epsilon = schedule_exp(1, .1),
            lambda = 0.1,
            n,
            w = NULL,
+           theta = NULL,
            ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
     .nodots(...)
+    
+    stop("DO IT!")
     
     if (!inherits(model, "MDPE"))
       stop("This model needs to be a MDP environment.")
@@ -485,13 +367,13 @@ solve_MDP_APPROX_lambda <-
     alpha_seq <- NULL
     if (is.function(alpha))
       alpha_seq <- alpha(seq(1, n))
-    else if(length(alpha) == n)
+    else if (length(alpha) == n)
       alpha_seq <- alpha
     
     epsilon_seq <- NULL
     if (is.function(epsilon))
       epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
+    else if (length(epsilon) == n)
       epsilon_seq <- epsilon
     ###
     
@@ -576,9 +458,9 @@ solve_MDP_APPROX_lambda <-
       
       
       ### alpha/epsilon func
-      if (!is.null(epsilon_seq)) 
+      if (!is.null(epsilon_seq))
         epsilon <- epsilon_seq[e]
-      if (!is.null(alpha_seq)) 
+      if (!is.null(alpha_seq))
         alpha <- alpha_seq[e]
       ###
       
@@ -588,7 +470,7 @@ solve_MDP_APPROX_lambda <-
       a <- approx_greedy_action(model, s, w, epsilon)
       
       x <- qf$x(normalize_state_features(s, model), a)
-      z <- qf$w_init 
+      z <- qf$w_init
       q_old <- 0
       
       # loop steps in episode
@@ -618,7 +500,8 @@ solve_MDP_APPROX_lambda <-
             "Temporal differencing error becomes too large which indicates instability. Reduce alpha or lambda."
           )
         
-        z <- gamma * lambda * z + (1 - alpha + gamma * lambda * sum(z*x)) * x
+        z <- gamma * lambda * z + (1 - alpha + gamma * lambda * sum(z *
+                                                                      x)) * x
         
         # Sarsa(lambda) .. on-policy true online
         if (method_id == 1L) {
@@ -627,7 +510,7 @@ solve_MDP_APPROX_lambda <-
         
         # GTD(lambda)
         else if (method_id == 2) {
-          w <- w + alpha * delta * z - alpha * gamma * (1 - lambda) * sum(z*q) * x
+          w <- w + alpha * delta * z - alpha * gamma * (1 - lambda) * sum(z * q) * x
         }
         
         # GQ(lambda)
@@ -662,7 +545,7 @@ solve_MDP_APPROX_lambda <-
         if (i >= horizon)
           break
         
-        if(absorbing_states(Maze, state = s_prime))
+        if (absorbing_states(Maze, state = s_prime))
           break
         
         q_old <- q_prime
@@ -674,4 +557,26 @@ solve_MDP_APPROX_lambda <-
     }
     
     # return via on.exit()
+  }
+
+solve_MDP_PG_AC_lambda_infinite_horizon <-
+  function(model,
+           method = "sarsa",
+           horizon = NULL,
+           discount = NULL,
+           alpha_actor = schedule_exp(0.2, .1),
+           alpha_critic = schedule_exp(0.2, .1),
+           epsilon = schedule_exp(1, .1),
+           lambda = 0.1,
+           n,
+           w = NULL,
+           theta = NULL,
+           ...,
+           matrix = TRUE,
+           continue = FALSE,
+           progress = TRUE,
+           verbose = FALSE) {
+    .nodots(...)
+    
+    stop("DO IT!")
   }

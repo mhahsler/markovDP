@@ -108,7 +108,7 @@ solve_MDP_MC <-
     
     switch(
       method,
-      exploring_starts = MC_on_policy(
+      exploring_starts = solve_MDP_MC_on_policy(
         model,
         method,
         n,
@@ -121,7 +121,7 @@ solve_MDP_MC <-
         verbose = verbose,
         ...
       ),
-      on_policy = MC_on_policy(
+      on_policy = solve_MDP_MC_on_policy(
         model,
         method,
         n,
@@ -134,7 +134,7 @@ solve_MDP_MC <-
         verbose = verbose,
         ...
       ),
-      off_policy = MC_off_policy(
+      off_policy = solve_MDP_MC_off_policy(
         model,
         method,
         n,
@@ -149,7 +149,7 @@ solve_MDP_MC <-
     )
   }
 
-MC_on_policy <- function(model,
+solve_MDP_MC_on_policy <- function(model,
                          method,
                          n,
                          Q = NULL,
@@ -380,7 +380,7 @@ MC_on_policy <- function(model,
 # the importance sampling ratio. It only uses the from the end of the episode as
 # long as all actions match the greedy actions.
 
-MC_off_policy <- function(model,
+solve_MDP_MC_off_policy <- function(model,
                           method,
                           n,
                           Q = NULL,

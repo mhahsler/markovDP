@@ -58,14 +58,14 @@ function between state represented as feature vectors
 
 Compared to the specification in class \link{MDP}, no transition probabilities are
 available. Instead of the reward function, reward is only returned from
-called to the transition function via \code{\link[=act]{act()}}. The state space may be specified.
+calls to the transition function via \code{\link[=act]{act()}}. The state space may be specified.
 
 To represent states, a factored state representation as a \strong{row} vector for a single
 state or a matrix with row vectors for a set of states are used. State labels
-are constructed in the form \code{s(feature1, feature2, ...)}. Conversion between the factored
+can be constructed in the form \code{s(feature1, feature2, ...)}. Conversion between the factored
 representation and state labels is available in \code{\link[=state2features]{state2features()}}
 and \code{\link[=features2state]{features2state()}}. Since the state set is not directly represented,
-\strong{state ids are cannot be used!}
+\strong{state ids cannot be used!}
 
 Reinforcement learning algorithms with approximation can be used to solve
 these problems. See: \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}.
@@ -162,10 +162,11 @@ policy(sol)
 Other MDPTF: 
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
+\code{\link{add_linear_approx_Q_function}()},
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
 }
 \author{

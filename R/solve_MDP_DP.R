@@ -181,7 +181,7 @@ solve_MDP_DP <- function(model,
     method,
     VI = {
       if (is.infinite(model$horizon)) {
-        MDP_value_iteration_inf_horizon(
+        solve_MDP_DP_VI(
           model,
           error,
           n,
@@ -191,7 +191,7 @@ solve_MDP_DP <- function(model,
           ...
         )
       } else {
-        MDP_value_iteration_finite_horizon(
+        solve_MDP_DP_VI_finite_horizon(
           model,
           horizon = model$horizon,
           V = V,
@@ -203,7 +203,7 @@ solve_MDP_DP <- function(model,
     },
     PI = {
       if (is.infinite(model$horizon)) {
-        MDP_policy_iteration_inf_horizon(
+        solve_MDP_DP_PI(
           model,
           n,
           k_backups,
@@ -218,7 +218,7 @@ solve_MDP_DP <- function(model,
     },
     PS_error = {
       if (is.infinite(model$horizon)) {
-        MDP_PS_inf_horizon(
+        solve_MDP_PD_PS(
           model,
           error = error,
           n = n,
@@ -234,7 +234,7 @@ solve_MDP_DP <- function(model,
     },
     PS_random = {
       if (is.infinite(model$horizon)) {
-        MDP_PS_inf_horizon(
+        solve_MDP_PD_PS(
           model,
           error = error,
           n = n,
@@ -250,7 +250,7 @@ solve_MDP_DP <- function(model,
     },
     GenPS = {
       if (is.infinite(model$horizon)) {
-        MDP_PS_inf_horizon(
+        solve_MDP_PD_PS(
           model,
           error = error,
           n = n,
@@ -272,7 +272,7 @@ solve_MDP_DP <- function(model,
 }
 
 # TODO: we could check for convergence
-MDP_value_iteration_finite_horizon <-
+solve_MDP_DP_VI_finite_horizon <-
   function(model,
            horizon,
            V = NULL,
@@ -327,8 +327,7 @@ MDP_value_iteration_finite_horizon <-
     model
   }
 
-MDP_value_iteration_inf_horizon <-
-  function(model,
+solve_MDP_DP_VI <- function(model,
            error,
            n = 1000L,
            V = NULL,
@@ -436,8 +435,7 @@ MDP_value_iteration_inf_horizon <-
   }
 
 ## Policy iteration
-
-MDP_policy_iteration_inf_horizon <-
+solve_MDP_DP_PI <-
   function(model,
            n = 1000,
            k_backups = 10,
@@ -562,8 +560,7 @@ MDP_policy_iteration_inf_horizon <-
 ##
 ## We initialize H(s) using the states reward so we start with the biggest
 ## reward states and propagate the reward backwards.
-MDP_PS_inf_horizon <-
-  function(model,
+solve_MDP_PD_PS <- function(model,
            error,
            n = 1000L,
            V = NULL,

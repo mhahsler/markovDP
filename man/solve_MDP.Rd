@@ -124,10 +124,11 @@ Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introd
 }
 \seealso{
 Other solver: 
+\code{\link{add_linear_approx_Q_function}()},
 \code{\link{schedule}},
-\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
+\code{\link{solve_MDP_PG}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
 
@@ -155,9 +156,10 @@ Other MDPTF:
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
+\code{\link{add_linear_approx_Q_function}()},
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
-\code{\link{solve_MDP_APPROX}()},
+\code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
 }
 \author{

@@ -108,10 +108,11 @@ Puterman, Martin L. 1996. Markov decision processes: discrete stochastic dynamic
 }
 \seealso{
 Other solver: 
+\code{\link{add_linear_approx_Q_function}()},
 \code{\link{schedule}},
 \code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
+\code{\link{solve_MDP_PG}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
 }

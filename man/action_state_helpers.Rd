@@ -79,7 +79,9 @@ integer id (i.e., the index) is needed, the additional functions can be used.
 These are typically a lot faster.
 
 To support a factored state representation as feature vectors,
-\code{state2features()} and \code{feature2states()} are provided.
+\code{state2features()}, \code{feature2states()}, and \code{get_state_features()} are provided.
+\code{get_state_features()} is only available if the model explicitly
+stores a finite state space.
 
 \strong{Note:} A factored state is represented as a \strong{row} vector (matrix with a
 single row) for a single
@@ -94,15 +96,20 @@ states.
 \examples{
 data(Maze)
 
+# states
 normalize_state(1, Maze)
 normalize_state(1, Maze, as = "id")
 normalize_state(1, Maze, as = "label")
 normalize_state(1, Maze, as = "features")
 
+get_state_features(Maze)
+
+# actions
 normalize_action(1, Maze)
 normalize_action(1, Maze, as = "id")
 normalize_action(1, Maze, as = "label")
 
+# state label to feature conversion
 state2features("s(1,1)")
 s(1,1)
 }
