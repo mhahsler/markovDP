@@ -524,7 +524,7 @@ solve_MDP_DP_PI <-
       V <- policy_evaluation(
         model,
         pi,
-        V,
+        V = V,
         k_backups = k_backups,
         progress = FALSE
       )
