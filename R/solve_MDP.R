@@ -103,7 +103,9 @@ solve_MDP.MDP <- function(model,
   prefix <- splt[1]
   method <- splt[2]
    
-  func <- get(paste0("solve_MDP_", prefix))
+  func <- try(get(paste0("solve_MDP_", prefix)), silent = TRUE)
+  if (!is.function(func))
+    stop("Invalid solve_MDP method prefix: ", prefix,":")
   
   func(
     model,
@@ -133,7 +135,9 @@ solve_MDP.MDPTF <- function(model,
   prefix <- splt[1]
   method <- splt[2]
   
-  func <- get(paste0("solve_MDP_", prefix))
+  func <- try(get(paste0("solve_MDP_", prefix)), silent = TRUE)
+  if (!is.function(func))
+    stop("Invalid solve_MDP method prefix: ", prefix,":")
   
   func(
     model,

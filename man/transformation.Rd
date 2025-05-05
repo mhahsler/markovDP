@@ -39,6 +39,8 @@ transformation_fourier_basis(
 create_basis_coefs(dim, order)
 }
 \arguments{
+\item{model}{the \link{MDP} model.}
+
 \item{min, max}{vectors with the minimum and maximum values for each feature.
 This is used to scale the feature to the \eqn{[0,1]} interval for the
 Fourier basis.}
@@ -51,8 +53,10 @@ Fourier basis.}
 coefficient values for the
 Fourier basis (overrides \code{order}).}
 
+\item{n}{number of centers.}
+
 \item{centers}{a matrix with the centers for the RBF. By default a regular
-grid with n steps per feature dimension is used.}
+grid with n steps (see below) per feature dimension is used.}
 
 \item{var}{a scalar with the variance used for the RBF.}
 

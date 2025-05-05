@@ -58,7 +58,7 @@ Functions ending in
 \item \verb{_id} return an integer id,
 \item \verb{_label} return a character string,
 \item \verb{_features} return a state feature matrix,
-\item no ending return the type specified as parameter \code{as}.
+\item no ending return the type specified with parameter \code{as}.
 }
 
 Other functions:

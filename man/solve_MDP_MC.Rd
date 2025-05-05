@@ -126,8 +126,9 @@ sampled runs where greedy actions are chosen. This means that it is very
 inefficient in learning the beginning portion of long episodes. This problem
 is especially problematic when larger values for \eqn{\epsilon} are used.
 }
+}
 
-#' ## Schedules
+\subsection{Schedules}{
 \itemize{
 \item epsilon schedule: \code{t} is increased by each processed episode.
 \item alpha schedule: \code{t} is set to the number of times the a Q-value for state-action
@@ -138,3 +139,15 @@ combination was updated.
 \references{
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
 }
+\seealso{
+Other solver: 
+\code{\link{add_linear_approx_Q_function}()},
+\code{\link{schedule}},
+\code{\link{solve_MDP}()},
+\code{\link{solve_MDP_DP}()},
+\code{\link{solve_MDP_LP}()},
+\code{\link{solve_MDP_PG}()},
+\code{\link{solve_MDP_SAMP}()},
+\code{\link{solve_MDP_TD}()}
+}
+\concept{solver}

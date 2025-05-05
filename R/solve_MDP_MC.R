@@ -2,6 +2,8 @@
 #'
 #' Solve MDPs using Monte Carlo control.
 #'
+#' @family solver
+#'
 #' @details
 #' The idea is to estimate the action value function for a policy as the 
 #' average of sampled returns.
@@ -45,7 +47,7 @@
 #' inefficient in learning the beginning portion of long episodes. This problem 
 #' is especially problematic when larger values for \eqn{\epsilon} are used. 
 #'
-#' #' ## Schedules
+#' ## Schedules
 #' 
 #' * epsilon schedule: `t` is increased by each processed episode.
 #' * alpha schedule: `t` is set to the number of times the a Q-value for state-action
@@ -99,13 +101,6 @@ solve_MDP_MC <-
       model$horizon <- convergence_horizon(model, n_updates = 1)
     }
     
-    # Initialize Q
-    if (continue) {
-      if (is.null(model$solution$Q))
-        stop("model solution does not contain a Q matrix to continue from!")
-      Q <- model$solution$Q
-    }
-    
     switch(
       method,
       exploring_starts = solve_MDP_MC_on_policy(
@@ -117,6 +112,7 @@ solve_MDP_MC <-
         epsilon = epsilon,
         alpha = alpha,
         first_visit = first_visit,
+        continue = continue,
         progress = progress,
         verbose = verbose,
         ...
@@ -130,6 +126,7 @@ solve_MDP_MC <-
         epsilon = epsilon,
         alpha = alpha,
         first_visit = first_visit,
+        continue = continue,
         progress = progress,
         verbose = verbose,
         ...
@@ -142,6 +139,7 @@ solve_MDP_MC <-
         epsilon = epsilon,
         alpha = alpha,
         first_visit = first_visit,
+        continue = continue,
         progress = progress,
         verbose = verbose,
         ...
@@ -157,6 +155,7 @@ solve_MDP_MC_on_policy <- function(model,
                          epsilon = NULL,
                          alpha = NULL,
                          first_visit = TRUE,
+                         continue = FALSE,
                          progress = TRUE,
                          verbose = FALSE,
                          ...) {
@@ -170,6 +169,13 @@ solve_MDP_MC_on_policy <- function(model,
   ## on policy: Learns an epsilon-soft policy (also used as behavior)
   ## (RL book, Chapter 5)
   
+  # Initialize Q
+  if (continue) {
+    if (is.null(model$solution$Q))
+      stop("model solution does not contain a Q matrix to continue from!")
+    Q <- model$solution$Q
+  }
+  
   if (exploring_starts) {
     epsilon <- epsilon %||% 0
     if (epsilon != 0)
@@ -178,20 +184,14 @@ solve_MDP_MC_on_policy <- function(model,
     epsilon <- epsilon %||% schedule_exp(1, -log(1e-5)/n)
   }
   
-  
+  # alpha depends on Q_N
   alpha <- alpha %||% schedule_exp(.2, .001)
   
-  ### alpha/epsilon func
   alpha_func <- NULL
   if (is.function(alpha))
     alpha_func <- alpha
   
-  epsilon_seq <- NULL
-  if (is.function(epsilon))
-    epsilon_seq <- epsilon(seq(1, n))
-  else if(length(epsilon) == n)
-    epsilon_seq <- epsilon
-  ###
+  epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
   
   S <- S(model)
   A <- A(model)
@@ -253,7 +253,7 @@ solve_MDP_MC_on_policy <- function(model,
     
     model$solution <- list(
       method = method,
-      n = n,
+      n = n + ifelse(continue, model$solution$n, 0),    
       Q = Q,
       Q_N = Q_N,
       converged = NA,
@@ -270,13 +270,11 @@ solve_MDP_MC_on_policy <- function(model,
     if (progress)
       pb$tick()
     
-    ### alpha/epsilon func
-    if (!is.null(epsilon_seq)) 
-      epsilon <- epsilon_seq[e]
+    epsilon_val <- epsilon_seq[e]
     
     # alpha uses the count and not the episode number!
     #if (!is.null(alpha_seq)) 
-    #  alpha <- alpha_seq[e]
+    #  alpha_val<- alpha_seq[e]
     ###
     
     # add faster without checks
@@ -290,7 +288,7 @@ solve_MDP_MC_on_policy <- function(model,
       model,
       n = 1,
       horizon = horizon,
-      epsilon = epsilon,
+      epsilon = epsilon_val,
       exploring_starts = exploring_starts,
       trajectories = TRUE,
       progress = FALSE,
@@ -339,15 +337,15 @@ solve_MDP_MC_on_policy <- function(model,
       # Q <- Q + alpha (G - Q) ... default alpha is 1/n
       Q_N[s_t, a_t] <- Q_N[s_t, a_t] + 1L
       
-      ### alpha/epsilon func
+      ### alpha func
       # alpha uses the count and not the episode number!
       if (!is.null(alpha_func)) 
-        alpha <- alpha_func(Q_N[s_t, a_t])
+        alpha_val <- alpha_func(Q_N[s_t, a_t])
       ###
       
       err <- G - Q[s_t, a_t]
       if (!is.nan(err))
-        Q[s_t, a_t] <- Q[s_t, a_t] + alpha * (err)
+        Q[s_t, a_t] <- Q[s_t, a_t] + alpha_val* (err)
       
       if (verbose > 1)
         cat(paste0(
@@ -387,6 +385,7 @@ solve_MDP_MC_off_policy <- function(model,
                           epsilon = NULL,
                           alpha = NULL,
                           first_visit = TRUE,
+                          continue = FALSE,
                           progress = TRUE,
                           verbose = FALSE,
                           ...) {
@@ -395,11 +394,21 @@ solve_MDP_MC_off_policy <- function(model,
   # Learns an epsilon-greedy policy using an epsilon-soft policy for behavior
   ## (RL book, Chapter 5)
   
+  # Initialize Q
+  if (continue) {
+    if (is.null(model$solution$Q))
+      stop("model solution does not contain a Q matrix to continue from!")
+    Q <- model$solution$Q
+  }
+  
   if (!is.null(alpha))
     warning("MC_off_policy does not use alpha.")
   
   epsilon <- epsilon %||% .2
-  
+ 
+  if (!is.numeric(epsilon) && length(epsilon) != 1L)
+    stop("Epsilon needs to be a constant!")
+   
   S <- S(model)
   A <- A(model)
   gamma <- model$discount
@@ -458,7 +467,7 @@ solve_MDP_MC_off_policy <- function(model,
     
     model$solution <- list(
       method = method,
-      n = n,
+      n = n + ifelse(continue, model$solution$n, 0),
       Q = Q,
       C = C,
       converged = NA,

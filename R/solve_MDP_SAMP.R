@@ -151,7 +151,7 @@ solve_MDP_SAMP <-
       # update Q and Q_N
       Q_N[s, a] <- Q_N[s, a] + 1L
       
-      ### alpha/epsilon func
+      ### alpha func
       # alpha uses the count and not the episode number!
       if (!is.null(alpha_func)) 
         alpha <- alpha_func(Q_N[s, a])

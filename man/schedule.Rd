@@ -89,6 +89,7 @@ Other solver:
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
+\code{\link{solve_MDP_MC}()},
 \code{\link{solve_MDP_PG}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}

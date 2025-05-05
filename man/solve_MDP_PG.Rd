@@ -83,7 +83,7 @@ The implemented method one-step actor-critic control and
 actor-critic control with eligibility traces.
 }
 \examples{
-E EXAMPLE
+# EXAMPLE
 }
 \references{
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
@@ -95,6 +95,7 @@ Other solver:
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
+\code{\link{solve_MDP_MC}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
 

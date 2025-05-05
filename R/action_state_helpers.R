@@ -38,7 +38,7 @@
 #' * `_id` return an integer id,
 #' * `_label` return a character string,
 #' * `_features` return a state feature matrix,
-#' * no ending return the type specified as parameter `as`.
+#' * no ending return the type specified with parameter `as`.
 #'
 #' Other functions: 
 #' * `state2features()` returns a feature vector/matrix.
@@ -148,22 +148,24 @@ normalize_state_label <- function(state, model) {
 #' @rdname action_state_helpers
 #' @export
 normalize_state_features <- function(state, model = NULL) {
+  # it is already a feature matrix
   if (is.matrix(state)) {
     if (is.null(colnames(state)))
       colnames(state) <- paste0("x", 1:ncol(state))
     return(state)
   }
   
+  # the model stores explicit state features
   if (!is.null(model$state_features)) 
-    return(model$state_features[state, ,drop = FALSE])
+    return(model$state_features[state, , drop = FALSE])
   
   if (is.factor(state))
-    state <- as.character(state)
+    return(state2features(as.character(state)))
   
   if (is.character(state))
     return(state2features(state))
   
-  # integer vector is a state ids!
+  # integer vector has state ids!
   if (!is.null(S(model)))
     return(state2features(S(model)[state]))
   

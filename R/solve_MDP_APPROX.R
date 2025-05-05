@@ -253,19 +253,8 @@ solve_MDP_APPROX_1_step <-
     method <-
       match.arg(method, c("sarsa"))
     
-    ### alpha/epsilon func
-    alpha_seq <- NULL
-    if (is.function(alpha))
-      alpha_seq <- alpha(seq(1, n))
-    else if(length(alpha) == n)
-      alpha_seq <- alpha
-    
-    epsilon_seq <- NULL
-    if (is.function(epsilon))
-      epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
-      epsilon_seq <- epsilon
-    ###
+    alpha_seq <- .schedule_to_sequence(alpha, n, continue, model)    
+    epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     
     q <- model$approx_Q_function
     if (is.null(q$w_init) || is.null(q$f) || is.null(q$gradient))
@@ -312,7 +301,7 @@ solve_MDP_APPROX_1_step <-
         method = method,
         alpha = alpha,
         epsilon = epsilon,
-        n = n,
+        n = n + ifelse(continue, model$solution$n, 0),
         w = w,
         converged = NA,
         policy = if (!is.null(S(model)))
@@ -345,17 +334,13 @@ solve_MDP_APPROX_1_step <-
       if (progress)
         pb$tick()
       
-      ### alpha/epsilon func
-      if (!is.null(epsilon_seq)) 
-        epsilon <- epsilon_seq[e]
-      if (!is.null(alpha_seq)) 
-        alpha <- alpha_seq[e]
-      ###
+      epsilon_val <- epsilon_seq[e]
+      alpha_val <- alpha_seq[e]
       
       # MDP: state is an id, MDPTF: state is a features
       s <- start(model)
       
-      a <- approx_greedy_action(model, s, w, epsilon)
+      a <- approx_greedy_action(model, s, w, epsilon_val)
       
       # loop steps in episode
       i <- 0L
@@ -394,7 +379,7 @@ solve_MDP_APPROX_1_step <-
             print(w)
           }
           
-          w <- w + alpha * (r - q$f(s_features, a, w)) * q$gradient(s_features, a, w)
+          w <- w + alpha_val * (r - q$f(s_features, a, w)) * q$gradient(s_features, a, w)
           
           if (verbose > 1) {
             print(w)
@@ -405,7 +390,7 @@ solve_MDP_APPROX_1_step <-
         }
         
         s_prime_features <- normalize_state_features(s_prime, model)
-        a_prime <- approx_greedy_action(model, s_prime, w, epsilon)
+        a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val)
         
         if (verbose > 1) {
           if (i == 1L) {
@@ -437,7 +422,7 @@ solve_MDP_APPROX_1_step <-
             "Temporal differencing error becomes too large which indicates instability. Reduce alpha."
           )
         
-        w <- w + alpha * td_error * q$gradient(s_features, a, w)
+        w <- w + alpha_val * td_error * q$gradient(s_features, a, w)
         
         if (verbose > 1) {
           print(w)
@@ -481,20 +466,8 @@ solve_MDP_APPROX_lambda <-
     method <- match.arg(tolower(method), tolower(methods))
     method_id <- match(tolower(method), tolower(methods))
     
-    ### alpha/epsilon func
-    alpha_seq <- NULL
-    if (is.function(alpha))
-      alpha_seq <- alpha(seq(1, n))
-    else if(length(alpha) == n)
-      alpha_seq <- alpha
-    
-    epsilon_seq <- NULL
-    if (is.function(epsilon))
-      epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
-      epsilon_seq <- epsilon
-    ###
-    
+    alpha_seq <- .schedule_to_sequence(alpha, n, continue, model)    
+    epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     
     qf <- model$approx_Q_function
     if (is.null(qf$w_init) || is.null(qf$f) || is.null(qf$gradient))
@@ -541,7 +514,7 @@ solve_MDP_APPROX_lambda <-
         alpha = alpha,
         epsilon = epsilon,
         lambda = lambda,
-        n = n,
+        n = n + ifelse(continue, model$solution$n, 0),  
         w = w,
         converged = NA,
         policy = if (!is.null(S(model)))
@@ -574,18 +547,13 @@ solve_MDP_APPROX_lambda <-
       if (progress)
         pb$tick()
       
-      
-      ### alpha/epsilon func
-      if (!is.null(epsilon_seq)) 
-        epsilon <- epsilon_seq[e]
-      if (!is.null(alpha_seq)) 
-        alpha <- alpha_seq[e]
-      ###
+      epsilon_val <- epsilon_seq[e]
+      alpha_val <- alpha_seq[e]
       
       # Initialize s and choose first action
       # MDP: state is an id, MDPTF: state is a features
       s <- start(model)
-      a <- approx_greedy_action(model, s, w, epsilon)
+      a <- approx_greedy_action(model, s, w, epsilon_val)
       
       x <- qf$x(normalize_state_features(s, model), a)
       z <- qf$w_init 
@@ -604,7 +572,7 @@ solve_MDP_APPROX_lambda <-
         r <- a_res$r
         
         # choose a'
-        a_prime <- approx_greedy_action(model, s_prime, w, epsilon)
+        a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val)
         
         # get x'
         x_prime <- qf$x(normalize_state_features(s_prime, model), a_prime)
@@ -618,16 +586,16 @@ solve_MDP_APPROX_lambda <-
             "Temporal differencing error becomes too large which indicates instability. Reduce alpha or lambda."
           )
         
-        z <- gamma * lambda * z + (1 - alpha + gamma * lambda * sum(z*x)) * x
+        z <- gamma * lambda * z + (1 - alpha_val + gamma * lambda * sum(z*x)) * x
         
         # Sarsa(lambda) .. on-policy true online
         if (method_id == 1L) {
-          w <- w + alpha * (delta + q - q_old) * z - alpha * (q - q_old) * x
+          w <- w + alpha_val * (delta + q - q_old) * z - alpha_val * (q - q_old) * x
         }
         
         # GTD(lambda)
         else if (method_id == 2) {
-          w <- w + alpha * delta * z - alpha * gamma * (1 - lambda) * sum(z*q) * x
+          w <- w + alpha_val * delta * z - alpha_val * gamma * (1 - lambda) * sum(z*q) * x
         }
         
         # GQ(lambda)
@@ -662,7 +630,7 @@ solve_MDP_APPROX_lambda <-
         if (i >= horizon)
           break
         
-        if(absorbing_states(Maze, state = s_prime))
+        if(absorbing_states(model, state = s_prime))
           break
         
         q_old <- q_prime

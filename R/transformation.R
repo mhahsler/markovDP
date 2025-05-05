@@ -48,6 +48,7 @@
 #'
 #' @seealso [solve_MDP_APPROX()]
 #'
+#' @param model the [MDP] model.
 #' @param min,max vectors with the minimum and maximum values for each feature.
 #'    This is used to scale the feature to the \eqn{[0,1]} interval for the
 #'    Fourier basis.
@@ -102,8 +103,9 @@ transformation_polynomial_basis <- function(model,
 
 #' @rdname transformation
 #' @param centers a matrix with the centers for the RBF. By default a regular 
-#'               grid with n steps per feature dimension is used.
+#'               grid with n steps (see below) per feature dimension is used.
 #' @param var a scalar with the variance used for the RBF.
+#' @param n number of centers.
 #' @export
 transformation_RBF_basis <- function(model,
                                      min = NULL,

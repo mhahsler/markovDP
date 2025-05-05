@@ -79,6 +79,8 @@ Collate:
     'policy.R'
     'policy_evaluation.R'
     'policy_evaluation_LP.R'
+    'policy_evaluation_MC.R'
+    'policy_evaluation_bellman.R'
     'reachable_states.R'
     'regret.R'
     'reward.R'

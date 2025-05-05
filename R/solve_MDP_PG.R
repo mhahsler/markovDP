@@ -13,7 +13,7 @@
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
 #'
 #' @examples
-#' E EXAMPLE
+#' # EXAMPLE
 #' @inheritParams solve_MDP_TD
 #' @param method string; one of the following solution methods: `'sarsa'`
 #' @param lambda the trace-decay parameter for the an accumulating trace. If `lambda = 0`

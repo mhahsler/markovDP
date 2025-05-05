@@ -275,8 +275,27 @@ solve_MDP_TD <-
     
     }
 }
- 
-   
+
+# returns sequence of length n
+.schedule_to_sequence <- function(schedule, n, continue = FALSE, model = NULL) {
+  offset <- 0
+  if (continue) offset <- model$solution$n
+  if (is.null(offset))
+    stop("Unable to continue!")
+  
+  if (is.function(schedule))
+    sequence <- schedule(seq(1, n) + offset)
+  else if(length(schedule) == n)
+    sequence <- schedule
+  else if(length(schedule) == 1L)
+    sequence <- rep.int(schedule, times = n)
+  else 
+    stop("epsilon sequence does not have 1 or n elements!")
+  
+  sequence
+}
+  
+  
 solve_MDP_TD_1_step <-
   function(model,
            method = "sarsa",
@@ -306,11 +325,7 @@ solve_MDP_TD_1_step <-
     if (is.function(alpha))
       alpha_func <- alpha
     
-    epsilon_seq <- NULL
-    if (is.function(epsilon))
-      epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
-      epsilon_seq <- epsilon
+    epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     ###
     
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
@@ -359,7 +374,7 @@ solve_MDP_TD_1_step <-
         epsilon = epsilon,
         n_step = 1L,
         on_policy = on_policy,
-        n = n,
+        n = n + ifelse(continue, model$solution$n, 0),
         Q = Q,
         Q_N = Q_N,
         converged = NA,
@@ -396,14 +411,11 @@ solve_MDP_TD_1_step <-
       if (progress)
         pb$tick()
       
-      ### epsilon func
-      if (!is.null(epsilon_seq)) 
-        epsilon <- epsilon_seq[e]
-      ###
+      epsilon_val <- epsilon_seq[e]
       
       # get episode start state and first action
       s <- start(model, as = "id")
-      a <- greedy_action(model, s, Q, epsilon)
+      a <- greedy_action(model, s, Q, epsilon_val)
       
       # loop steps in episode
       i <- 0L
@@ -421,7 +433,7 @@ solve_MDP_TD_1_step <-
         if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
       
         # for Sarsa we need (s, a, r, s', a')
-        a_prime <- greedy_action(model, s_prime, Q, epsilon)
+        a_prime <- greedy_action(model, s_prime, Q, epsilon_val)
         
         if (verbose > 1) {
           if (i == 1L) {
@@ -448,7 +460,7 @@ solve_MDP_TD_1_step <-
         ### alpha/epsilon func
         # alpha uses the count and not the episode number!
         if (!is.null(alpha_func)) 
-          alpha <- alpha_func(sum(Q_N[s, ]))
+          alpha_val <- alpha_func(sum(Q_N[s, ]))
         ###
         
         G <- switch(
@@ -462,7 +474,7 @@ solve_MDP_TD_1_step <-
           
           # on-policy: Uses expectation under the behavior policy
           # (off-policy would use the expectation under the greedy behavior policy -> q-learning)
-          expected_sarsa = sum(greedy_action(model, s_prime, Q, epsilon, prob = TRUE) * Q[s_prime, ], na.rm = TRUE)
+          expected_sarsa = sum(greedy_action(model, s_prime, Q, epsilon_val, prob = TRUE) * Q[s_prime, ], na.rm = TRUE)
         )
         
         # on-policy: always use importance sampling factor of 1
@@ -473,20 +485,20 @@ solve_MDP_TD_1_step <-
           # off-policy: use importance sampling ratio
           # rho = prob greedy pi / prob epsilon-greedy b
           if (as.integer(a_prime) %in% which(Q[s_prime, ] == max(Q[s_prime, ]))) {
-            rho <-  1 / (1 - epsilon + epsilon / length(S))
+            rho <-  1 / (1 - epsilon_val + epsilon_val / length(S))
           } else {
             rho <- 0
           }
         }
         
-        Q[s, a] <- Q[s, a] + alpha * rho * (r + gamma * G - Q[s, a])
+        Q[s, a] <- Q[s, a] + alpha_val * rho * (r + gamma * G - Q[s, a])
         
         if (is.na(Q[s, a])) {
           Q[s, a] <- -Inf
         }
         
         if (verbose > 1) {
-          cat(sprintf("%.3f (N: %i alpha: %.3f)\n", Q[s, a], Q_N[s, a], alpha))
+          cat(sprintf("%.3f (N: %i alpha: %.3f)\n", Q[s, a], Q_N[s, a], alpha_val))
         }
         
         s <- s_prime
@@ -542,11 +554,7 @@ solve_MDP_TD_n_step <-
     if (is.function(alpha))
       alpha_func <- alpha
     
-    epsilon_seq <- NULL
-    if (is.function(epsilon))
-      epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
-      epsilon_seq <- epsilon
+    epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     ###
     
     # n_step = Inf: this is MC control. We size all the arrays to fit horizon
@@ -594,7 +602,7 @@ solve_MDP_TD_n_step <-
         epsilon = epsilon,
         on_policy = on_policy,
         n_step = n_step,
-        n = n,
+        n = n + ifelse(continue, model$solution$n, 0),
         Q = Q,
         Q_N = Q_N,
         converged = NA,
@@ -645,13 +653,10 @@ solve_MDP_TD_n_step <-
       if (progress)
         pb$tick()
       
-      ### epsilon func
-      if (!is.null(epsilon_seq)) 
-        epsilon <- epsilon_seq[e]
-      ###
+      epsilon_val <- epsilon_seq[e]
       
       s <- sample.int(length(S), 1L, prob = start)
-      a <- greedy_action(model, s, Q, epsilon)
+      a <- greedy_action(model, s, Q, epsilon_val)
       
       S_t[1L] <- s
       A_t[1L] <- a
@@ -683,7 +688,7 @@ solve_MDP_TD_n_step <-
             tt <- t + 1   # end of episode T
           } else {
             # choose an action using the behavior policy (which is epsilon greedy here)
-            a_prime <- greedy_action(model, s_prime, Q, epsilon)
+            a_prime <- greedy_action(model, s_prime, Q, epsilon_val)
             A_t[t_plus_1_idx] <- a_prime
           }
         } else {
@@ -731,7 +736,7 @@ solve_MDP_TD_n_step <-
           ### alpha/epsilon func
           # alpha uses the count and not the episode number!
           if (!is.null(alpha_func)) 
-            alpha <- alpha_func(sum(Q_N[s, ]))
+            alpha_val <- alpha_func(sum(Q_N[s, ]))
           ###
           
           if (verbose > 1) {
@@ -750,13 +755,13 @@ solve_MDP_TD_n_step <-
             pi_hits <- pi_hits[!is.na(pi_hits)]
             if (all(pi_hits, na.rm = TRUE)) {
               # greedy pi / epsilon-greedy b
-              rho <- 1 / (1 - epsilon + epsilon / length(S))^length(pi_hits)
+              rho <- 1 / (1 - epsilon_val + epsilon_val / length(S))^length(pi_hits)
             } else {
               rho <- 0
             }
           }
           
-          Q[s_tau, a_tau] <- Q[s_tau, a_tau] + alpha * rho * (G - Q[s_tau, a_tau])
+          Q[s_tau, a_tau] <- Q[s_tau, a_tau] + alpha_val * rho * (G - Q[s_tau, a_tau])
           
           if(is.na(Q)[s_tau, a_tau]) {
             #browser()
@@ -770,7 +775,7 @@ solve_MDP_TD_n_step <-
               Q[s_tau, a_tau],
               Q_N[s_tau, a_tau],
               G,
-              alpha,
+              alpha_val,
               rho
             ))
           }
@@ -828,11 +833,8 @@ solve_MDP_TD_lambda <-
     if (is.function(alpha))
       alpha_func <- alpha
     
-    epsilon_seq <- NULL
-    if (is.function(epsilon))
-      epsilon_seq <- epsilon(seq(1, n))
-    else if(length(epsilon) == n)
-      epsilon_seq <- epsilon
+    
+    epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     ###
     
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
@@ -886,7 +888,7 @@ solve_MDP_TD_lambda <-
         alpha = alpha,
         epsilon = epsilon,
         lambda = lambda,
-        n = n,
+        n = n + ifelse(continue, model$solution$n, 0),
         Q = Q,
         Q_N = Q_N,
         converged = NA,
@@ -924,14 +926,11 @@ solve_MDP_TD_lambda <-
       if (progress)
         pb$tick()
       
-      ### epsilon func
-      if (!is.null(epsilon_seq)) 
-        epsilon <- epsilon_seq[e]
-      ###
+      epsilon_val <- epsilon_seq[e]
       
       # get episode start state and first action
       s <- start(model, as = "id")
-      a <- greedy_action(model, s, Q, epsilon)
+      a <- greedy_action(model, s, Q, epsilon_val)
       
       # loop steps in episode
       i <- 0L
@@ -949,7 +948,7 @@ solve_MDP_TD_lambda <-
         if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
         
         # for Sarsa we need (s, a, r, s', a')
-        a_prime <- greedy_action(model, s_prime, Q, epsilon)
+        a_prime <- greedy_action(model, s_prime, Q, epsilon_val)
         
         if (verbose > 1) {
           if (i == 1L) {
@@ -976,7 +975,7 @@ solve_MDP_TD_lambda <-
         ### alpha/epsilon func
         # alpha uses the count and not the episode number!
         if (!is.null(alpha_func)) 
-          alpha <- alpha_func(sum(Q_N[s, ]))
+          alpha_val <- alpha_func(sum(Q_N[s, ]))
         ###
         
         delta <- r + gamma * Q[s_prime, a_prime] - Q[s,a]
@@ -988,7 +987,7 @@ solve_MDP_TD_lambda <-
           if (Q[s,a] != max(Q[s,])) z[] <- 0
         
         # FIXME: maybe we need individual alphas!
-        Q <- Q + alpha * delta * z
+        Q <- Q + alpha_val * delta * z
          
         ## off_policy for sarsa
         if (!on_policy)  {
@@ -1007,8 +1006,6 @@ solve_MDP_TD_lambda <-
         
         # decay eligibility trace vector
         z <- gamma * lambda * z 
-        
-        
         
         s <- s_prime
         a <- a_prime

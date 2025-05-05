@@ -23,9 +23,12 @@
 #' @export
 policy_evaluation_LP <- function(model,
                                  pi = NULL,
-                                 inf = 1000,
-                                 verbose = FALSE,
-                                 ...) {
+                                 inf = 1000, 
+                                 ...,
+                                 progress = FALSE,
+                                 verbose = FALSE) {
+ 
+  # progress not supported! 
   
   if (is.finite(model$horizon)) {
     stop("method 'lp' can only be used for infinite horizon problems.")

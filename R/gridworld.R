@@ -680,7 +680,7 @@ gw_animate <- function(model,
   }
   
   sol <- model
-  
+ 
   for (i in seq(n)) {
     sol <- suppressWarnings(solve_MDP(
       sol,

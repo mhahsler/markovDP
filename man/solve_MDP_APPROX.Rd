@@ -3,6 +3,8 @@
 %   R/solve_MDP_APPROX.R
 \name{add_linear_approx_Q_function}
 \alias{add_linear_approx_Q_function}
+\alias{add_linear_approx_Q_function.MDP}
+\alias{add_linear_approx_Q_function.MDPTF}
 \alias{approx_Q_value}
 \alias{approx_greedy_action}
 \alias{approx_greedy_policy}
@@ -10,7 +12,16 @@
 \alias{solve_MDP_APPROX}
 \title{Solve MDPs with Temporal Differencing with Linear Function Approximation}
 \usage{
-add_linear_approx_Q_function(
+add_linear_approx_Q_function(model, ...)
+
+\method{add_linear_approx_Q_function}{MDP}(
+  model,
+  state_features = NULL,
+  transformation = transformation_linear_basis,
+  ...
+)
+
+\method{add_linear_approx_Q_function}{MDPTF}(
   model,
   state_features = NULL,
   transformation = transformation_linear_basis,
@@ -56,13 +67,13 @@ solve_MDP_APPROX(
 \arguments{
 \item{model}{an MDP problem specification.}
 
+\item{...}{further parameters are passed on to the solver function.}
+
 \item{state_features}{a matrix with state features. Each row is the feature
 vector for a state.}
 
 \item{transformation}{a transformation function that is applied to the feature vector
 before it is used in the linear approximation. See \link{transformation}.}
-
-\item{...}{further parameters are passed on to the solver function.}
 
 \item{state}{a state (index or name)}
 
@@ -311,6 +322,7 @@ Other solver:
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
+\code{\link{solve_MDP_MC}()},
 \code{\link{solve_MDP_PG}()},
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
