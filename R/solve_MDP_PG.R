@@ -48,7 +48,7 @@ solve_MDP_PG <-
    warning("remove epsilon?")
      
     if (lambda == 0)
-      solve_MDP_AC_1_step(
+      solve_MDP_PG_AC_1_step(
         model,
         method,
         horizon,
@@ -66,7 +66,7 @@ solve_MDP_PG <-
         verbose = verbose
       )
     else
-      solve_MDP_APPROX_lambda(
+      solve_MDP_PG_APPROX_lambda(
         model,
         method,
         horizon,
@@ -545,7 +545,7 @@ solve_MDP_PG_AC_lambda <-
         if (i >= horizon)
           break
         
-        if (absorbing_states(Maze, state = s_prime))
+        if (absorbing_states(model, state = s_prime))
           break
         
         q_old <- q_prime

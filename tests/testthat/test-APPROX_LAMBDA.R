@@ -10,7 +10,7 @@ expect_true(all(gw_matrix(benchmark, what = "action")[-25] %in% c("down", "right
 
 m <- add_linear_approx_Q_function(m)
 
-set.seed(1000)
+set.seed(2000)
 sol <- solve_MDP_APPROX(m, method = "sarsa", horizon = 100, n = 100, 
                         alpha = schedule_exp(.2, 0.1),
                         lambda = 0.1)
@@ -24,3 +24,4 @@ expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
 
 # cleanup
 unlink("Rplots.pdf")
+

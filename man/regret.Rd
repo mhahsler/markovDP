@@ -8,7 +8,13 @@
 \usage{
 regret(policy, benchmark, start = NULL, relative = FALSE, ...)
 
-action_discrepancy(policy, benchmark, weighted = FALSE, proportion = FALSE)
+action_discrepancy(
+  policy,
+  benchmark,
+  weighted = FALSE,
+  proportion = FALSE,
+  states = FALSE
+)
 
 value_error(policy, benchmark, type = "RMSVE", weighted = FALSE)
 }
@@ -31,6 +37,8 @@ visited states will have now less influence on the measure.}
 
 \item{proportion}{logical; should the action discrepancy be reported as a proportion
 of states with a different action.}
+
+\item{states}{logical; return the mismatching state ids.}
 
 \item{type}{type of error root mean square value error (\code{"RMSVE"}), mean square value error (\code{"MSVE"}),
 mean absolute value error (\code{"MAVE"}), absolute value error vector (\code{"AVE"}),  value error vector (\code{"VE"}).}

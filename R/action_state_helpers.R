@@ -308,7 +308,7 @@ get_state_feature_range <- function(model, min = NULL, max = NULL) {
     rng <- apply(state_features, MARGIN = 2, range)
     rownames(rng) <- c("min", "max")
     return(rng)
-  } else if (model$info$gridworld) {
+  } else if (model$info$gridworld %||% FALSE) {
     # MDPTF can have no state space, check if is a gridworld
     return(rbind(min = 1, max = model$info$dim))
   }

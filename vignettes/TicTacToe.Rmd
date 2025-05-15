@@ -312,16 +312,24 @@ test_policy <- function(sol) {
 
 ### LP
 
+We can find the optimal policy using linear programming.
+
 ```{r }
-sol <- solve_MDP(n, method = "LP:LP")
-test_policy(sol)
+sol_lp <- solve_MDP(n, method = "LP:LP")
+test_policy(sol_lp)
 ```
 
 ### Value Iteration
 
 ```{r }
-sol <- solve_MDP(n, method = "DP:VI")
-test_policy(sol)
+sol_vi <- solve_MDP(n, method = "DP:VI")
+test_policy(sol_vi)
+```
+
+Value iteration converges to the optimal policy.
+
+```{r }
+action_discrepancy(sol_vi, sol_lp)
 ```
 
 The expected state value is for the optimal policy playing against a random player.
@@ -331,29 +339,28 @@ The expected state value is for the optimal policy playing against a random play
 ### Policy Iteration
 
 ```{r }
-sol <- solve_MDP(n, method = "DP:PI")
-test_policy(sol)
+sol_pi <- solve_MDP(n, method = "DP:PI")
+test_policy(sol_pi)
 ```
+
+Policy iteration also converges to the optimal policy.
 
 ```{r }
-sol <- solve_MDP(n, method = "DP:GenPS")
-test_policy(sol)
+action_discrepancy(sol_pi, sol_lp)
 ```
-
 
 ### Q-Learning
 
 ```{r }
-sol <- solve_MDP(n, method = "TD:q_learning", n = 10000, horizon = 9, Q = 1)
-test_policy(sol)
+sol_q_learning <- solve_MDP(n, method = "TD:q_learning", n = 10000, horizon = 9, Q = 1)
+test_policy(sol_q_learning)
 ```
 
-
-### Expected Sarsa
-
-```{r }
-sol <- solve_MDP(n, method = "TD:expected_sarsa", n = 50000, alpha = 1, horizon = 9)
-test_policy(sol)
+```{r}
+action_discrepancy(sol_q_learning, sol_lp, proportion = TRUE)
 ```
+
+Q learning would need more playoouts and does not learn the optimal policy for all states.
+
 
 # References

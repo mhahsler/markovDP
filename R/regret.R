@@ -135,25 +135,30 @@ regret.MDP <- function(policy,
 #'   visited states will have now less influence on the measure.
 #' @param proportion logical; should the action discrepancy be reported as a proportion
 #'    of states with a different action.
+#' @param states logical; return the mismatching state ids.
 #' @export
-action_discrepancy <- function(policy, benchmark, weighted = FALSE, proportion = FALSE) {
-  if (weighted && proportion)
+action_discrepancy <- function(policy, benchmark, 
+                               weighted = FALSE, proportion = FALSE, 
+                               states = FALSE) {
+  if (!states && weighted && proportion)
     stop("You can only use weighted or proportion!")
   
   is_solved_MDP(benchmark)
   is_solved_MDP(policy)
   
+  # account for ties in the Q matrix
   pi <- policy(policy)$action
   Q <- Q_values(benchmark)
+  mismatches <- !near_equal(Q[cbind(seq_len(nrow(Q)), pi)], apply(Q, MARGIN = 1, max))
+  
+  if (states)
+    return (which(mismatches))
   
   if (weighted)
-    weight <- visit_probability(benchmark)
+    discrepancy <- sum(visit_probability(benchmark) * mismatches)
   else 
-    weight <- 1
-  
-  # account for ties in the Q matrix
-  discrepancy <- sum(weight * (Q[cbind(seq_len(nrow(Q)), pi)] != apply(Q, MARGIN = 1, max)))
-  
+    discrepancy <- sum(mismatches)
+   
   if (proportion)
     discrepancy <- discrepancy / length(pi)
   

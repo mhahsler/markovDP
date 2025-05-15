@@ -47,6 +47,7 @@ Collate:
     'AAA_check_installed.R'
     'AAA_colors.R'
     'AAA_foreach_helper.R'
+    'AAA_near_equal.R'
     'AAA_nodots.R'
     'AAA_package.R'
     'AAA_progress.R'
