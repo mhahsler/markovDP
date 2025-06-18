@@ -30,7 +30,7 @@
 #'    only returned for `trajectories = TRUE`.
 #' @author Michael Hahsler
 #' @examples
-#' # enable parallel simulation
+#' # enable parallel simulation (useful for sampling with large n)
 #' # doParallel::registerDoParallel()
 #'
 #' # Create a simple maze with the layout:
@@ -52,14 +52,16 @@
 #' model
 #' gw_plot(model)
 #' 
+#' # sample a random walk (epsilon = 1) from the unsolved MDP
+#' set.seed(1234)
 #' sim <- sample_MDP(model, horizon = 500, n = 1, 
 #'                    verbose = TRUE, trajectories = TRUE)
 #' sim
 #' 
 #' # sample from a solved MDPTF by following the policy
-#' model <- add_linear_approx_Q_function(model, 
-#'                transformation = transformation_fourier_basis, order = 2)
-#' sol <- solve_MDP(model, horizon = 1000, n = 100, alpha = 0.01, epsilon = .1)
+#' set.seed(1234)
+#' sol <- solve_MDP_APPROX(model, horizon = 500, n = 100,
+#'                    transformation = transformation_fourier_basis, order = 2)
 #' gw_plot(sol)
 #' 
 #' sim <- sample_MDP(sol, horizon = 500, n = 1, 

@@ -269,9 +269,9 @@ Other MDPTF:
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
-\code{\link{add_linear_approx_Q_function}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
 }

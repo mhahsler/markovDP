@@ -12,7 +12,7 @@
 #'   policy.
 #' @param fast logical; if `TRUE` then extra state id to label conversions are avoided.
 #' @param ... if action is unspecified, then the additional parameters are
-#'   passed on to `action()` to determine the action using the model's policy.
+#'   passed on to [action()] to determine the action using the model's policy.
 #'
 #' @returns a names list with
 #'  the `reward` and the next `state_prime`.

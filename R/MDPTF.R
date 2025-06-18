@@ -98,29 +98,32 @@
 #' # To use value function approximation, we need to specify the minimum
 #' # and maximum of each state feature for scaling them to [0,1]. The rows
 #' # and column indices used are between 0 and 5.
-#'
-#' m_approx <- add_linear_approx_Q_function(m, min = c(0, 0), max = c(5, 5))
-#'
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 100,
-#'           alpha = 0.01, epsilon = 0.55, verbose = FALSE)
+#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
+#'           alpha = 0.01, epsilon = 0.55, 
+#'           transformation = transformation_linear_basis, 
+#'           min = c(0, 0), max = c(5, 5),
+#'           verbose = FALSE)
 #' 
 #' # we can calculate the approximate q-values, but have to specify the states.
-#' Q_values(sol, state = rbind(s(1,2), s(4,5)))
+#' approx_Q_value(sol, state = rbind(s(1,2), s(4,5)))
+#'
+#' # Note: since there is no explicit state space, we also do not have a 
+#' #       precalculated policy! We can get approx. greedy actions.
+#' 
+#' approx_greedy_action(sol, state = s(4,5))
 #'  
 #' # Example 3: MDPTF with a specified state space  
 #' 
 #' # The same maze as above can be created with this gridworld helper.
-#' # It specifies the finite state space and alows us to use function 
-#' # that rely on this information
+#' # It specifies the finite state space.
 #' m <- gw_maze_MDPTF(c(5,5), start = "s(1,1)", goal = "s(5,5)")
 #' S(m)
 #' 
-#' # linear approximation uses the state space to determin feature scaling
-#' m_approx <- add_linear_approx_Q_function(m)
-#' 
+#' # With the defined state space, we do not need to supply min and max 
+#' # for the transformation function.
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(m_approx, horizon = 1000, n = 100,
+#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
 #'           alpha = 0.01, epsilon = 0.55, verbose = FALSE)
 #' 
 #' # we can use several gridworld helper

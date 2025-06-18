@@ -19,14 +19,7 @@ transformation_polynomial_basis(
   coefs = NULL
 )
 
-transformation_RBF_basis(
-  model,
-  min = NULL,
-  max = NULL,
-  n,
-  centers = NULL,
-  var = NULL
-)
+transformation_RBF_basis(model, min = NULL, max = NULL, centers, var = NULL)
 
 transformation_fourier_basis(
   model,
@@ -53,10 +46,10 @@ Fourier basis.}
 coefficient values for the
 Fourier basis (overrides \code{order}).}
 
-\item{n}{number of centers.}
-
-\item{centers}{a matrix with the centers for the RBF. By default a regular
-grid with n steps (see below) per feature dimension is used.}
+\item{centers}{a scalar with the number of centers to create a
+a regular grid with that many steps per feature dimension.
+Alternatively, a matrix with the centers for the RBF
+can be supplied.}
 
 \item{var}{a scalar with the variance used for the RBF.}
 

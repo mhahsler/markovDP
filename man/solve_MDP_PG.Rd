@@ -36,6 +36,8 @@ running iterations till it converges to the infinite horizon solution. If
 \item{discount}{discount factor in range \eqn{(0, 1]}. If \code{NULL}, then the
 discount factor specified in \code{model} will be used.}
 
+\item{alpha_actor, alpha_critic}{alpha schedules}
+
 \item{epsilon}{used for the \eqn{\epsilon}-greedy behavior policies. A scalar value between 0 and 1 or a
 \link{schedule}.}
 
@@ -45,6 +47,8 @@ then 1-step Sarsa is used.}
 \item{n}{number of episodes used for learning.}
 
 \item{w}{an initial weight vector. By default a vector with 0s is used.}
+
+\item{theta}{parameter...}
 
 \item{...}{further parameters are passed on to the solver function.}
 
@@ -77,7 +81,7 @@ element for converged solutions.
 }
 }
 \description{
-Solve the MDP control problem using
+Not implemented yet: Solve the MDP control problem using
 a parameterized policy and policy gradient methods.
 The implemented method one-step actor-critic control and
 actor-critic control with eligibility traces.
@@ -90,9 +94,9 @@ Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introd
 }
 \seealso{
 Other solver: 
-\code{\link{add_linear_approx_Q_function}()},
 \code{\link{schedule}},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_MC}()},
@@ -103,10 +107,10 @@ Other MDPTF:
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
-\code{\link{add_linear_approx_Q_function}()},
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{start}()}
 }
 \concept{MDPTF}

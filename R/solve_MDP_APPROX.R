@@ -3,64 +3,13 @@
 # See file linear_function_approximation!
 
 
-#' Solve MDPs with Temporal Differencing with Linear Function Approximation
+#' Solve MDPs with Temporal Differencing with Function Approximation
 #'
 #' Solve the MDP control problem using state-value approximation
 #' by semi-gradient Sarsa (temporal differencing) for
 #' episodic problems.
 #'
-#' ## Linear Approximation
-#' The state-action value function is approximated by
-#' \deqn{\hat{q}(s,a) = \boldsymbol{w}^\top\phi(s,a),}
-#'
-#' where \eqn{\boldsymbol{w} \in \mathbb{R}^n} is a weight vector
-#' and \eqn{\phi: S \times A \rightarrow \mathbb{R}^n}  is a
-#' feature function that
-#' maps each state-action pair to a feature vector.
-#' Linear approximation has a single optimum and can be optimized using
-#' a simple update rule following the gradient of the state-action function
-#' \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
-#'
-#' ## State-action Feature Vector Construction
-#'
-#' For a small number of actions, we can
-#' follow the construction described by Geramifard et al (2013)
-#' which uses a state feature function \eqn{\phi: S \rightarrow \mathbb{R}^{m}}
-#' to construct the complete state-action feature vector.
-#' Here, we also add an intercept term.
-#' The state-action feature vector has length \eqn{1 + |A| \times m}.
-#' It has the intercept and then one component for each action. All these components
-#' are set to zero and only the active action component is set to \eqn{\phi(s)},
-#' where \eqn{s} is the current state.
-#' For example, for the state feature
-#' vector \eqn{\phi(s) = (3,4)} and action \eqn{a=2} out of three possible
-#' actions \eqn{A = \{1, 2, 3\}}, the complete
-#' state-action feature vector is \eqn{\phi(s,a) = (0,0,0,1,3,4,0,0,0)}.
-#' Each action component has three entries and the 1 represent the intercept
-#' for the state feature vector. The zeros represent the components for the
-#' two not chosen actions.
-#'
-#' The construction of the state-action values is implemented in `add_linear_approx_Q_function()`.
-#'
-#' The state feature function \eqn{\phi()} starts with raw state feature vector
-#' \eqn{\mathbf{x} = (x_1,x_2, ..., x_m)} that
-#' are either user-specified or constructed by parsing the state labels of
-#' form `s(feature list)`.  Then an optional nonlinear transformation
-#' can be performed (see [transformation]). 
 #' 
-#' ## Helper Functions
-#'
-#' The following helper functions for using approximation are available:
-#'
-#' * `approx_Q_value()` calculates approximate Q values given the weights in
-#'    the model or specified weights.
-#' * `approx_greedy_action()` uses approximate Q values given the weights in
-#'    the model or specified weights to find the the greedy action for a
-#'    state.
-#' * `approx_greedy_policy()` calculates the greedy-policy
-#'    for the approximate Q values given the weights in
-#'    the model or specified weights.
-#'
 #' ## Episodic Semi-gradient Sarsa
 #'
 #' The implementation follows the temporal difference algorithm 
@@ -76,11 +25,7 @@
 #'
 #' @references
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
-#'
-#' Alborz Geramifard, Thomas J. Walsh, Stefanie Tellex, Girish Chowdhary, Nicholas Roy, and Jonathan P. How. 2013. A Tutorial on Linear Function Approximators for Dynamic Programming and Reinforcement Learning. Foundations and Trends in Machine Learning 6(4), December 2013, pp. 375-451. \doi{10.1561/2200000042}
-#'
-#' Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in Reinforcement Learning Using the Fourier Basis. Proceedings of the AAAI Conference on Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
-#'
+
 #' @examples
 #' # Example 1: A maze without walls. The step cost is 1. The start is top-left and
 #' # the goal (+100 reward) is bottom-right.
@@ -88,25 +33,21 @@
 #' # using the x/y location as state features.
 #'
 #' m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
+#' 
+#' # gridworlds have state labels om the format "s(row, col)" which can be
+#' # automatically converted into state features used for approximation.
+#' S(m)
+#' get_state_features(m)
 #'
-#' # construct state features as the x/y coordinates in the gridworld
-#' state_features <- gw_s2rc(S(m))
-#' state_features
-#'
-#' m <- add_linear_approx_Q_function(m, state_features)
-#'
-#' # constructed state-action features (X) and approximate Q function
-#' # and gradient
-#' m$approx_Q_function
-#'
+#' # solve using linear state features (no transformation) 
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100)
+#' sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100) 
+#'
+#' # approximation
+#' sol$solution$q_approx_linear
 #' 
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
-#'
-#' # learned weights and state values
-#' sol$solution$w
 #'
 #' # the approximate value function can be visualized for states 
 #' # with two features.
@@ -130,10 +71,8 @@
 #'
 #' # if no state features are specified, then they are constructed
 #' # by parsing the state label of the form s(feature list).
-#' Maze_approx <- add_linear_approx_Q_function(Maze)
-#' 
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+#' sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100,
 #'                         alpha = schedule_exp(0.3, 0.01),
 #'                         epsilon = schedule_exp(1, 0.1))
 #' gw_plot(sol)
@@ -142,43 +81,52 @@
 #'
 #'
 #' # Example 3: Stuart Russell's 3x4 Maze using
-#' #            order-1 Fourier basis for approximation
-#'
-#' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_fourier_basis, order = 1)
+#' #            order-1 Fourier basis for approximation and
+#' #            1-step Sarsa
 #'
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+#' sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100,
 #'                     alpha = schedule_exp(0.3, .01),
-#'                     epsilon = schedule_exp(1, .1))
+#'                     epsilon = schedule_exp(1, .1),
+#'                     transformation = transformation_fourier_basis, 
+#'                     order = 1
+#'                     )
 #'                     
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
 #'
 #' # Example 4: Stuart Russell's 3x4 Maze using
-#' #            order-2 Fourier basis for approximation
-#' #            and eligibility traces: Sarsa(lambda)
-#'
-#' Maze_approx <- add_linear_approx_Q_function(Maze,
-#'       transformation = transformation_fourier_basis, order = 1)
-#'
+#' #    order-1 Fourier basis for approximation
+#' #    and eligibility traces: Sarsa(lambda)
+#' 
 #' set.seed(1000)
-#' sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
+#'
+#' ## TODO: The following example does not converge to 1!
+#' data(Maze)
+#' sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100,
 #'                     alpha = schedule_exp(0.3, .01),
 #'                     epsilon = schedule_exp(1, .1),
-#'                     lambda = 0.1)
+#'                     lambda = 0.1,
+#'                     transformation = transformation_fourier_basis, 
+#'                     order = 1
+#'                     )
 #'                     
 #' gw_plot(sol)
 #' gw_matrix(sol, what = "value")
 #' approx_V_plot(sol, res = 20)
-#' 
 #'  
 #' @inheritParams solve_MDP_TD
 #' @param method string; one of the following solution methods: `'sarsa'`
 #' @param lambda the trace-decay parameter for the an accumulating trace. If `lambda = 0`
 #'      then 1-step Sarsa is used.
 #' @param w an initial weight vector. By default a vector with 0s is used.
+#' @param transformation a transformation function. See [transformation].
+#' @param ... further parameters are passed on to the [transformation] function. 
+#' @param state_features a matrix with one row per state with state features 
+#'      to be used. If `NULL` then [get_state_features()] will be used to get 
+#'      the state features stored in the model, or to construct 
+#'      state features from state labels.
 #'
 #' @inherit solve_MDP return
 #'
@@ -192,13 +140,15 @@ solve_MDP_APPROX <-
            epsilon = schedule_exp(1, .1),
            lambda = 0,
            n,
+           state_features = NULL,
+           transformation = transformation_linear_basis,
            w = NULL,
            ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
-    .nodots(...)
+    
     if (lambda == 0)
       solve_MDP_APPROX_1_step(model,
                               method,
@@ -207,6 +157,8 @@ solve_MDP_APPROX <-
                               alpha,
                               epsilon,
                               n,
+                              state_features,
+                              transformation,
                               w = NULL,
                               ...,
                               matrix = matrix,
@@ -222,6 +174,8 @@ solve_MDP_APPROX <-
                               epsilon,
                               lambda,
                               n,
+                              state_features,
+                              transformation,
                               w = NULL,
                               ...,
                               matrix = matrix,
@@ -239,13 +193,14 @@ solve_MDP_APPROX_1_step <-
            alpha = schedule_exp(0.2, .1),
            epsilon = schedule_exp(1, .1),
            n,
+           state_features = NULL,
+           transformation,
            w = NULL,
            ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
-    .nodots(...)
     
     if (!inherits(model, "MDPE"))
       stop("This model needs to be a MDP environment.")
@@ -256,33 +211,35 @@ solve_MDP_APPROX_1_step <-
     alpha_seq <- .schedule_to_sequence(alpha, n, continue, model)    
     epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     
-    q <- model$approx_Q_function
-    if (is.null(q$w_init) || is.null(q$f) || is.null(q$gradient))
-      stop(
-        "Approx q-function f, the gradient, or w_init are missing in the q_function element in the model!"
-      )
-    
     # this code solve MDP and MDPTF
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (verbose)
       progress <- FALSE
     
-    
     if (progress) {
       pb <- my_progress_bar(n + 1L, name = "solve_MDP")
       pb$tick(0)
     }
     
-    # Initialize w
+    if (!is.null(state_features))
+      model$state_features <- state_features
+    
+    # Initialize approximation
     if (continue) {
       if (!is.null(w))
         stop("continue and w cannot be both specified!")
-      w <- model$solution$w
+      q <- model$solution$q_approx_linear
+      w <- w$w
+      if (is.null(q))
+        stop("Model does not contain an approximation function. Cannot continue!")
     } else {
-      w <- w %||% q$w_init
+      q <- q_approx_linear(model, transformation = transformation, ...)
+      model$solution$q_approx_linear <- q
+      w <- w %||% q$w 
     }
-    
+   
+     
     # return unconverged result when interrupted
     on.exit({
       if (progress) {
@@ -297,13 +254,15 @@ solve_MDP_APPROX_1_step <-
         cat("\nTerminated at episode:", e, "\n")
       }
       
+      q$w <- w
+      
       model$solution <- list(
         method = method,
         alpha = alpha,
         epsilon = epsilon,
         n = n + ifelse(continue, model$solution$n, 0),
-        w = w,
         converged = NA,
+        q_approx_linear = q,
         policy = if (!is.null(S(model)))
           list(approx_greedy_policy(model, w = w))
         else
@@ -340,7 +299,7 @@ solve_MDP_APPROX_1_step <-
       # MDP: state is an id, MDPTF: state is a features
       s <- start(model)
       
-      a <- approx_greedy_action(model, s, w, epsilon_val)
+      a <- approx_greedy_action(model, s, w, epsilon_val, as = "id")
       
       # loop steps in episode
       i <- 0L
@@ -390,7 +349,7 @@ solve_MDP_APPROX_1_step <-
         }
         
         s_prime_features <- normalize_state_features(s_prime, model)
-        a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val)
+        a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val, as = "id")
         
         if (verbose > 1) {
           if (i == 1L) {
@@ -451,13 +410,14 @@ solve_MDP_APPROX_lambda <-
            epsilon = schedule_exp(1, .1),
            lambda = 0.1,
            n,
+           state_features = NULL,
+           transformation,
            w = NULL,
            ...,
            matrix = TRUE,
            continue = FALSE,
            progress = TRUE,
            verbose = FALSE) {
-    .nodots(...)
     
     if (!inherits(model, "MDPE"))
       stop("This model needs to be a MDP environment.")
@@ -468,12 +428,6 @@ solve_MDP_APPROX_lambda <-
     
     alpha_seq <- .schedule_to_sequence(alpha, n, continue, model)    
     epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
-    
-    qf <- model$approx_Q_function
-    if (is.null(qf$w_init) || is.null(qf$f) || is.null(qf$gradient))
-      stop(
-        "Approx q-function f, the gradient, or w_init are missing in the q_function element in the model!"
-      )
     
     # this code solve MDP and MDPTF
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
@@ -486,14 +440,23 @@ solve_MDP_APPROX_lambda <-
       pb$tick(0)
     }
     
-    # Initialize w
+    if (!is.null(state_features))
+      model$state_features <- state_features
+    
+    # Initialize approximation
     if (continue) {
       if (!is.null(w))
         stop("continue and w cannot be both specified!")
-      w <- model$solution$w
+      qf <- model$solution$q_approx_linear
+      w <- qf$w
+      if (is.null(q))
+        stop("Model does not contain an approximation function. Cannot continue!")
     } else {
-      w <- w %||% qf$w_init
+      qf <- q_approx_linear(model, transformation = transformation, ...)
+      model$solution$q_approx_linear <- qf
+      w <- w %||% qf$w 
     }
+    
     
     # return unconverged result when interrupted
     on.exit({
@@ -509,13 +472,15 @@ solve_MDP_APPROX_lambda <-
         cat("\nTerminated at episode:", e, "\n")
       }
       
+      qf$w <- w
+      
       model$solution <- list(
         method = method,
         alpha = alpha,
         epsilon = epsilon,
         lambda = lambda,
         n = n + ifelse(continue, model$solution$n, 0),  
-        w = w,
+        q_approx_linear = qf,
         converged = NA,
         policy = if (!is.null(S(model)))
           list(approx_greedy_policy(model, w = w))
@@ -553,10 +518,14 @@ solve_MDP_APPROX_lambda <-
       # Initialize s and choose first action
       # MDP: state is an id, MDPTF: state is a features
       s <- start(model)
-      a <- approx_greedy_action(model, s, w, epsilon_val)
+      a <- approx_greedy_action(model, s, w, epsilon_val, as = "id")
       
       x <- qf$x(normalize_state_features(s, model), a)
-      z <- qf$w_init 
+      
+      # initialize z to all 0s
+      z <- qf$w
+      z[] <- 0
+      
       q_old <- 0
       
       # loop steps in episode
@@ -572,7 +541,7 @@ solve_MDP_APPROX_lambda <-
         r <- a_res$r
         
         # choose a'
-        a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val)
+        a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val, as = "id")
         
         # get x'
         x_prime <- qf$x(normalize_state_features(s_prime, model), a_prime)
@@ -586,7 +555,7 @@ solve_MDP_APPROX_lambda <-
             "Temporal differencing error becomes too large which indicates instability. Reduce alpha or lambda."
           )
         
-        z <- gamma * lambda * z + (1 - alpha_val + gamma * lambda * sum(z*x)) * x
+        z <- gamma * lambda * z + (1 - alpha_val * gamma * lambda * sum(z*x)) * x
         
         # Sarsa(lambda) .. on-policy true online
         if (method_id == 1L) {
@@ -623,7 +592,9 @@ solve_MDP_APPROX_lambda <-
               delta
             )
           )
-          # print(w)
+          cat("w:\n")
+          print(w)
+          cat("z:\n")
           print(z)
         }
         
@@ -643,3 +614,154 @@ solve_MDP_APPROX_lambda <-
     
     # return via on.exit()
   }
+
+
+#' @rdname solve_MDP_APPROX
+#' @param state a state (index or name)
+#' @param action an action (index or name)
+#' @param w a weight vector
+#' @param as character; specifies the desired output format (see [normalize_action()])
+#' @export
+approx_Q_value <- function(model,
+                           state = NULL,
+                           action = NULL,
+                           w = NULL) {
+  action <- action %||% A(model)
+  
+  state <- state %||% S(model)
+  if (is.null(state))
+    stop("a state needs to be specified!")
+  
+  w <- w %||% model$solution$q_approx_linear$w
+  if (is.null(w))
+    stop("weight vector w is missing.")
+  
+  if(!is.matrix(state))
+    state <- normalize_state_features(state, model)
+  
+  if (length(action) > 1L)
+    return(sapply(
+      action,
+      FUN = function(a)
+        approx_Q_value(model, state, a, w)
+    ))
+  
+  if (nrow(state) == 1L)
+    model$solution$q_approx_linear$f(drop(state), action, w)
+  else
+    apply(state, MARGIN = 1, model$solution$q_approx_linear$f, action, w)
+}
+
+#' @rdname solve_MDP_APPROX
+#' @export
+approx_greedy_action <- function(model,
+                                 state,
+                                 w = NULL,
+                                 epsilon = 0,
+                                 as = "factor") {
+  if (epsilon == 0 || runif(1) > epsilon) {
+    a <- which.max.random(approx_Q_value(model, state, w = w))
+  } else {
+    a <- sample.int(length(A(model)), 1L)
+  }
+  
+  normalize_action(a, model, as)
+}
+
+#' @rdname solve_MDP_APPROX
+#' @export
+approx_greedy_policy <- function(model, w = NULL) {
+  w <- w %||% model$solution$w
+  S <- S(model)
+  
+  if (is.null(S))
+    stop("Policy is only available for a specified finite state space!")
+  
+  qs <- approx_Q_value(model, w = w)
+  
+  data.frame(
+    state = S,
+    V = apply(qs, MARGIN = 1, max),
+    action = normalize_action(apply(qs, MARGIN = 1, which.max.random), model),
+    row.names = NULL
+  )
+}
+
+
+# internal: transpose and reorder rows for a proper image
+#' @importFrom graphics axis contour image
+pimage <- function (x1,
+                    x2,
+                    z,
+                    col = hcl.colors(12, "YlOrRd", rev = TRUE),
+                    image = TRUE,
+                    contour = TRUE,
+                    axes = TRUE,
+                    ...) {
+  
+  z <- t(z)[, rev(seq_len(nrow(z))), drop = FALSE]
+  
+  if (image) {
+    image(x2, x1, z, axes = FALSE, col = col, ...)
+    
+    if (contour)
+      contour(x2, x1, z, axes = FALSE, add = TRUE)
+  } else
+    contour(x2, x1, z, axes = FALSE, ...)
+  
+  box()
+  
+  if (axes) {
+    p <- pretty(x2)
+    axis(1L,
+         at = seq(min(p), max(p), along.with = p),
+         labels = p)
+    p <- pretty(x1)
+    axis(2L,
+         at = seq(min(p), max(p), along.with = p),
+         labels = p)
+  }
+}
+
+#' @rdname solve_MDP_APPROX
+#' @param image,contour logical; include the false color image or the 
+#'        contours in the plot?
+#' @param main title for the plot.
+#' @param res resolution as the number of values sampled from each feature.
+#' @param col colors for the passed on to [`image()`].
+#' @param min,max numeric vectors with minimum/maximum values for each feature
+#'        in the state feature representation.
+#' @export
+approx_V_plot <- function(model,
+                          min = NULL,
+                          max = NULL,
+                          w = NULL,
+                          res = 25,
+                          col = hcl.colors(res, "YlOrRd", rev = TRUE),
+                          image = TRUE,
+                          contour = TRUE,
+                          main = NULL,
+                          ...) {
+  if (is.null(main)) {
+    main <- paste("Approx. Value Function:",
+                  model$name,
+                  paste0("(", model$solution$method, ")"))
+  }
+  
+  rng <- get_state_feature_range(model, min, max)
+  min <- rng[1, ]
+  max <- rng[2, ]
+  dim_s <- length(max)
+  
+  if (dim_s != 2)
+    stop("This visualization only works for states with 2 features!")
+  
+  x1 <- seq(min[1], max[1], length.out = res)
+  x2 <- seq(min[2], max[2], length.out = res)
+  
+  V_val <- Vectorize(function(x1, x2)
+    max(approx_Q_value(model, state = s(x1, x2), w = w)))
+  V <- outer(x1, x2, V_val)
+  
+  pimage(x1, x2, V, col, image, contour, main = main, ...)
+}

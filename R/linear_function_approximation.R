@@ -1,284 +1,207 @@
-# Linear function approximation for v, q, and pi
+#' Linear Function Approximation
+#'
+#' Approximate a Q-function a value function or a policy using linear
+#' function approximation. These approximation functions are 
+#' used internally by: [solve_MDP_APPROX]
+#'
+#' ## Linear Approximation
+#' The state-action value function is approximated by
+#' \deqn{\hat{q}(s,a) = \boldsymbol{w}^\top\phi(s,a),}
+#'
+#' where \eqn{\boldsymbol{w} \in \mathbb{R}^n} is a weight vector
+#' and \eqn{\phi: S \times A \rightarrow \mathbb{R}^n}  is a
+#' feature function that
+#' maps each state-action pair to a feature vector.
+#' Linear approximation has a single optimum and can be optimized using
+#' a simple update rule following the gradient of the state-action function
+#' \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
+#'
+#' Value function approximation works in the same way but \eqn{\phi(s)} is used.
+#' 
+#' ## State-action Feature Vector Construction
+#'
+#' For a small number of actions, we can
+#' follow the construction described by Geramifard et al (2013)
+#' which uses a state feature function \eqn{\phi: S \rightarrow \mathbb{R}^{m}}
+#' to construct the complete state-action feature vector.
+#' Here, we also add an intercept term.
+#' The state-action feature vector has length \eqn{1 + |A| \times m}.
+#' It has the intercept and then one component for each action. All these components
+#' are set to zero and only the active action component is set to \eqn{\phi(s)},
+#' where \eqn{s} is the current state.
+#' For example, for the state feature
+#' vector \eqn{\phi(s) = (3,4)} and action \eqn{a=2} out of three possible
+#' actions \eqn{A = \{1, 2, 3\}}, the complete
+#' state-action feature vector is \eqn{\phi(s,a) = (0,0,0,1,3,4,0,0,0)}.
+#' Each action component has three entries and the 1 represent the intercept
+#' for the state feature vector. The zeros represent the components for the
+#' two not chosen actions.
+#'
+#' The construction of the state-action values is implemented in `add_linear_approx_Q_function()`.
+#'
+#' The state feature function \eqn{\phi()} starts with raw state feature vector
+#' \eqn{\mathbf{x} = (x_1,x_2, ..., x_m)} that
+#' are either user-specified or constructed by parsing the state labels of
+#' form `s(feature list)`.  Then an optional nonlinear transformation
+#' can be performed (see [transformation]).
+#'
+#' ## Internal Representation
+#'
+#' All approximations are lists with the elements:
+#' * `x(s, a)` ... function to construct from state features, action-state features.
+#' * `f(s, a, w)` ... approx. function
+#' * `gradient(s, a, w)` ... gradient of f at w
+#' * `w` ... the weight vector (initially all 0s)
+#' * `transformation` ... a transformation kernel function that is applied to state features in x.
+#'
+#' ## Prediction
+#' `approx_value()` calculates approximate value given the weights in
+#'    the model or specified weights.
+#'
+#' @references
+#' Alborz Geramifard, Thomas J. Walsh, Stefanie Tellex, Girish Chowdhary, Nicholas Roy, and Jonathan P. How. 2013. A Tutorial on Linear Function Approximators for Dynamic Programming and Reinforcement Learning. Foundations and Trends in Machine Learning 6(4), December 2013, pp. 375-451. \doi{10.1561/2200000042}
+#'
+#' Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in Reinforcement Learning Using the Fourier Basis. Proceedings of the AAAI Conference on Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
+#'
+#' @examples
+#' data(Maze)
+#'
+#' f_q <- q_approx_linear(Maze)
+#' f_q
+#' approx_value(f_q, 1, 1, model = Maze)
+#'
+#' f_v <- v_approx_linear(Maze)
+#' f_v
+#' approx_value(f_v, 1, model = Maze)
+#'
+#' # TODO: Implement
+#' # f_pi <- pi_approx_linear(Maze)
+#' # f_pi
+#'
+#' @name linear_function_approximation
+NULL
 
-# all approximations are lists with:
-# * x(s, a) .... function to construct from state features, action-state features.
-# * f(s, a, w) ... approx. function
-# * gradient(s, a, w) ... gradient of f at w
-# * w_init ... initial weight vector (typically all 0s)
-# * transformation ... a transformation kernel function that is applied to state features in x.
-#
-#  Note for v: a is null and ignored for approximating v
-
-#' @rdname solve_MDP_APPROX
+#' @rdname linear_function_approximation
+#' @param model a [MDP] model with defined state features.
+#' @param transformation a transformation function. See [transformation].
+#' @param ... further parameters are passed on to the [transformation] function. 
 #' @export
-add_linear_approx_Q_function <- function(model, ...) {
-  UseMethod("add_linear_approx_Q_function")
-}
-
-#' @rdname solve_MDP_APPROX
-#' @param state_features a matrix with state features. Each row is the feature
-#'    vector for a state.
-#' @param transformation a transformation function that is applied to the feature vector
-#'    before it is used in the linear approximation. See [transformation].
-#' @export
-add_linear_approx_Q_function.MDP <- function(model,
-                                             state_features = NULL,
-                                             transformation = transformation_linear_basis,
-                                             ...) {
-  state_features <- state_features %||% get_state_features(model)
-  
-  if (!is.matrix(state_features) ||
-      !nrow(state_features) == c(length(S(model))))
-    stop("state_features needs to be a matrix with one row per state!")
-  
-  if (is.null(colnames(state_features)))
-    colnames(state_features) <- paste0("x", seq_len(ncol(state_features)))
-  
-  model$state_features <- state_features
-  
+q_approx_linear  <- function(model,
+                             transformation = transformation_linear_basis,
+                             ...) {
   transformation <- transformation(model, ...)
   
-  
-  state_template <- transformation(state_features[1L, ])
-  dim_s <- length(state_template)
-  if (is.null(names(state_template)))
-    names(state_template) <- paste0("x", seq_len(dim_s))
+  # get state feature format
+  state_template <- transformation(start(model, as = "feature")[1L, ])
+  n_features <- length(state_template)
+  feature_names <- names(state_template) 
   n_A <- length(A(model))
   
   # s are state features. Convert to action-state feature.
   x <- function(s, a) {
     # use a transformation function
     s <- transformation(s)
+    # TODO: Remove???
     a <- normalize_action_id(a, model)
     
     # one component per action
-    x <- numeric(n_A * dim_s)
+    x <- numeric(n_A * n_features)
     
-    a_pos <- 1L + (a - 1L) * dim_s
-    x[a_pos:(a_pos + dim_s - 1L)] <- s
+    a_pos <- 1L + (a - 1L) * n_features
+    x[a_pos:(a_pos + n_features - 1L)] <- s
     
     x
   }
   
-  model$approx_Q_function <- list(
-    f = function(s, a, w)
-      sum(w * x(s, a)),
-    gradient = function(s, a, w)
-      x(s, a),
-    x = x,
-    transformation = transformation,
-    w_init = setNames(numeric(n_A * dim_s), paste(
-      rep(A(model), each = dim_s), names(state_template), sep = "."
-    ))
+  w_init <- setNames(numeric(n_A * n_features), paste(rep(A(model), each = n_features), feature_names, sep = "."))
+  
+  structure(
+    list(
+      f = function(s, a, w)
+        sum(w * x(s, a)),
+      gradient = function(s, a, w)
+        x(s, a),
+      x = x,
+      transformation = transformation,
+      w = w_init
+    ),
+    class = "q_approx_linear"
   )
   
-  model
 }
 
-
-#' @rdname solve_MDP_APPROX
+# create a linear approx function that can then be added to a model
+#' @rdname linear_function_approximation
 #' @export
-add_linear_approx_Q_function.MDPTF <- function(model,
-                                               state_features = NULL,
-                                               transformation = transformation_linear_basis,
-                                               ...) {
-  # MDPTF may have states
-  if (!is.null(state_features))
-    stop(
-      "state_features cannot be specified for a MDPTF! The states are already in a factored representation."
-    )
-  
-  # add state_features if we have a defined state space
-  if (!is.null(S(model)))
-    model$state_features <- state2features(S(model))
-  
-  # MDPTF has a start state matrix.
-  # This is used to get min, max, etc for transformation
-  start <- model$start[1, , drop = TRUE]
-  if (is.null(names(start)))
-    names(start) < paste0("x", seq_along(start))
-  
+v_approx_linear  <- function(model,
+                             transformation = transformation_linear_basis,
+                             ...) {
   transformation <- transformation(model, ...)
   
-  state_template <- transformation(start)
-  dim_s <- length(state_template)
-  if (is.null(names(state_template)))
-    names(state_template) <- paste0("x", seq_len(dim_s))
-  n_A <- length(A(model))
+  # get state feature format
+  state_template <- transformation(start(model, as = "feature")[1L, ])
+  n_features <- length(state_template)
+  feature_names <- names(state_template) 
   
-  # s are state features. Convert to action-state feature.
-  x <- function(s, a) {
-    # use a transformation function
-    s <- transformation(s)
-    a <- normalize_action_id(a, model)
-    
-    # one component per action
-    x <- numeric(n_A * dim_s)
-    
-    a_pos <- 1L + (a - 1L) * dim_s
-    x[a_pos:(a_pos + dim_s - 1L)] <- s
-    
-    x
+  # s are state features.
+  # a is ignored!
+  x <- function(s, a = NULL) {
+    transformation(s)
   }
   
-  model$approx_Q_function <- list(
-    #x = x,
-    f = function(s, a, w)
-      sum(w * x(s, a)),
-    gradient = function(s, a, w)
-      x(s, a),
-    transformation = transformation,
-    w_init = setNames(numeric(n_A * dim_s), paste(
-      rep(A(model), each = dim_s), names(state_template), sep = "."
-    ))
+  w_init <- setNames(numeric(n_features), feature_names)
+  
+  structure(
+    list(
+      f = function(s, a = NULL, w)
+        sum(w * x(s, a)),
+      gradient = function(s, a = NULL, w)
+        x(s, a),
+      x = x,
+      transformation = transformation,
+      w = w_init
+    ),
+    class = "v_approx_linear"
   )
   
-  model
+}
+
+# create a linear approx function that can then be added to a model
+#' @rdname linear_function_approximation
+#' @export
+pi_approx_linear  <- function(model,
+                              transformation = transformation_linear_basis,
+                              ...) {
+  stop("TODO!")
 }
 
 
-#' @rdname solve_MDP_APPROX
-#' @param state a state (index or name)
-#' @param action an action (index or name)
-#' @param w a weight vector
+#' @rdname linear_function_approximation
+#' @param f a linear approximation object.
+#' @param state a state or state features.
+#' @param action an action. If `NULL`, then the value for all available actions
+#'         will be calculated.
+#' @param w a weight vector to be used instead of `f$w`. 
 #' @export
-approx_Q_value <- function(model,
-                           state = NULL,
-                           action = NULL,
-                           w = NULL) {
-  action <- action %||% A(model)
+approx_value <- function(f,
+                         state,
+                         action = NULL,
+                         # NULL is for v approx.
+                         w = NULL,
+                         model = NULL) {
+  w <- w %||% f$w
   
-  state <- state %||% S(model)
-  if (is.null(state))
-    stop("a state needs to be specified!")
-  
-  w <- w %||% model$solution$w
-  if (is.null(w))
-    stop("weight vector w is missing.")
-  
-  if(!is.matrix(state))
+  if (length(w) != length(f$w))
+    stop("w does not have the right number of elements.")
+    
+  if (!is.matrix(state)) {
+    if (is.null(model))
+      stop("model is required to convert state labels/ids to state features!")
     state <- normalize_state_features(state, model)
-  
-  if (length(action) > 1L)
-    return(sapply(
-      action,
-      FUN = function(a)
-        approx_Q_value(model, state, a, w)
-    ))
-  
-  if (nrow(state) == 1L)
-    model$approx_Q_function$f(drop(state), action, w)
-  else
-    apply(state, MARGIN = 1, model$approx_Q_function$f, action, w)
-}
-
-#' @rdname solve_MDP_APPROX
-#' @export
-approx_greedy_action <- function(model,
-                                 state,
-                                 w = NULL,
-                                 epsilon = 0) {
-  if (epsilon == 0 || runif(1) > epsilon) {
-    a <- which.max.random(approx_Q_value(model, state, w = w))
-  } else {
-    a <- sample.int(length(A(model)), 1L)
   }
   
-  normalize_action(a, model)
-}
-
-#' @rdname solve_MDP_APPROX
-#' @export
-approx_greedy_policy <- function(model, w = NULL) {
-  w <- w %||% model$solution$w
-  S <- S(model)
-  
-  if (is.null(S))
-    stop("Policy is only available for a specified finite state space!")
-  
-  qs <- approx_Q_value(model, w = w)
-  
-  data.frame(
-    state = S,
-    V = apply(qs, MARGIN = 1, max),
-    action = normalize_action(apply(qs, MARGIN = 1, which.max.random), model),
-    row.names = NULL
-  )
-}
-
-
-# internal: transpose and reorder rows for a proper image
-#' @importFrom graphics axis contour image
-pimage <- function (x1,
-                    x2,
-                    z,
-                    col = hcl.colors(12, "YlOrRd", rev = TRUE),
-                    image = TRUE,
-                    contour = TRUE,
-                    axes = TRUE,
-                    ...) {
-  
-  z <- t(z)[, rev(seq_len(nrow(z))), drop = FALSE]
-  
-  if (image) {
-    image(x2, x1, z, axes = FALSE, col = col, ...)
+  if (!is.numeric(action))
+    action <- normalize_action_id(action, model)
     
-    if (contour)
-      contour(x2, x1, z, axes = FALSE, add = TRUE)
-  } else
-    contour(x2, x1, z, axes = FALSE, ...)
-  
-  box()
-  
-  if (axes) {
-    p <- pretty(x2)
-    axis(1L,
-         at = seq(min(p), max(p), along.with = p),
-         labels = p)
-    p <- pretty(x1)
-    axis(2L,
-         at = seq(min(p), max(p), along.with = p),
-         labels = p)
-  }
-}
-
-#' @rdname solve_MDP_APPROX
-#' @param image,contour logical; include the false color image or the 
-#'        contours in the plot?
-#' @param main title for the plot.
-#' @param res resolution as the number of values sampled from each feature.
-#' @param col colors for the passed on to [`image()`].
-#' @export
-approx_V_plot <- function(model,
-                          min = NULL,
-                          max = NULL,
-                          w = NULL,
-                          res = 25,
-                          col = hcl.colors(res, "YlOrRd", rev = TRUE),
-                          image = TRUE,
-                          contour = TRUE,
-                          main = NULL,
-                          ...) {
-  if (is.null(main)) {
-    main <- paste("Approx. Value Function:",
-                  model$name,
-                  paste0("(", model$solution$method, ")"))
-  }
-  
-  rng <- get_state_feature_range(model, min, max)
-  min <- rng[1, ]
-  max <- rng[2, ]
-  dim_s <- length(max)
-  
-  if (dim_s != 2)
-    stop("This visualization only works for states with 2 features!")
-  
-  x1 <- seq(min[1], max[1], length.out = res)
-  x2 <- seq(min[2], max[2], length.out = res)
-  
-  V_val <- Vectorize(function(x1, x2)
-    max(approx_Q_value(model, state = s(x1, x2), w = w)))
-  V <- outer(x1, x2, V_val)
-  
-  pimage(x1, x2, V, col, image, contour, main = main, ...)
+  f$f(state, action, w)
 }

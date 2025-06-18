@@ -210,9 +210,9 @@ Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Ap
 }
 \seealso{
 Other solver: 
-\code{\link{add_linear_approx_Q_function}()},
 \code{\link{schedule}},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_MC}()},
 \code{\link{solve_MDP_PG}()},

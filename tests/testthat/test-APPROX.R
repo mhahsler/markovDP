@@ -18,19 +18,6 @@ expect_true(all(gw_matrix(benchmark, what = "action")[-25] %in% c("down", "right
 # thinks that it will get the inflated the approximated value for the goal and 
 # not the anchored value! This will eventually going out of bounds make the best
 # action!
-#
-# Fourier basis transformation does better with this!
-
-
-# construct state features as the x/y coordinates in the gridworld
-#state_features <- gw_s2rc(S(m))
-#state_features
-#m <- add_linear_approx_Q_function(m, state_features)
-m <- add_linear_approx_Q_function(m)
-
-# constructed state-action features (X) and approximate Q function
-# and gradient
-m$approx_Q_function
 
 set.seed(2000)
 sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
@@ -49,8 +36,6 @@ approx_V_plot(sol)
 m <- gw_maze_MDPTF(c(5, 5), start = s(1,1), goal = s(5,5))
 
 # FIXME: large n (1000) lead to anchoring problems for linear basis!
-m <- add_linear_approx_Q_function(m, transformation = transformation_linear_basis)
-
 set.seed(2000)
 sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
 gw_matrix(sol, what = "value")
@@ -62,9 +47,8 @@ approx_V_plot(sol)
 
 ###
   
-m <- add_linear_approx_Q_function(m, transformation = transformation_polynomial_basis, order = 1)
 set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100, transformation = transformation_polynomial_basis, order = 1)
 gw_matrix(sol, what = "value")
 gw_plot(sol)
 policy(sol)
@@ -73,10 +57,8 @@ expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
 approx_V_plot(sol)
   
 ###
-
-m <- add_linear_approx_Q_function(m, transformation = transformation_RBF_basis, n = 3)
 set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100, transformation = transformation_RBF_basis, centers = 3)
 
 gw_matrix(sol, what = "value")
 gw_plot(sol)
@@ -87,9 +69,8 @@ approx_V_plot(sol)
 
 ##
 
-m <- add_linear_approx_Q_function(m, transformation = transformation_fourier_basis, order = 1)
 set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100, transformation = transformation_fourier_basis, order = 1)
 gw_matrix(sol, what = "value")
 gw_plot(sol)
 policy(sol)
@@ -103,28 +84,24 @@ m$states <- NULL
 S(m)
 
 # FIXME: large n (1000) lead to anchoring problems for linear basis!
-m <- add_linear_approx_Q_function(m, transformation = transformation_linear_basis)
 set.seed(2000)
 sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
 approx_V_plot(sol, 0, 5)
 
 
-m <- add_linear_approx_Q_function(m, transformation = transformation_polynomial_basis, order = 1)
 set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100, transformation = transformation_polynomial_basis, order = 1)
 approx_V_plot(sol, 0, 5)
   
   
 ## FIXME: Better default location of RBFs?  
-m <- add_linear_approx_Q_function(m, transformation = transformation_RBF_basis, n = 4)
 set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100, transformation = transformation_RBF_basis, centers = 4)
 approx_V_plot(sol, 0, 5)
 
 ##
-m <- add_linear_approx_Q_function(m, transformation = transformation_fourier_basis, order = 1)
 set.seed(2000)
-sol <- solve_MDP_APPROX(m, horizon = 100, n = 100)
+sol <- solve_MDP_APPROX(m, horizon = 100, n = 100, transformation = transformation_fourier_basis, order = 1)
 approx_V_plot(sol, 0, 5)
 
 # cleanup

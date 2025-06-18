@@ -24,7 +24,7 @@ policy.}
 \item{fast}{logical; if \code{TRUE} then extra state id to label conversions are avoided.}
 
 \item{...}{if action is unspecified, then the additional parameters are
-passed on to \code{action()} to determine the action using the model's policy.}
+passed on to \code{\link[=action]{action()}} to determine the action using the model's policy.}
 }
 \value{
 a names list with
@@ -69,10 +69,10 @@ Other MDP:
 Other MDPTF: 
 \code{\link{MDPTF}()},
 \code{\link{absorbing_states}()},
-\code{\link{add_linear_approx_Q_function}()},
 \code{\link{reachable_states}()},
 \code{\link{sample_MDP.MDPTF}()},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
 }

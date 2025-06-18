@@ -102,33 +102,34 @@ transformation_polynomial_basis <- function(model,
 }
 
 #' @rdname transformation
-#' @param centers a matrix with the centers for the RBF. By default a regular 
-#'               grid with n steps (see below) per feature dimension is used.
+#' @param centers a scalar with the number of centers to create a
+#'              a regular grid with that many steps per feature dimension.
+#'              Alternatively, a matrix with the centers for the RBF
+#'              can be supplied.
 #' @param var a scalar with the variance used for the RBF.
-#' @param n number of centers.
 #' @export
 transformation_RBF_basis <- function(model,
                                      min = NULL,
                                      max = NULL,
-                                     n,
-                                     centers = NULL,
+                                     centers,
                                      var = NULL) {
   rng <- get_state_feature_range(model, min, max)
   min <- rng[1, ]
   max <- rng[2, ]
   dim_s <- length(max)
   
-  # create n^d centers
-  if (!is.null(centers)) {
-    n <- nrow(centers)
-  } else {
-    if (is.null(n))
-      stop("either n or centers has to be specified")
+  
+  # number of centers
+  if (length(centers) ==  1L) {
+    n <- centers
+    
     # create equally spaced centers
     step_size <- 1 / n
     centers <- expand.grid(replicate(dim_s, seq(
       step_size / 2, 1 - (step_size / 2), length.out = n
-    ) , simplify = FALSE))
+    ) , simplify = FALSE)) 
+  } else {
+    n <- nrow(centers)
   }
   
   var <- var %||% 2 / (n - 1)

@@ -94,51 +94,37 @@ library(markovDP)
 m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 ```
     
-We construct state features as the x/y coordinates in the gridworld.
+State features for linear approximation are constructed automatically as the x/y coordinates for the gridworld.
 
 ```{r }
-state_features <- gw_s2rc(S(m))
-state_features
+get_state_features(m)
 ```
 
-We add the state features with the linear approximation function to the model.
-`add_linear_approx_Q_function()` constructs state-action features
-and adds them with an approximate Q function and a gradient function to the model.
+`solve_MDP_APPROX()` automatically constructs state-action features
+and adds them with an approximate Q function to the model.
 The state-action features are constructed as a vector with weights for an 
 intercept and the state features for each action.  
-Below, we see that the initial weight vector has names organized by action.
-`x0` represents the intercept and `x1` and `x2` represent the x and y coordinate in 
-the maze, respectively.
 
 ```{r } 
-m <- add_linear_approx_Q_function(m, state_features)
-m$approx_Q_function
-```
-
-Now, we can solve the model. Both, alpha and epsilon follow an exponential schedule.
-Epsilon used for the \eqn{\epsilon}-greedy behavior policy starts at 1 and decays
-by a factor of 0.1 per episode. The step size alpha starts at 0.2 and also decays bu
-0.1 per episode.
-
-```{r, fig.asp = 1}
 set.seed(1000)
-sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100,
-                        alpha = schedule_exp(0.2, 0.1),
-                        epsilon = schedule_exp(1, 0.1))
-gw_plot(sol)
+sol <- solve_MDP_APPROX(m, horizon = 1000, n = 100)
+sol
 ```
 
+The approximation contains the approximation function, the gradient function, the 
+transformation function, and the current weights.
+
+```{r}
+sol$solution$q_approx_linear
+```
 
 
 ```{r }
+gw_plot(sol)
 gw_matrix(sol, what = "value")
 ```
 
 
-Here are the learned weights.
-```{r }
-sol$solution$w
-```
 
 The approximate value function is continuous and can also be displayed using 
 matrix shading and contours
@@ -165,10 +151,7 @@ Adding the linear approximation translates state names of the
 format `s(feature list)` automatically.
 
 ```{r, fig.asp = 3/4}
-Maze_approx <- add_linear_approx_Q_function(Maze)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100,
-                        alpha = schedule_exp(0.2, 0.01),
-                        epsilon = schedule_exp(1, 0.1))
+sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100)
 gw_plot(sol)
 ```
 
@@ -180,16 +163,10 @@ The linear approximation cannot deal with the center wall and the -1 absorbing s
 
 ### Order-1 Polynomial Basis
 
-```{r}
-Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_polynomial_basis, order = 1)
-```
-
-
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, 
-                        alpha = schedule_exp(0.2, 0.01),
-                        epsilon = schedule_exp(1, 0.1))
+sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100, 
+                    transformation = transformation_polynomial_basis, order = 1)
 gw_matrix(sol, what = "value")
 ```
 
@@ -204,16 +181,10 @@ approx_V_plot(sol)
 ### Radial Basis Function
 
 
-```{r}
-Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_RBF_basis, n = 5)
-```
-
-
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, 
-                        alpha = schedule_exp(0.2, 0.01),
-                        epsilon = schedule_exp(1, 0.1))
+sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100, 
+                         transformation = transformation_RBF_basis, centers = 4)
 gw_matrix(sol, what = "value")
 ```
 
@@ -229,19 +200,13 @@ approx_V_plot(sol)
 
 
 
-### Order-2 Fourier Basis
-
-
-```{r}
-Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 1)
-```
+### Order-1 Fourier Basis
 
 
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 500, 
-                        alpha = schedule_exp(0.2, 0.01),
-                        epsilon = schedule_exp(1, 0.1))
+sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 500, 
+                        transformation = transformation_fourier_basis, order = 1)
 gw_matrix(sol, what = "value")
 ```
 
@@ -272,16 +237,10 @@ Maze <- gw_read_maze(
 We use a Fourier basis.
 
 
-```{r}
-Maze_approx <- add_linear_approx_Q_function(Maze, transformation = transformation_fourier_basis, order = 2)
-```
-
-
 ```{r }
 set.seed(2000)
-sol <- solve_MDP_APPROX(Maze_approx, horizon = 100, n = 100, 
-                        alpha = schedule_exp(0.2, 0.01),
-                        epsilon = schedule_exp(1, 0.01))
+sol <- solve_MDP_APPROX(Maze, horizon = 100, n = 100, 
+                        transformation = transformation_fourier_basis, order = 2)
 gw_matrix(sol, what = "value")
 ```
 

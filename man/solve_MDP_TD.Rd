@@ -276,9 +276,9 @@ Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Lear
 }
 \seealso{
 Other solver: 
-\code{\link{add_linear_approx_Q_function}()},
 \code{\link{schedule}},
 \code{\link{solve_MDP}()},
+\code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_DP}()},
 \code{\link{solve_MDP_LP}()},
 \code{\link{solve_MDP_MC}()},
