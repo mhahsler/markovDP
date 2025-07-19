@@ -3,7 +3,7 @@
 #' Samples a start state which can be used for simulation.
 #' 
 #' @family MDP
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @aliases start
 #' @name start
@@ -30,7 +30,7 @@ NULL
 #' @param as a returned format. See parameter `as` in [`normalize_state()`].
 #' @param ... additional parameters are ignored.
 #' @export
-start.MDP <- function(x, as = "factor", ...) {
+start.MDPModel <- function(x, as = "factor", ...) {
   .nodots(...)
   model <- x
   if (length(model$start) == 1L)
@@ -42,7 +42,7 @@ start.MDP <- function(x, as = "factor", ...) {
   
 #' @rdname start
 #' @export
-start.MDPTF <- function(x, as = "features", ...) {
+start.MDPSample <- function(x, as = "features", ...) {
   .nodots(...)
   normalize_state(x$start, x, as = as)
 }

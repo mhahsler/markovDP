@@ -5,7 +5,7 @@
 \title{Find Reachable State Space from a Transition Model Function}
 \usage{
 find_reachable_states(
-  transition_function,
+  transition_modeltion,
   start_state,
   actions,
   model = NULL,
@@ -14,7 +14,7 @@ find_reachable_states(
 )
 }
 \arguments{
-\item{transition_function}{a transition function (see details for requirements).}
+\item{transition_modeltion}{a transition function (see details for requirements).}
 
 \item{start_state}{labels of the start states.}
 

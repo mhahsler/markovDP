@@ -2,16 +2,16 @@
 % Please edit documentation in R/reachable_states.R
 \name{reachable_states}
 \alias{reachable_states}
-\alias{reachable_states.MDP}
-\alias{reachable_states.MDPTF}
+\alias{reachable_states.MDPModel}
+\alias{reachable_states.MDPSample}
 \alias{reachable_states.function}
 \title{Find Reachable States}
 \usage{
 reachable_states(model, ..., progress = TRUE)
 
-\method{reachable_states}{MDP}(model, horizon = Inf, ..., progress = TRUE)
+\method{reachable_states}{MDPModel}(model, horizon = Inf, ..., progress = TRUE)
 
-\method{reachable_states}{MDPTF}(model, n = 100, horizon = NULL, ..., progress = TRUE)
+\method{reachable_states}{MDPSample}(model, n = 100, horizon = NULL, ..., progress = TRUE)
 
 \method{reachable_states}{`function`}(
   model,
@@ -23,7 +23,7 @@ reachable_states(model, ..., progress = TRUE)
 )
 }
 \arguments{
-\item{model}{a MDP, MDPE or a MDP transition function.}
+\item{model}{a MDP or a MDP transition function.}
 
 \item{...}{further arguments are passed on (e.g., to \code{\link[=sample_MDP]{sample_MDP()}})}
 
@@ -41,7 +41,7 @@ reachable_states(model, ..., progress = TRUE)
 a character vector with all reachable states.
 }
 \description{
-Finds the reachable state space from a MDP or MDPTF.
+Finds the reachable state space from a MDP or MDPSample.
 }
 \details{
 There are three application cases for finding reachable states.
@@ -51,29 +51,34 @@ be reachable. The function performs a (depth-limited) depth-first traversal
 of the state space and returns a vector with the names of all
 encountered states. This is used for example for \code{\link[=unreachable_states]{unreachable_states()}}.
 \item We may only have a transition model function following the specifications
-of an R transition function for an \link{MDP} which returns a probability
+of an R transition function for an \link{MDPModel} which returns a probability
 distribution over state transitions. To create a complete MDP,
 we can use the found reachable states to create a complete MDP object. This
 search also used depth-first search of the state space.
-\item To use tabular methods for \link{MDPTF}s which specify a transition function that
+\item To use tabular methods for \link{MDPSample} which specify a transition function that
 returns the reward and the next state, we need to also specify the state space.
-Since an MDPTF can have a stochastic transition model, trajectory sampling is used.
-The horizon and the number of trajectories \code{n} has to be specified. \strong{Note} that
-not all reachable states may be returned if some states have a very low probability
+Since an MDPSample can have a stochastic transition model, trajectory sampling is used.
+The horizon and the number of trajectories \code{n} has to be specified.
+
+\strong{Notes:}
+\itemize{
+\item Not all reachable states may be returned if some states have a very low probability
 to be in the sample trajectories.
+\item A finite horizon is needed for sampling. By default the model horizon is used.
+Infinite horizon is capped at 1000. Larger values can be specified manually.
+}
 }
 }
 \examples{
-# Example 1: Find the states of a simple MFPTD
+# Example 1: Find the reachable states of a simple MDP with only sample access
 
-line_maze <- MDPTF(actions = c("left", "right"), 
+line_maze <- MDPSample(actions = c("left", "right"), 
       start = s(0), 
       absorbing_states = rbind(s(-10), s(10)), 
-      transition_func = function(model, state, action) {
+      transition_model = function(model, action, state) {
             if (state == s(-10) || state == s(+10)) {
               return(list(reward = 0, state_prime = state))
             }
-            
             
             reward <- 0
             if (action == "left") state <- state - 1
@@ -89,6 +94,7 @@ line_maze <- MDPTF(actions = c("left", "right"),
       )
 
 # this model has no state specified
+line_maze
 S(line_maze)
 
 # find the states
@@ -97,6 +103,8 @@ states
 
 # set the states in the model
 line_maze$states <- states
+line_maze
+
 sol <- solve_MDP(line_maze, method = "TD:q_learning", 
   horizon = 100, n = 100, epsilon = .8)
 
@@ -265,11 +273,11 @@ Other MDP:
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPTF: 
-\code{\link{MDPTF}()},
+Other MDPSample: 
+\code{\link{MDPSample}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
-\code{\link{sample_MDP.MDPTF}()},
+\code{\link{sample_MDP.MDPSample}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()},
@@ -279,4 +287,4 @@ Other MDPTF:
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPTF}
+\concept{MDPSample}

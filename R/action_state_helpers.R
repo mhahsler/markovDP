@@ -20,7 +20,7 @@
 #' are constructed in the form `s(feature1, feature2, ...)`. 
 #' Factored state representation
 #' is used for value function approximation (see [`solve_MDP_APPROX()`]) and
-#' for [MDPTF] to describe MDP's via a transition function between factored 
+#' for [MDPSample] to describe MDP's via a transition function between factored 
 #' states.
 #'
 #' @name action_state_helpers
@@ -106,6 +106,9 @@ normalize_state_factor <- function(state, model) {
 #' @rdname action_state_helpers
 #' @export
 normalize_state_id <- function(state, model) {
+  if (is.null(S(model)))
+    stop("Models without n defined state space do not support IDs.")
+  
   if (is.null(state) || is.integer(state))
     return(state)
   
@@ -139,7 +142,10 @@ normalize_state_label <- function(state, model) {
   
   if (is.factor(state))
     return(as.character(state))
-  
+
+  if (is.null(S(model)))
+    stop("Cannot use state IDs for MDPs without a specified state space.")
+    
   return(S(model)[state])
 }
 
@@ -309,11 +315,11 @@ get_state_feature_range <- function(model, min = NULL, max = NULL) {
     rownames(rng) <- c("min", "max")
     return(rng)
   } else if (model$info$gridworld %||% FALSE) {
-    # MDPTF can have no state space, check if is a gridworld
+    # MDPSample can have no state space, check if is a gridworld
     return(rbind(min = 1, max = model$info$dim))
   }
   
-  # we have a MDPTF that is not a gridworld at this point
+  # we have a MDPSample that is not a gridworld at this point
   if (is.null(min) || is.null(max))
     stop("min and max needs to be specified to scale state features to [0,1].")
   

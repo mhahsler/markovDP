@@ -1,12 +1,12 @@
-#' Sample Trajectories from an MDPTF
+#' Sample Trajectories from an MDPSample
 #'
-#' Sample trajectories through using a MDPTF.
+#' Sample trajectories through using a MDPSample.
 #'
-#' @family MDPTF
+#' @family MDPSample
 
 #' @importFrom stats runif
 #'
-#' @param model an MDPTF model.
+#' @param model an MDPSample model.
 #' @param n number of trajectories.
 #' @param start start state.
 #' @param horizon epochs end once an absorbing state is reached or after
@@ -41,7 +41,7 @@
 #' # X  XGX
 #' # XXXXXX
 #' 
-#' model <- gw_maze_MDPTF(
+#' model <- gw_maze_MDPSample(
 #'            dim = s(4, 4),
 #'            start = s(1, 1),
 #'            goal = s(4, 4),
@@ -58,7 +58,7 @@
 #'                    verbose = TRUE, trajectories = TRUE)
 #' sim
 #' 
-#' # sample from a solved MDPTF by following the policy
+#' # sample from a solved MDPSample by following the policy
 #' set.seed(1234)
 #' sol <- solve_MDP_APPROX(model, horizon = 500, n = 100,
 #'                    transformation = transformation_fourier_basis, order = 2)
@@ -68,7 +68,7 @@
 #'                    verbose = TRUE, trajectories = TRUE)
 #' sim
 #' @export
-sample_MDP.MDPTF <-
+sample_MDP.MDPSample <-
   function(model,
            n,
            start = NULL,
@@ -80,6 +80,9 @@ sample_MDP.MDPTF <-
            verbose = FALSE,
            ...) {
     .nodots(...)
+    
+    if (exploring_starts && is.null(S(model)))
+      stop("Exploring starts require a defined state space.")
     
     solved <- is_solved_MDP(model, policy = TRUE, approx = TRUE)
     
@@ -104,7 +107,7 @@ sample_MDP.MDPTF <-
     A <- A(model)
     
     if (verbose) {
-      cat("Sampling MDPTF trajectories.\n")
+      cat("Sampling MDPSample trajectories.\n")
       cat("- horizon:", horizon, "\n")
       cat("- n:",
           n,
@@ -121,7 +124,7 @@ sample_MDP.MDPTF <-
       progress <- FALSE
     
     if (progress)
-      pb <- my_progress_bar(n, name = "sample_MDPTF")
+      pb <- my_progress_bar(n, name = "sample_MDPSample")
    
     #warning("Debug mode on!!!")
     #sim <- for(i in 1:n){
@@ -155,7 +158,7 @@ sample_MDP.MDPTF <-
       for (j in seq_len(horizon)) {
         # simulation step
         a <- action(model, s, epsilon = epsilon) 
-        result <- act(model, s, action = a, fast = TRUE)
+        result <- act(model, s, a, fast = TRUE)
         s_prime <- result$state_prime
         r <- result$reward
         

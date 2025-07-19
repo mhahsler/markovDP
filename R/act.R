@@ -3,7 +3,7 @@
 #' Performs an action in a state and returns the new state and reward.
 #'
 #' @family MDP
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @param model an MDP model.
 #' @param state the current state.
@@ -36,7 +36,7 @@ act <- function(model, state, action, fast = FALSE, ...) {
 
 #' @rdname act
 #' @export
-act.MDP <- function(model,
+act.MDPModel <- function(model,
                     state,
                     action = NULL,
                     fast = FALSE,
@@ -60,9 +60,9 @@ act.MDP <- function(model,
 # fast is ignored since we used state features
 #' @rdname act
 #' @export
-act.MDPTF <- function(model, state, action, fast = FALSE, ...) {
+act.MDPSample <- function(model, state, action, fast = FALSE, ...) {
   state <- normalize_state_features(state, model)
-  spr <- model$transition_func(model, state, action)
+  spr <- model$transition_model(model, action, state)
 
   if (!fast && !is.null(model$states))
     spr$state_prime <- normalize_state(spr$state_prime, model)

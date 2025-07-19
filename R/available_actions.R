@@ -95,7 +95,7 @@ available_actions.MDP <- function(model,
 
 
 #' @export
-available_actions.MDPTF <- function(model,
+available_actions.MDPSample <- function(model,
                               state,
                               neg_inf_reward = TRUE,
                               stay_in_place = FALSE) {

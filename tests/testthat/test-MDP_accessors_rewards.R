@@ -1,7 +1,7 @@
 # Maze_orig contains a data.frame
 
 (R1_full <- reward_matrix(Maze_function2, 1, sparse = FALSE))
-(R1_non_zero <- (Maze_dense$transition_prob[[1]] != 0) * R1_full)
+(R1_non_zero <- (Maze_dense$transition_model[[1]] != 0) * R1_full)
 
 # Translation rules:
 # * if trans dense ->  dense (P == 0 missing).    Example: Maze_orig

@@ -1,6 +1,7 @@
-#' Define an MDP as an Agent Environment
+#' Define an MDP Agent Environment With Only Sample Access
 #'
-#' Defines a discrete-time Markov decision process as a transition 
+#' Defines a discrete-time Markov decision process with only sample access 
+#' as a transition 
 #' function between states using a factored state representation. The state space 
 #' may be continuous and infinite.
 #'
@@ -25,11 +26,11 @@
 #' Reinforcement learning algorithms with approximation can be used to solve
 #' these problems. See: [`solve_MDP_APPROX()`].
 #'
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @param actions a character vector specifying the names of the available
 #'  actions.
-#' @param transition_func A transition function receiving the current state features and
+#' @param transition_model A transition function receiving the current state features and
 #'  returning the reward and the next state features.
 #' @param discount numeric; discount rate between 0 and 1.
 #' @param horizon numeric; Number of epochs.
@@ -39,17 +40,19 @@
 #' @param info A list with additional information.
 #' @param name a string to identify the MDP problem.
 #'
-#' @return The function returns an object of class MDPTF which is list with
+#' @return The function returns an object of class MDPSample which is list with
 #'   the model specification.
 #' @author Michael Hahsler
 #' @examples
 #' # Example 1: Define a simple 5x5 maze without walls
 #'
-#' transition_func <- function(model, state, action) {
+#' transition_model <- function(model, action, state) {
+#'   # make sure action and state are in the correct format
+#'   action <- normalize_action_label(action, model)
+#'   state <- normalize_state_features(state, model)
+#'   
 #'   if (all(state == s(5, 5)))
 #'     return(list(reward = 0, state_prime = state))
-#'
-#'   action <- normalize_action_label(action, model)
 #'
 #'   sp <- state + switch(action,
 #'     up =   c( -1, 0),
@@ -71,8 +74,8 @@
 #'   return(list(reward = r, state_prime = sp))
 #' }
 #'
-#' m <- MDPTF(actions = c("up", "right", "down", "left"),
-#'           transition_func,
+#' m <- MDPSample(actions = c("up", "right", "down", "left"),
+#'           transition_model,
 #'           start = s(1,1),
 #'           absorbing_states = s(5, 5),
 #'           name = "5x5 Maze")
@@ -93,6 +96,7 @@
 #' # Example 2: Solve using Linear Feature Approximation
 #' 
 #' # Note that we have not specified the state space
+#' m
 #' S(m)
 #' 
 #' # To use value function approximation, we need to specify the minimum
@@ -113,11 +117,12 @@
 #' 
 #' approx_greedy_action(sol, state = s(4,5))
 #'  
-#' # Example 3: MDPTF with a specified state space  
+#' # Example 3: MDPSample with a specified state space  
 #' 
 #' # The same maze as above can be created with this gridworld helper.
 #' # It specifies the finite state space.
-#' m <- gw_maze_MDPTF(c(5,5), start = "s(1,1)", goal = "s(5,5)")
+#' m <- gw_maze_MDP(dim = c(5,5), start = "s(1,1)", goal = "s(5,5)", access = "sample")
+#' m
 #' S(m)
 #' 
 #' # With the defined state space, we do not need to supply min and max 
@@ -133,8 +138,8 @@
 #' # and get a policy table
 #' policy(sol)
 #' @export
-MDPTF <- function(actions,
-                  transition_func,
+MDPSample <- function(actions,
+                  transition_model,
                   start,
                   states = NULL,
                   absorbing_states = NULL,
@@ -151,15 +156,17 @@ MDPTF <- function(actions,
       states = states,
       start = normalize_state_features(start),
       absorbing_states = normalize_state_features(absorbing_states),
-      transition_func = transition_func,
+      transition_model = transition_model,
       info = info
     ),
-    class =  c("MDPTF", "MDPE")
+    
+    # FIXME: Add check!
+    class =  c("MDPSample", "MDP")
   )
 }
 
 #' @export
-print.MDPTF <- function(x, ...) {
+print.MDPSample <- function(x, ...) {
   writeLines(paste(paste(class(x), collapse = ", "), "-", x$name))
   
   if (!is.null(x$discount)) {
@@ -169,8 +176,19 @@ print.MDPTF <- function(x, ...) {
   if (!is.null(x$horizon)) {
     writeLines(sprintf("  Horizon: %s epochs", x$horizon))
   }
-  
-  writeLines(sprintf("  Size: %d actions", length(x$actions)))
+ 
+  if (!is.null(x$states)) { 
+    writeLines(sprintf(
+      "  Size: %d actions / %d states",
+      length(x$actions),
+      length(x$states))
+    )
+  } else {
+    writeLines(sprintf(
+      "  Size: %d actions / undefined state space",
+      length(x$actions))
+    )
+  }
   
   writeLines(paste0("  Start: ", shorten(
     paste(features2state(x$start), collapse = ", "), n = -10L

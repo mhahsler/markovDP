@@ -111,7 +111,7 @@ sample_MDP.MDP <-
            ...) {
     .nodots(...)
     
-    engine <- engine %||% ifelse(is.function(model$transition_prob) ||
+    engine <- engine %||% ifelse(is.function(model$transition_model) ||
                                    is.function(model$reward),
                                  "r",
                                  "cpp")

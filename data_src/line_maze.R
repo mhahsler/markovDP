@@ -82,7 +82,7 @@ policy(s)
 # line_maze <- POMDP(states = lm$states, 
 #                    actions = c("left", "right"),
 #                    start = lm$start,
-#                    transition_prob = lm$transition_prob, 
+#                    transition_model = lm$transition_model, 
 #                    reward = reward,
 #                    observations = observations, 
 #                    observation_prob = observation_func, 

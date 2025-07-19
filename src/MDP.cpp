@@ -70,9 +70,9 @@ int get_horizon(const List& model) {
 NumericMatrix transition_matrix(const List& model, int action, int episode) {
   RObject acts;
   if (episode >= 0)
-    acts = as<List>(model["transition_prob"])[episode];
+    acts = as<List>(model["transition_model"])[episode];
   else
-    acts = model["transition_prob"];
+    acts = model["transition_model"];
 
   // function
   if (is<Function>(acts)) {
@@ -111,13 +111,13 @@ NumericMatrix transition_matrix(const List& model, int action, int episode) {
   stop("transition_matrix: model needs to be normalized with normalize_MDP().");
 }
 
-double transition_prob(const List& model, int action, int start_state, 
+double transition_model(const List& model, int action, int start_state, 
                        int end_state, int episode) {
   RObject acts;
   if (episode >= 0)
-    acts = as<List>(model["transition_prob"])[episode];
+    acts = as<List>(model["transition_model"])[episode];
   else
-    acts = model["transition_prob"];
+    acts = model["transition_model"];
   
   // function
   if (is<Function>(acts)) {
@@ -151,16 +151,16 @@ double transition_prob(const List& model, int action, int start_state,
     stop("Unknown matrix specifier! Only 'identity' and 'uniform' are allowed.");
   }
   
-  stop("transition_prob: model needs to be normalized with normalize_MDP().");
+  stop("transition_model: model needs to be normalized with normalize_MDP().");
 }
 
 NumericVector transition_row(const List& model, int action, int start_state, 
                              int episode) {
   RObject acts;
   if (episode >= 0)
-    acts = as<List>(model["transition_prob"])[episode];
+    acts = as<List>(model["transition_model"])[episode];
   else
-    acts = model["transition_prob"];
+    acts = model["transition_model"];
   
   // function
   if (is<Function>(acts)) {      

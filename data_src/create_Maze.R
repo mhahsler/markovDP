@@ -21,7 +21,7 @@ gw_matrix(gw, what = "labels")
 str(gw)
 
 # the transition function is stochastic so we cannot use the standard
-# gridworld gw$transition_prob() function and have to replace it
+# gridworld gw$transition_model() function and have to replace it
 T <- function(model, action, start.state) {
   action <- match.arg(action, choices = model$actions)
   
@@ -91,7 +91,7 @@ Maze <- MDP(
   states = gw$states,
   actions = gw$actions,
   start = "s(3,1)",
-  transition_prob = T,
+  transition_model = T,
   reward = R,
   info = gw$info
 )

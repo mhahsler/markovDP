@@ -170,21 +170,21 @@ check_and_fix_MDP <- function(x) {
   }
   
   ## transitions
-  if (is.null(x$transition_prob)) {
-    stop("transition_prob cannot be missing!")
+  if (is.null(x$transition_model)) {
+    stop("transition_model cannot be missing!")
   }
   
-  if (is.function(x$transition_prob)) {
-    check_func(x, x$transition_prob, P_)
+  if (is.function(x$transition_model)) {
+    check_func(x, x$transition_model, P_)
   }
   
-  else if (is.data.frame(x$transition_prob)) {
-    x$transition_prob <- check_and_fix_df(x, x$transition_prob, P_)
+  else if (is.data.frame(x$transition_model)) {
+    x$transition_model <- check_and_fix_df(x, x$transition_model, P_)
   }
   
   # list of matrices or keywords
   else {
-    x$transition_prob <- check_and_fix_list(x, x$transition_prob, P_, 
+    x$transition_model <- check_and_fix_list(x, x$transition_model, P_, 
                                             check_sum = TRUE)
   }
   

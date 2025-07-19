@@ -10,12 +10,11 @@
 \alias{gw_plot}
 \alias{gw_plot_transition_graph}
 \alias{gw_animate}
-\alias{gw_transition_prob}
-\alias{gw_transition_prob_sparse}
-\alias{gw_transition_prob_named}
-\alias{gw_transition_prob_end_state}
+\alias{gw_transition_model}
+\alias{gw_transition_model_sparse}
+\alias{gw_transition_model_named}
+\alias{gw_transition_model_end_state}
 \alias{gw_maze_MDP}
-\alias{gw_maze_MDPTF}
 \alias{gw_random_maze}
 \alias{gw_read_maze}
 \alias{gw_path}
@@ -70,13 +69,13 @@ gw_plot_transition_graph(
 
 gw_animate(model, method, n, zlim = NULL, continue = FALSE, ...)
 
-gw_transition_prob(model, action, start.state)
+gw_transition_model(model, action, start.state)
 
-gw_transition_prob_sparse(model, action, start.state)
+gw_transition_model_sparse(model, action, start.state)
 
-gw_transition_prob_named(model, action, start.state)
+gw_transition_model_named(model, action, start.state)
 
-gw_transition_prob_end_state(model, action, start.state, end.state)
+gw_transition_model_end_state(model, action, start.state, end.state)
 
 gw_maze_MDP(
   dim,
@@ -91,21 +90,7 @@ gw_maze_MDP(
   horizon = Inf,
   info = NULL,
   normalize = FALSE,
-  name = "Maze"
-)
-
-gw_maze_MDPTF(
-  dim,
-  start,
-  goal,
-  walls = NULL,
-  actions = c("up", "right", "down", "left"),
-  goal_reward = 100,
-  step_cost = 1,
-  discount = 1,
-  horizon = Inf,
-  info = NULL,
-  normalize = FALSE,
+  access = "model",
   name = "Maze"
 )
 
@@ -214,6 +199,8 @@ dimensions as element \code{dim} and can be created using \code{gw_init()}.}
 \item{normalize}{logical; should the description be normalized for
 faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
+\item{access}{string; create a MDP with \code{"model"} or \code{"sample"} access.}
+
 \item{name}{a string to identify the MDP problem.}
 
 \item{wall_prob}{probability to make a tile a wall.}
@@ -274,12 +261,12 @@ how the algorithms work.
 
 The transition model is available in several forms:
 \itemize{
-\item \code{gw_transition_prob()} returns a dense vector for the action and start state.
-\item \code{gw_transition_prob_sparse()} returns a sparse vector for the action and start state.
+\item \code{gw_transition_model()} returns a dense vector for the action and start state.
+\item \code{gw_transition_model_sparse()} returns a sparse vector for the action and start state.
 Note: creating sparse vectors is very expensive and should only be used
 for sparse models with a large state space.
-\item \code{gw_transition_prob_named()} returns only the non-zero probabilities as a named vector.
-\item \code{gw_transition_prob_end_state()} returns a single value for a given action, start and end state.
+\item \code{gw_transition_model_named()} returns only the non-zero probabilities as a named vector.
+\item \code{gw_transition_model_end_state()} returns a single value for a given action, start and end state.
 Note: Using this function is very slow since it results in excessive function calls.
 }
 }
@@ -319,8 +306,8 @@ gw_matrix(gw, what = "absorbing")
 gw_matrix(gw, what = "unreachable") # these are actually missing from the model
 
 # a transition function for regular moves in the gridworld is provided
-gw_transition_prob(gw, "right", "s(1,1)")
-gw_transition_prob_end_state(gw, "right", "s(1,1)", "s(1,2)")
+gw_transition_model(gw, "right", "s(1,1)")
+gw_transition_model_end_state(gw, "right", "s(1,1)", "s(1,2)")
 
 # convert between state names and row/column indices
 gw_s2rc("s(1,1)")
@@ -340,22 +327,22 @@ trans_black_hole <- function(model,
     "s(5,3)", "s(5,4)", "s(5,5)"
   )) {
     if (end.state == "s(4,4)") {
-      return(.5 + gw_transition_prob_end_state(model, action, start.state,
+      return(.5 + gw_transition_model_end_state(model, action, start.state,
                                         end.state) * .5)
     } else {
-      return(gw_transition_prob_end_state(model, action, start.state,
+      return(gw_transition_model_end_state(model, action, start.state,
                                         end.state) * .5)
     }
   }
 
   # use the standard gridworld movement
-  gw_transition_prob_end_state(model, action, start.state, end.state)
+  gw_transition_model_end_state(model, action, start.state, end.state)
 }
 
 black_hole <- MDP(
   states = gw$states,
   actions = gw$actions,
-  transition_prob = trans_black_hole,
+  transition_model = trans_black_hole,
   reward = rbind(R_(                      value = +1),
                  R_(end.state = "s(4,4)", value = -100),
                  R_(start.state = "s(4,4)", value = 0)

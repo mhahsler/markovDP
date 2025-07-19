@@ -51,7 +51,7 @@ Levels \verb{>1} provide more detailed solver output in the R console.}
 \item{progress}{not supported by this solver.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPSample which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements that depend on the used method. Common
 elements are:

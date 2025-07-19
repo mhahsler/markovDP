@@ -3,7 +3,7 @@
 \name{absorbing_states}
 \alias{absorbing_states}
 \alias{absorbing_states.MDP}
-\alias{absorbing_states.MDPTF}
+\alias{absorbing_states.MDPSample}
 \title{Absorbing States}
 \usage{
 absorbing_states(model, state = NULL, ...)
@@ -16,7 +16,7 @@ absorbing_states(model, state = NULL, ...)
   ...
 )
 
-\method{absorbing_states}{MDPTF}(
+\method{absorbing_states}{MDPSample}(
   model,
   state = NULL,
   sparse = "features",
@@ -86,11 +86,11 @@ Other MDP:
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPTF: 
-\code{\link{MDPTF}()},
+Other MDPSample: 
+\code{\link{MDPSample}()},
 \code{\link{act}()},
 \code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPTF}()},
+\code{\link{sample_MDP.MDPSample}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()},
@@ -100,4 +100,4 @@ Other MDPTF:
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPTF}
+\concept{MDPSample}

@@ -32,8 +32,8 @@ sample_MDP(sol, n = 10, horizon = 100, verbose = interactive())
 
 approx_V_plot(sol)
 
-## test MDPTF with state space
-m <- gw_maze_MDPTF(c(5, 5), start = s(1,1), goal = s(5,5))
+## test MDPSAMPLE with state space
+m <- gw_maze_MDP(c(5, 5), start = s(1,1), goal = s(5,5), access = "sample")
 
 # FIXME: large n (1000) lead to anchoring problems for linear basis!
 set.seed(2000)

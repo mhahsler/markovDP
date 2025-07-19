@@ -7,7 +7,7 @@
 #'
 #'
 #' @family solver
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @references
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
@@ -108,7 +108,7 @@ solve_MDP_PG_AC_1_step <-
     .nodots(...)
     stop("DO IT!")
     
-#     if (!inherits(model, "MDPE"))
+#     if (!inherits(model, "MDP"))
 #       stop("This model needs to be a MDP environment.")
 #     
 #     method <-
@@ -141,7 +141,7 @@ solve_MDP_PG_AC_1_step <-
 #         "Approx. value function f, the gradient, or w_init are missing in the q_function element in the model!"
 #       )
 #    
-#     # this code solve MDP and MDPTF
+#     # this code solve MDP and MDPSample
 #     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
 #     
 #     if (verbose)
@@ -231,7 +231,7 @@ solve_MDP_PG_AC_1_step <-
 #       #  alpha <- alpha_seq[e]
 #       ###
 #       
-#       # MDP: state is an id, MDPTF: state is a features
+#       # MDP: state is an id, MDPSample: state is a features
 #       s <- start(model)
 #       
 #       effective_discount <- 1 # called I in book
@@ -358,7 +358,7 @@ solve_MDP_PG_AC_lambda <-
 
     stop("DO IT!")
 #     
-#     if (!inherits(model, "MDPE"))
+#     if (!inherits(model, "MDP"))
 #       stop("This model needs to be a MDP environment.")
 #     
 #     methods <- c("Sarsa", "GTD")
@@ -386,7 +386,7 @@ solve_MDP_PG_AC_lambda <-
 #         "Approx q-function f, the gradient, or w_init are missing in the q_function element in the model!"
 #       )
 #     
-#     # this code solve MDP and MDPTF
+#     # this code solve MDP and MDPSample
 #     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
 #     
 #     if (verbose)
@@ -467,7 +467,7 @@ solve_MDP_PG_AC_lambda <-
 #       ###
 #       
 #       # Initialize s and choose first action
-#       # MDP: state is an id, MDPTF: state is a features
+#       # MDP: state is an id, MDPSample: state is a features
 #       s <- start(model)
 #       a <- approx_greedy_action(model, s, w, epsilon)
 #       

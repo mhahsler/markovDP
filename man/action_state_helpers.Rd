@@ -90,7 +90,7 @@ set of states are used. State labels
 are constructed in the form \code{s(feature1, feature2, ...)}.
 Factored state representation
 is used for value function approximation (see \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}) and
-for \link{MDPTF} to describe MDP's via a transition function between factored
+for \link{MDPSample} to describe MDP's via a transition function between factored
 states.
 }
 \examples{

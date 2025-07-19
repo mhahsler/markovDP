@@ -1,6 +1,6 @@
 #' Find Reachable States 
 #'
-#' Finds the reachable state space from a MDP or MDPTF.
+#' Finds the reachable state space from a MDP or MDPSample.
 #'
 #' There are three application cases for finding reachable states.
 #' 
@@ -10,34 +10,37 @@
 #'   encountered states. This is used for example for [unreachable_states()]. 
 #' 
 #' * We may only have a transition model function following the specifications
-#'   of an R transition function for an [MDP] which returns a probability 
+#'   of an R transition function for an [MDPModel] which returns a probability 
 #'   distribution over state transitions. To create a complete MDP, 
 #'   we can use the found reachable states to create a complete MDP object. This
 #'   search also used depth-first search of the state space.
 #' 
-#' * To use tabular methods for [MDPTF]s which specify a transition function that 
+#' * To use tabular methods for [MDPSample] which specify a transition function that 
 #'   returns the reward and the next state, we need to also specify the state space.
-#'   Since an MDPTF can have a stochastic transition model, trajectory sampling is used.
-#'   The horizon and the number of trajectories `n` has to be specified. **Note** that
-#'   not all reachable states may be returned if some states have a very low probability 
+#'   Since an MDPSample can have a stochastic transition model, trajectory sampling is used.
+#'   The horizon and the number of trajectories `n` has to be specified. 
+#'   
+#'   **Notes:**
+#'      - Not all reachable states may be returned if some states have a very low probability 
 #'   to be in the sample trajectories.
+#'      - A finite horizon is needed for sampling. By default the model horizon is used. 
+#'        Infinite horizon is capped at 1000. Larger values can be specified manually.  
 #'
 #' @family MDP
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @author Michael Hahsler
 #' 
 #' @examples
-#' # Example 1: Find the states of a simple MFPTD
+#' # Example 1: Find the reachable states of a simple MDP with only sample access
 #' 
-#' line_maze <- MDPTF(actions = c("left", "right"), 
+#' line_maze <- MDPSample(actions = c("left", "right"), 
 #'       start = s(0), 
 #'       absorbing_states = rbind(s(-10), s(10)), 
-#'       transition_func = function(model, state, action) {
+#'       transition_model = function(model, action, state) {
 #'             if (state == s(-10) || state == s(+10)) {
 #'               return(list(reward = 0, state_prime = state))
 #'             }
-#'             
 #'             
 #'             reward <- 0
 #'             if (action == "left") state <- state - 1
@@ -53,6 +56,7 @@
 #'       )
 #'
 #' # this model has no state specified
+#' line_maze
 #' S(line_maze)
 #' 
 #' # find the states
@@ -61,6 +65,8 @@
 #' 
 #' # set the states in the model
 #' line_maze$states <- states
+#' line_maze
+#' 
 #' sol <- solve_MDP(line_maze, method = "TD:q_learning", 
 #'   horizon = 100, n = 100, epsilon = .8)
 #' 
@@ -207,7 +213,7 @@
 #' # sol <- solve_MDP(tictactoe)
 #' # policy(sol)[1:10, ]
 #' 
-#' @param model a MDP, MDPE or a MDP transition function.
+#' @param model a MDP or a MDP transition function.
 #' @param progress logical; show a progress bar?
 #' @param ... further arguments are passed on (e.g., to [`sample_MDP()`])
 #' 
@@ -225,7 +231,7 @@ reachable_states <- function(model,
 #' @rdname reachable_states
 #' @param horizon only return states reachable in the given horizon.
 #' @export
-reachable_states.MDP <- function(model,
+reachable_states.MDPModel <- function(model,
                               horizon = Inf,
                               ...,
                               progress = TRUE) {
@@ -278,12 +284,17 @@ reachable_states.MDP <- function(model,
 #' @rdname reachable_states
 #' @param n number if sampled trajectories.
 #' @export
-reachable_states.MDPTF <- function(model,
+reachable_states.MDPSample <- function(model,
                                    n = 100,
                                    horizon = NULL,
                                    ...,
                                    progress = TRUE) {
-  horizon <- horizon %||% model$horizon
+  
+  
+  horizon <- horizon %||% model$horizon %||% 1000
+  
+  if (!is.finite(horizon)) 
+    horizon <- 1000
   
   samp <- sample_MDP(model, n = n, horizon = horizon, trajectories = FALSE, progress = progress, ...)
   
@@ -302,12 +313,12 @@ reachable_states.function <- function(model,
                                    horizon = Inf,
                                    ...,
                                    progress = TRUE) {
-  transition_function <- model
+  transition_modeltion <- model
     
   if (is.null(model)) {
       model <- list(actions = actions, 
                     start = start_state, 
-                    transition_prob = transition_function)
+                    transition_model = transition_modeltion)
     }
     
     if (progress) {
@@ -321,7 +332,7 @@ reachable_states.function <- function(model,
         return()
       
       for (action in actions){
-        next_states <- transition_function(model, action, state) 
+        next_states <- transition_modeltion(model, action, state) 
         
         for (next_state in names(next_states)) {
           if (states$has(next_state))

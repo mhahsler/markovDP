@@ -6,7 +6,7 @@
 #' process. We implement here MDPs with a finite state space.
 #' `MDP()` defines all the element of an MDP problem including the discount rate, the
 #' set of states, the set of actions,the transition
-#' probabilities, and the rewards.
+#' model, and the reward model.
 #'
 #' In the following we use the following notation. The MDP is a 5-duple:
 #'
@@ -104,11 +104,12 @@
 #'
 #' @family MDP
 #' @family MDP_examples
+#' @aliases MDP MDPModel
 #'
 #' @param states a character vector specifying the names of the states.
 #' @param actions a character vector specifying the names of the available
 #' actions.
-#' @param transition_prob Specifies the transition probabilities between
+#' @param transition_model Specifies the transition probabilities between
 #' states.
 #' @param reward Specifies the rewards dependent on action and states.
 #' @param discount numeric; discount rate between 0 and 1.
@@ -175,7 +176,7 @@
 #' @export
 MDP <- function(states,
                 actions,
-                transition_prob,
+                transition_model,
                 reward,
                 discount = .9,
                 horizon = Inf,
@@ -197,12 +198,12 @@ MDP <- function(states,
     states = states,
     actions = actions,
     start = start,
-    transition_prob = transition_prob,
+    transition_model = transition_model,
     reward = reward,
     info = info
   )
 
-  class(x) <- c("MDP", "MDPE")
+  class(x) <- c("MDPModel", "MDP")
   x <- check_and_fix_MDP(x)
     
   # this takes a while
@@ -235,9 +236,9 @@ print.MDP <- function(x, ...) {
   }
 
   writeLines(sprintf(
-    "  Size: %d states / %d actions",
-    length(x$states),
-    length(x$actions)
+    "  Size: %d actions / %d states",
+    length(x$actions),
+    length(x$states)
   ))
 
   s_type <- function(field) {
@@ -248,7 +249,7 @@ print.MDP <- function(x, ...) {
   
   writeLines(sprintf(
     "  Storage: transition prob as %s / reward as %s. Total size: %s", 
-      s_type(x$transition_prob), s_type(x$reward), format(object.size(x), units = "auto")
+      s_type(x$transition_model), s_type(x$reward), format(object.size(x), units = "auto")
   ))
   
   writeLines(paste0("  Start: ", shorten(paste(
@@ -296,7 +297,7 @@ A <- function(model) model$actions
 #' @param approx logical; solution is an approximation function.
 #' @export
 is_solved_MDP <- function(model, policy = TRUE, approx = FALSE, stop = FALSE) {
-  if (!inherits(model, "MDPE")) {
+  if (!inherits(model, "MDP")) {
     stop("x needs to be an MDP type object!")
   }
   

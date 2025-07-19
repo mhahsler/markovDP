@@ -5,10 +5,10 @@ verbose <- interactive()
 data(Maze)
 
 #models_solve <- list(Maze)
-#models_solve <- list(normalize_MDP(Maze, transition_prob = TRUE, reward = FALSE, sparse = TRUE))
+#models_solve <- list(normalize_MDP(Maze, transition_model = TRUE, reward = FALSE, sparse = TRUE))
 models_solve <- list(normalize_MDP(
   Maze,
-  transition_prob = TRUE,
+  transition_model = TRUE,
   reward = TRUE,
   sparse = FALSE
 ))
@@ -18,7 +18,7 @@ models_solve <- list(normalize_MDP(
 matrix <- TRUE
 
 #models_solve <- list(gw_random_maze(20))
-#models_solve <- list(normalize_MDP(gw_random_maze(20), transition_prob = TRUE, reward = FALSE, sparse = TRUE))
+#models_solve <- list(normalize_MDP(gw_random_maze(20), transition_model = TRUE, reward = FALSE, sparse = TRUE))
 
 # gw_plot(models_solve[[1]])
 

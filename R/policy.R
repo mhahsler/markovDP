@@ -80,7 +80,7 @@ policy <- function(model, epoch = NULL, drop = TRUE) {
 }
 
 #' @export
-policy.MDPE <- function(model, epoch = NULL, drop = TRUE) {
+policy.MDP <- function(model, epoch = NULL, drop = TRUE) {
   if (is.null(model$solution$policy[[1]]))
     stop("This MDP is not solved or does not store an explicit policy.")
   
@@ -110,7 +110,7 @@ add_policy <- function(model, policy) {
 }
 
 #' @export
-add_policy.MDP <- function(model, policy) {
+add_policy.MDPModel <- function(model, policy) {
   policy <- .normalize_policy(policy, model)
   
   solution <- list(method = "manual",
@@ -124,7 +124,7 @@ add_policy.MDP <- function(model, policy) {
 }
 
 #' @export
-add_policy.MDPTF <- add_policy.MDP
+add_policy.MDPSample <- add_policy.MDPModel
 
 
 .normalize_policy <- function(policy,
@@ -178,7 +178,7 @@ random_policy <-
            estimate_V = FALSE,
            only_available_actions = FALSE,
            ...) {
-    if (!inherits(model, "MDPE") || is.null(S(model))) {
+    if (!inherits(model, "MDP") || is.null(S(model))) {
       stop("'model' needs to be of class 'MDP' with a specified state space.")
     }
     

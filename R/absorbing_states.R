@@ -7,7 +7,7 @@
 #' if there is for all actions a probability of 1 for staying in the state.
 #'
 #' @family MDP
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @param model a [MDP] object.
 #' @param state a single state to check. This can be much faster if
@@ -103,7 +103,7 @@ absorbing_states.MDP <- function(model,
 
 #' @rdname absorbing_states 
 #' @export
-absorbing_states.MDPTF <- function(model,
+absorbing_states.MDPSample <- function(model,
                                  state = NULL,
                                  sparse = "features",
                                  use_precomputed = TRUE,

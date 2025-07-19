@@ -2,6 +2,7 @@
 % Please edit documentation in R/MDP.R
 \name{MDP}
 \alias{MDP}
+\alias{MDPModel}
 \alias{S}
 \alias{A}
 \alias{is_solved_MDP}
@@ -13,7 +14,7 @@
 MDP(
   states,
   actions,
-  transition_prob,
+  transition_model,
   reward,
   discount = 0.9,
   horizon = Inf,
@@ -40,7 +41,7 @@ R_(action = NA, start.state = NA, end.state = NA, value)
 \item{actions}{a character vector specifying the names of the available
 actions.}
 
-\item{transition_prob}{Specifies the transition probabilities between
+\item{transition_model}{Specifies the transition probabilities between
 states.}
 
 \item{reward}{Specifies the rewards dependent on action and states.}
@@ -83,7 +84,7 @@ Markov decision processes (MDPs) are discrete-time stochastic control
 process. We implement here MDPs with a finite state space.
 \code{MDP()} defines all the element of an MDP problem including the discount rate, the
 set of states, the set of actions,the transition
-probabilities, and the rewards.
+model, and the reward model.
 
 In the following we use the following notation. The MDP is a 5-duple:
 

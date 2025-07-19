@@ -111,7 +111,7 @@ greedy_action.MDP <-
   }
 
 #' @export
-greedy_action.MDPTF <- 
+greedy_action.MDPSample <- 
   function(x,
            s,
            Q = NULL,
@@ -150,10 +150,10 @@ greedy_policy.MDP <-
   }
 
 #' @export
-greedy_policy.MDPTF <-
+greedy_policy.MDPSample <-
   function(x) {
     if (!is.null(S(x)))
-      stop("MDPTF does not specify the state space!")
+      stop("MDPSample does not specify the state space!")
     
     approx_greedy_policy(Q_values(x))
   }

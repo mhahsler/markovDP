@@ -316,8 +316,8 @@ solve_MDP_TD_1_step <-
     method <-
       match.arg(method, c("q_learning", "sarsa", "expected_sarsa"))
     
-    # this works for MDP and MDPTF with a defined state space
-    if (!inherits(model, "MDPE") || is.null(S(model)))
+    # this works for MDPModel and MDPSample with a defined state space
+    if (!inherits(model, "MDP") || is.null(S(model)))
       stop("The model needs to be an MDP description with a specified state space.")
     
     ### alpha/epsilon func
@@ -429,7 +429,7 @@ solve_MDP_TD_1_step <-
         s_prime <- a_res$state_prime
         r <- a_res$r
         
-        # MDPTF: features -> id
+        # MDPSample: features -> id
         if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
       
         # for Sarsa we need (s, a, r, s', a')
@@ -824,8 +824,8 @@ solve_MDP_TD_lambda <-
     # exploratory action (i.e., z is set to zero whenever an exploratory 
     # (nongreedy) action is taken)
     
-    # this works for MDP and MDPTF with a defined state space
-    if (!inherits(model, "MDPE") || is.null(S(model)))
+    # this works for MDPModel and MDPSample with a defined state space
+    if (!inherits(model, "MDP") || is.null(S(model)))
       stop("The model needs to be an MDP description with a specified state space.")
     
     ### alpha/epsilon func
@@ -944,7 +944,7 @@ solve_MDP_TD_lambda <-
         s_prime <- a_res$state_prime
         r <- a_res$r
         
-        # MDPTF: features -> id
+        # MDPSample: features -> id
         if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
         
         # for Sarsa we need (s, a, r, s', a')

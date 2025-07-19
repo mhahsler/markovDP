@@ -36,7 +36,7 @@ start_vector(model, start = NULL, sparse = NULL)
 
 normalize_MDP(
   model,
-  transition_prob = TRUE,
+  transition_model = TRUE,
   reward = TRUE,
   start = FALSE,
   sparse = NULL,
@@ -65,7 +65,7 @@ based on the memory it would take to store the faster dense representation.}
 
 \item{start}{logical; convert the start probability distribution into a vector.}
 
-\item{transition_prob}{logical; convert the transition probabilities into a list of matrices.}
+\item{transition_model}{logical; convert the transition probabilities into a list of matrices.}
 
 \item{reward}{logical; convert the reward model into a list of matrices.}
 
@@ -84,7 +84,7 @@ problem description.
 }
 \details{
 Several parts of the MDP description can be defined in different ways. In particular,
-the fields \code{transition_prob}, \code{reward}, and \code{start} can be defined using matrices, data frames,
+the fields \code{transition_model}, \code{reward}, and \code{start} can be defined using matrices, data frames,
 keywords, or functions. See \link{MDP} for details.
 The functions provided here, provide unified access to the data in these fields
 to make writing code easier.
@@ -128,7 +128,7 @@ dense matrix) to save time during access.
 Convert the Complete MDP Description into a consistent form
 \code{normalize_MDP()} converts all components of the MDP description
 into a consistent form and
-returns a new MDP definition where \code{transition_prob},
+returns a new MDP definition where \code{transition_model},
 \code{reward}, and \code{start} are normalized. This includes the internal
 representation (dense, sparse, as a data.frame) and
 also, \code{states}, and \code{actions} are ordered as given in the problem
@@ -152,7 +152,7 @@ gw_matrix(Maze)
 str(Maze)
 
 # List of |A| transition matrices. One per action in the from start.states x end.states
-Maze$transition_prob
+Maze$transition_model
 transition_matrix(Maze)
 transition_matrix(Maze, action = "up", sparse = FALSE)
 transition_matrix(Maze,

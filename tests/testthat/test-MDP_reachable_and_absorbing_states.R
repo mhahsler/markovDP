@@ -21,8 +21,8 @@ for (m in models_solve_no_chaching) {
 }
 
 
-# absorbing states for MDPTFs
-m <- gw_maze_MDPTF(c(5,5), start = "s(1,1)", goal = "s(5,5)")
+# absorbing states for MDPSample
+m <- gw_maze_MDP(c(5,5), start = "s(1,1)", goal = "s(5,5)", access = "sample")
 expect_equal(absorbing_states(m), 
              structure(c(5, 5), dim = 1:2, dimnames = list("s(5,5)", c("x1", "x2"))))
 
@@ -50,7 +50,7 @@ for (m in models_solve_no_chaching) {
 
 m <- MDP(states = c("s1", "s2"), 
     actions = c("a1", "a2"), 
-    transition_prob = rbind(P_(end.state = "s1", probability = 1)),
+    transition_model = rbind(P_(end.state = "s1", probability = 1)),
     reward = rbind(R_(value = -1)),
     start = "s1",
     name = "simple 2-state problem with absorbing start state"

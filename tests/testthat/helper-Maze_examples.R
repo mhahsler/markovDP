@@ -15,7 +15,7 @@ gw <- gw_init(
 )
 
 # the transition function is stochastic so we cannot use the standard
-# gridworld gw$transition_prob() function and have to replace it
+# gridworld gw$transition_model() function and have to replace it
 P <- function(model, action, start.state, end.state) {
   action <- match.arg(action, choices = model$actions)
   
@@ -137,7 +137,7 @@ Maze_function3 <- MDP(
   horizon = Inf,
   states = gw$states,
   actions = gw$actions,
-  transition_prob = P,
+  transition_model = P,
   reward = R,
   start = "s(3,1)",
   info = gw$info
@@ -145,7 +145,7 @@ Maze_function3 <- MDP(
 
 Maze_function3 <- normalize_MDP(
   Maze_function3,
-  transition_prob = FALSE,
+  transition_model = FALSE,
   reward = FALSE,
   precompute_absorbing = TRUE
 )
@@ -154,29 +154,29 @@ Maze_dense <- normalize_MDP(Maze_function3, sparse = FALSE)
 Maze_sparse <- normalize_MDP(Maze_function3, sparse = TRUE)
 
 Maze_function2 <- Maze_function3
-Maze_function2$transition_prob <- P2
+Maze_function2$transition_model <- P2
 
 # function returns a sparse vector
 Maze_function2_sparse <- Maze_function2
-Maze_function2_sparse$transition_prob <- function(model, action, start.state) {
-  .sparsify_vector(Maze_function2$transition_prob(model, action, start.state))
+Maze_function2_sparse$transition_model <- function(model, action, start.state) {
+  .sparsify_vector(Maze_function2$transition_model(model, action, start.state))
 }
 
 # function returns a named vector
 Maze_function2_named <- Maze_function2
-Maze_function2_named$transition_prob <- function(model, action, start.state) {
-  v <- Maze_function2$transition_prob(model, action, start.state)
+Maze_function2_named$transition_model <- function(model, action, start.state) {
+  v <- Maze_function2$transition_model(model, action, start.state)
   v[v > 0]
 }
 
 # original has a dens transition matrix and a data frame for rewards
 Maze_orig <- Maze_function2
-Maze_orig <- normalize_MDP(Maze_function2, transition_prob = TRUE, reward = FALSE)
+Maze_orig <- normalize_MDP(Maze_function2, transition_model = TRUE, reward = FALSE)
 
 Maze_reward_function <- Maze_orig
 Maze_reward_function$reward <- R_func
 Maze_reward_trans_function <- Maze_reward_function
-Maze_reward_trans_function$transition_prob <- P2
+Maze_reward_trans_function$transition_model <- P2
 
 # test lists
 models_matrix <- list(
@@ -203,18 +203,18 @@ name_models <- function(models)
       m$name <- paste(
         m$name,
         "- T:",
-        class(m$transition_prob),
-        if (is.list(m$transition_prob))
+        class(m$transition_model),
+        if (is.list(m$transition_model))
           paste0("(", paste(
             sapply(
-              m$transition_prob,
+              m$transition_model,
               FUN = function(x)
                 class(x)[1]
             ), collapse = ", "
           ), ")"),
-        if (is.function(m$transition_prob))
+        if (is.function(m$transition_model))
           paste0("(", paste(names(
-            formals(m$transition_prob)
+            formals(m$transition_model)
           ), collapse = ", "), ")"),
         "- R:",
         class(m$reward),

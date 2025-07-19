@@ -2,13 +2,13 @@
 % Please edit documentation in R/start.R
 \name{start}
 \alias{start}
-\alias{start.MDP}
-\alias{start.MDPTF}
+\alias{start.MDPModel}
+\alias{start.MDPSample}
 \title{Sample a Start State}
 \usage{
-\method{start}{MDP}(x, as = "factor", ...)
+\method{start}{MDPModel}(x, as = "factor", ...)
 
-\method{start}{MDPTF}(x, as = "features", ...)
+\method{start}{MDPSample}(x, as = "features", ...)
 }
 \arguments{
 \item{x}{a model.}
@@ -49,12 +49,12 @@ Other MDP:
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPTF: 
-\code{\link{MDPTF}()},
+Other MDPSample: 
+\code{\link{MDPSample}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
 \code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPTF}()},
+\code{\link{sample_MDP.MDPSample}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()}
@@ -63,4 +63,4 @@ Other MDPTF:
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPTF}
+\concept{MDPSample}

@@ -139,7 +139,7 @@ The notation used in the package largely follows [@Sutton1998].
 | $a$     | `a`, `action`          | a action     |
 | $t$  | `t`    |   discrete time step|
 | $T$   | `T`, `horizon` | final time step  (length) of an episode, horizon |
-| $p(s' | s, a)$ | `transition_matrix()`, `p` | probability of transition from state $s$ to state $s'$ by taking action $a$ |
+| $p(s' | s, a)$ | `transition_matrix()`, `transition_model`, `p` | probability of transition from state $s$ to state $s'$ by taking action $a$ |
 | $r(s,a,s')$| `reward_matrix()`, `reward`, `r` | expected immediate reward on transition from `s` to `s'` under action `a` |
 | $\gamma$ | `discount` | discount factor |
 | $S_t, A_t, R_t$|  | random variables for state, action and reward at time $t$ |
@@ -186,7 +186,7 @@ where
 
 -   `actions` defines the set of actions.
 
--   `transition_prob` defines the conditional transition probabilities
+-   `transition_model` defines the conditional transition probabilities
     $p(s' \mid s,a)$,
 
 -   `reward` specifies the reward function with entries for
@@ -241,7 +241,7 @@ ways. The initial state `start` can be specified as
     start <- c("-", "state2")
     ```
 
-The transition probabilities (`transition_prob`) and reward function
+The transition model (`transition_model`) and reward function
 (`reward`) can be specified in several ways:
 
 -   As a `data.frame` created using `rbind()` and the helper functions
@@ -417,7 +417,7 @@ Maze <- MDP(
   states = gw$states,
   actions = gw$actions,
   start = "s(3,1)",
-  transition_prob = P,
+  transition_model = P,
   reward = R,
   info = gw$info
 )

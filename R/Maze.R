@@ -69,7 +69,7 @@
 #' str(gw)
 #'
 #' # the transition function is stochastic so we cannot use the standard
-#' # gridworld function provided in gw$transition_prob() and we 
+#' # gridworld function provided in gw$transition_model() and we 
 #' # have to replace it
 #' P <- function(model, action, start.state) {
 #'   action <- match.arg(action, choices = A(model))
@@ -139,7 +139,7 @@
 #'   states = gw$states,
 #'   actions = gw$actions,
 #'   start = "s(3,1)",
-#'   transition_prob = P,
+#'   transition_model = P,
 #'   reward = R,
 #'   info = gw$info
 #' )

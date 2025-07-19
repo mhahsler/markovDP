@@ -40,8 +40,8 @@
 #' gw_matrix(gw, what = "unreachable") # these are actually missing from the model
 #'
 #' # a transition function for regular moves in the gridworld is provided
-#' gw_transition_prob(gw, "right", "s(1,1)")
-#' gw_transition_prob_end_state(gw, "right", "s(1,1)", "s(1,2)")
+#' gw_transition_model(gw, "right", "s(1,1)")
+#' gw_transition_model_end_state(gw, "right", "s(1,1)", "s(1,2)")
 #'
 #' # convert between state names and row/column indices
 #' gw_s2rc("s(1,1)")
@@ -61,22 +61,22 @@
 #'     "s(5,3)", "s(5,4)", "s(5,5)"
 #'   )) {
 #'     if (end.state == "s(4,4)") {
-#'       return(.5 + gw_transition_prob_end_state(model, action, start.state,
+#'       return(.5 + gw_transition_model_end_state(model, action, start.state,
 #'                                         end.state) * .5)
 #'     } else {
-#'       return(gw_transition_prob_end_state(model, action, start.state,
+#'       return(gw_transition_model_end_state(model, action, start.state,
 #'                                         end.state) * .5)
 #'     }
 #'   }
 #'
 #'   # use the standard gridworld movement
-#'   gw_transition_prob_end_state(model, action, start.state, end.state)
+#'   gw_transition_model_end_state(model, action, start.state, end.state)
 #' }
 #'
 #' black_hole <- MDP(
 #'   states = gw$states,
 #'   actions = gw$actions,
-#'   transition_prob = trans_black_hole,
+#'   transition_model = trans_black_hole,
 #'   reward = rbind(R_(                      value = +1),
 #'                  R_(end.state = "s(4,4)", value = -100),
 #'                  R_(start.state = "s(4,4)", value = 0)
@@ -241,7 +241,7 @@ gw_init <-
     l <- list(
       states = S,
       actions = actions,
-      transition_prob = gw_transition_prob,
+      transition_model = gw_transition_model,
       reward = R,
       start = start,
       info = list(
@@ -276,6 +276,9 @@ gw_init <-
 #'   supplied.
 #' @export
 gw_s2rc <- function(s) {
+  if (!is.character(s))
+    stop("State labels are needed.")
+  
   if (length(s) > 1) {
     rcs <- t(sapply(s, gw_s2rc))
     rownames(rcs) <- s
@@ -335,7 +338,7 @@ gw_matrix <- function(model, epoch = 1L, what = "states") {
   )
   
   # for lists from gw_init()
-  if (!inherits(model, "MDP") && !inherits(model, "MDPTF")) {
+  if (!inherits(model, "MDP") && !inherits(model, "MDPSample")) {
     class(model) <- "MDP"
   }
   
@@ -709,18 +712,18 @@ gw_animate <- function(model,
 #'
 #' The transition model is available in several forms:
 #'
-#' * `gw_transition_prob()` returns a dense vector for the action and start state.
-#' * `gw_transition_prob_sparse()` returns a sparse vector for the action and start state.
+#' * `gw_transition_model()` returns a dense vector for the action and start state.
+#' * `gw_transition_model_sparse()` returns a sparse vector for the action and start state.
 #'      Note: creating sparse vectors is very expensive and should only be used
 #'      for sparse models with a large state space.
-#' * `gw_transition_prob_named()` returns only the non-zero probabilities as a named vector.
-#' * `gw_transition_prob_end_state()` returns a single value for a given action, start and end state.
+#' * `gw_transition_model_named()` returns only the non-zero probabilities as a named vector.
+#' * `gw_transition_model_end_state()` returns a single value for a given action, start and end state.
 #'      Note: Using this function is very slow since it results in excessive function calls.
 #'
 #' @param action,start.state,end.state parameters for the transition function.
 #'
 #' @export
-gw_transition_prob <- function(model, action, start.state) {
+gw_transition_model <- function(model, action, start.state) {
   S <- S(model)
   P <- setNames(numeric(length(S)), S)
   
@@ -756,7 +759,7 @@ gw_transition_prob <- function(model, action, start.state) {
 
 #' @rdname gridworld
 #' @export
-gw_transition_prob_sparse <- function(model, action, start.state) {
+gw_transition_model_sparse <- function(model, action, start.state) {
   a_i <- match(action, A(model))
   start_i = match(start.state, S(model))
   
@@ -794,7 +797,7 @@ gw_transition_prob_sparse <- function(model, action, start.state) {
 
 #' @rdname gridworld
 #' @export
-gw_transition_prob_named <- function(model, action, start.state) {
+gw_transition_model_named <- function(model, action, start.state) {
   P <- structure(numeric(length(S(model))), names = S(model))
   
   ai <- match(action, A(model))
@@ -831,7 +834,7 @@ gw_transition_prob_named <- function(model, action, start.state) {
 
 #' @rdname gridworld
 #' @export
-gw_transition_prob_end_state <- function(model, action, start.state, end.state) {
+gw_transition_model_end_state <- function(model, action, start.state, end.state) {
   ai <- match(action, A(model))
   
   # stay in place for unknown actions
@@ -884,6 +887,7 @@ gw_transition_prob_end_state <- function(model, action, start.state, end.state) 
 #' @param name a string to identify the MDP problem.
 #' @param normalize logical; should the description be normalized for
 #'      faster access using [normalize_MDP()].
+#' @param access string; create a MDP with `"model"` or `"sample"` access.
 #'
 #' @returns `gw_maze_MDP()` returns an MDP object.
 #' @export
@@ -899,7 +903,45 @@ gw_maze_MDP <- function(dim,
                         horizon = Inf,
                         info = NULL,
                         normalize = FALSE,
+                        access = "model",
                         name = "Maze") {
+
+  # FIXME: better way to control state space/no state space
+  access <- match.arg(access, c("model", "sample"))
+  
+  f <- switch(access,
+         model = gw_maze_MDPModel,
+         sample = gw_maze_MDPSample)
+  
+  f(dim,
+    start,
+    goal,
+    walls,
+    actions,
+    goal_reward,
+    step_cost,
+    restart,
+    discount,
+    horizon,
+    info,
+    normalize,
+    name)
+}
+
+gw_maze_MDPModel <- function(dim,
+                             start,
+                             goal,
+                             walls = NULL,
+                             actions = c("up", "right", "down", "left"),
+                             goal_reward = 100,
+                             step_cost = 1,
+                             restart = FALSE,
+                             discount = 1,
+                             horizon = Inf,
+                             info = NULL,
+                             normalize = FALSE,
+                             name = "Maze") {
+  
   gw <-
     gw_init(
       dim,
@@ -914,7 +956,7 @@ gw_maze_MDP <- function(dim,
       MDP(
         states = gw$states,
         actions = gw$actions,
-        transition_prob = gw$transition_prob,
+        transition_model = gw$transition_model,
         reward = rbind(
           R_(value = -step_cost),
           R_(end.state = gw$info$goal, value = goal_reward - step_cost),
@@ -938,7 +980,7 @@ gw_maze_MDP <- function(dim,
       }
       
       # regular move
-      gw_transition_prob(model, action, start.state)
+      gw_transition_model(model, action, start.state)
     }
     
     # note the goal state is now unreachable
@@ -946,7 +988,7 @@ gw_maze_MDP <- function(dim,
       states = gw$states,
       #actions = c(gw$actions, "restart"),
       actions = c(gw$actions),
-      transition_prob = trans_restart,
+      transition_model = trans_restart,
       reward = rbind(
         R_(value = -step_cost),
         R_(end.state = gw$info$goal, value = goal_reward - step_cost),
@@ -970,31 +1012,37 @@ gw_maze_MDP <- function(dim,
   model
 }
 
-#' @rdname gridworld
-#' @export
-gw_maze_MDPTF <- function(dim,
+
+gw_maze_MDPSample <- function(dim,
                           start,
                           goal,
                           walls = NULL,
                           actions = c("up", "right", "down", "left"),
                           goal_reward = 100,
                           step_cost = 1,
+                          restart = FALSE,
                           discount = 1,
                           horizon = Inf,
                           info = NULL,
                           normalize = FALSE,
                           name = "Maze") {
+  
+  # TODO: implement restart
+  if(restart)
+    stop("Restart not implemented yet!")
+  
   if (!is.null(walls))
     walls <- normalize_state_features(walls, NULL)
   
   start <- normalize_state_features(start, NULL)
   goal <- normalize_state_features(goal, NULL)
   
-  transition_func <- function(model, state, action) {
+  transition_model <- function(model, action, state) {
+    action <- normalize_action_label(action, model)
+    state <- normalize_state_features(state, model)
+    
     if (absorbing_states(model, state))
       return(list(reward = 0, state_prime = state))
-    
-    action <- normalize_action_label(action, model)
     
     r <- -step_cost
     sp <- state + switch(
@@ -1040,9 +1088,9 @@ gw_maze_MDPTF <- function(dim,
   info$state_labels[[features2state(start)]] <- info$state_labels[[features2state(start)]] %||% "Start"
   info$state_labels[[features2state(goal)]] <- info$state_labels[[features2state(goal)]] %||% "Goal"
   
-  MDPTF(
+  MDPSample(
     actions = actions,
-    transition_func = transition_func,
+    transition_model = transition_model,
     start = start,
     states = setdiff(as.vector(
       outer(

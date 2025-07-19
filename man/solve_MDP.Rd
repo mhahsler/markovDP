@@ -3,7 +3,7 @@
 \name{solve_MDP}
 \alias{solve_MDP}
 \alias{solve_MDP.MDP}
-\alias{solve_MDP.MDPTF}
+\alias{solve_MDP.MDPSample}
 \title{Solve an MDP Problem}
 \usage{
 solve_MDP(model, ...)
@@ -20,7 +20,7 @@ solve_MDP(model, ...)
   progress = !verbose
 )
 
-\method{solve_MDP}{MDPTF}(
+\method{solve_MDP}{MDPSample}(
   model,
   method = "APPROX:semi_gradient_sarsa",
   horizon = NULL,
@@ -65,7 +65,7 @@ Levels \verb{>1} provide more detailed solver output in the R console.}
 \item{progress}{logical; show a progress bar with estimated time for completion.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPSample which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements that depend on the used method. Common
 elements are:
@@ -96,9 +96,9 @@ A list of available solvers can be found in the See Also section under
 "Other solvers".
 
 While \link{MDP} model contain an explicit specification of the state space,
-the transition probabilities and the reward structure, \link{MDPTF} only contains a
+the transition probabilities and the reward structure, \link{MDPSample} only contains a
 transition function. This means that only a small subset of solvers can be
-used for MDPTFs. This currently includes only includes
+used for MDPSamples. This currently includes only includes
 the solvers in \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}.
 }
 \examples{
@@ -153,12 +153,12 @@ Other MDP:
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPTF: 
-\code{\link{MDPTF}()},
+Other MDPSample: 
+\code{\link{MDPSample}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
 \code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPTF}()},
+\code{\link{sample_MDP.MDPSample}()},
 \code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
@@ -167,5 +167,5 @@ Other MDPTF:
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPTF}
+\concept{MDPSample}
 \concept{solver}

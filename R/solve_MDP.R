@@ -17,14 +17,14 @@
 #' "Other solvers".
 #' 
 #' While [MDP] model contain an explicit specification of the state space,
-#' the transition probabilities and the reward structure, [MDPTF] only contains a 
+#' the transition probabilities and the reward structure, [MDPSample] only contains a 
 #' transition function. This means that only a small subset of solvers can be 
-#' used for MDPTFs. This currently includes only includes 
+#' used for MDPSamples. This currently includes only includes 
 #' the solvers in [`solve_MDP_APPROX()`].  
 #' 
 #' @family solver
 #' @family MDP
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @param model an MDP problem specification.
 #' @param method string; Composed of the algorithm family abbreviation and the algorithm
@@ -50,7 +50,7 @@
 #'   Levels `>1` provide more detailed solver output in the R console.
 #' @param ... further parameters are passed on to the solver function.
 #'
-#' @return `solve_MDP()` returns an object of class MDP or MDPTF which is a list with the
+#' @return `solve_MDP()` returns an object of class MDP or MDPSample which is a list with the
 #'   model specifications (`model`), the solution (`solution`).
 #'   The solution is a list with the elements that depend on the used method. Common
 #'   elements are:
@@ -121,7 +121,7 @@ solve_MDP.MDP <- function(model,
 
 #' @rdname solve_MDP
 #' @export
-solve_MDP.MDPTF <- function(model,
+solve_MDP.MDPSample <- function(model,
                       method = "APPROX:semi_gradient_sarsa",
                       horizon = NULL,
                       discount = NULL,
@@ -162,7 +162,7 @@ solve_MDP.MDPTF <- function(model,
   model$horizon <- horizon %||% model$horizon %||% Inf
   model$discount <- discount %||% model$discount %||% 1
   
-  if (inherits(model, "MDP") && matrix) {
+  if (inherits(model, "MDPModel") && matrix) {
     if (verbose)
       cat("Precomputing matrices for R and T ...")
     model <- normalize_MDP(

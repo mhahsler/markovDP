@@ -14,7 +14,7 @@
 #' the non-zero probabilities named by the corresponding end state. A partial model 
 #' that contains `actions` and `start.state` will be supplied to the function.
 #'
-#' @param transition_function a transition function (see details for requirements).
+#' @param transition_modeltion a transition function (see details for requirements).
 #' @param start_state labels of the start states.
 #' @param actions a vector with the available actions.
 #' @param model if needed, the model passed on to the transition model function. 
@@ -162,7 +162,7 @@
 #' tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")
 #' tictactoe
 #' @export
-find_reachable_states <- function(transition_function, 
+find_reachable_states <- function(transition_modeltion, 
                                   start_state, 
                                   actions,
                                   model = NULL,
@@ -175,7 +175,7 @@ find_reachable_states <- function(transition_function,
   if (is.null(model)) {
     model <- list(actions = actions, 
                   start = start_state, 
-                  transition_prob = transition_function)
+                  transition_model = transition_modeltion)
   }
   
   if (progress) {
@@ -188,7 +188,7 @@ find_reachable_states <- function(transition_function,
       return()
     
     for (action in actions){
-      next_states <- transition_function(model, action, state) 
+      next_states <- transition_modeltion(model, action, state) 
         
       for (next_state in names(next_states)) {
         if (exists(next_state, envir = states))

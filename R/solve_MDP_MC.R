@@ -85,8 +85,8 @@ solve_MDP_MC <-
            verbose = FALSE) {
     .nodots(...)
     
-    # this works for MDP and MDPTF with a defined state space
-    if (!inherits(model, "MDPE") || is.null(S(model)))
+    # this works for MDPModel and MDPSample with a defined state space
+    if (!inherits(model, "MDP") || is.null(S(model)))
       stop("The model needs to be an MDP description with a specified state space.")
     
     methods <- c("exploring_starts", "on_policy", "off_policy")

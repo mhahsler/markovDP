@@ -39,7 +39,7 @@ T <- function(model, action, start.state) {
   }
   
   # rest of the actions are normal
-  return(gw_transition_prob(model, action, start.state))
+  return(gw_transition_model(model, action, start.state))
 }
 
 T(gw, "up", "s(4,1)")
@@ -71,7 +71,7 @@ Cliff_walking <- MDP(
   states = gw$states,
   actions = gw$actions,
   start = gw$start,
-  transition_prob = T,
+  transition_model = T,
   reward = R,
   info = gw$info
 )

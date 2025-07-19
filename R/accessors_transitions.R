@@ -29,7 +29,7 @@ transition_matrix <- function(model,
 }
 
 #' @export
-transition_matrix.MDP <-
+transition_matrix.MDPModel <-
   function(model,
            action = NULL,
            start.state = NULL,
@@ -39,9 +39,10 @@ transition_matrix.MDP <-
            drop = TRUE,
            simplify = FALSE,
            trans_keyword = TRUE) {
+    
     value_matrix(
       model,
-      "transition_prob",
+      "transition_model",
       action,
       start.state,
       end.state,
@@ -50,4 +51,19 @@ transition_matrix.MDP <-
       simplify,
       trans_keyword
     )
+  }
+
+#' @export
+transition_matrix.MDPSample <-
+  function(model,
+           action = NULL,
+           start.state = NULL,
+           end.state = NULL,
+           ...,
+           sparse = NULL,
+           drop = TRUE,
+           simplify = FALSE,
+           trans_keyword = TRUE) {
+    
+   stop("This MDP has only sample access!")
   }

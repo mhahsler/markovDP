@@ -21,7 +21,7 @@
 #' * alpha schedule: `t` is increased by each processed episode.
 #' 
 #' @family solver
-#' @family MDPTF
+#' @family MDPSample
 #'
 #' @references
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
@@ -202,7 +202,7 @@ solve_MDP_APPROX_1_step <-
            progress = TRUE,
            verbose = FALSE) {
     
-    if (!inherits(model, "MDPE"))
+    if (!inherits(model, "MDP"))
       stop("This model needs to be a MDP environment.")
     
     method <-
@@ -211,7 +211,7 @@ solve_MDP_APPROX_1_step <-
     alpha_seq <- .schedule_to_sequence(alpha, n, continue, model)    
     epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     
-    # this code solve MDP and MDPTF
+    # this code solve MDP and MDPSample
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (verbose)
@@ -296,7 +296,7 @@ solve_MDP_APPROX_1_step <-
       epsilon_val <- epsilon_seq[e]
       alpha_val <- alpha_seq[e]
       
-      # MDP: state is an id, MDPTF: state is a features
+      # MDP: state is an id, MDPSample: state is a features
       s <- start(model)
       
       a <- approx_greedy_action(model, s, w, epsilon_val, as = "id")
@@ -419,7 +419,7 @@ solve_MDP_APPROX_lambda <-
            progress = TRUE,
            verbose = FALSE) {
     
-    if (!inherits(model, "MDPE"))
+    if (!inherits(model, "MDP"))
       stop("This model needs to be a MDP environment.")
     
     methods <- c("Sarsa", "GTD")
@@ -429,7 +429,7 @@ solve_MDP_APPROX_lambda <-
     alpha_seq <- .schedule_to_sequence(alpha, n, continue, model)    
     epsilon_seq <- .schedule_to_sequence(epsilon, n, continue, model)
     
-    # this code solve MDP and MDPTF
+    # this code solve MDP and MDPSample
     model <- .prep_model(model, horizon, discount, matrix, verbose, progress)
     
     if (verbose)
@@ -516,7 +516,7 @@ solve_MDP_APPROX_lambda <-
       alpha_val <- alpha_seq[e]
       
       # Initialize s and choose first action
-      # MDP: state is an id, MDPTF: state is a features
+      # MDP: state is an id, MDPSample: state is a features
       s <- start(model)
       a <- approx_greedy_action(model, s, w, epsilon_val, as = "id")
       

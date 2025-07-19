@@ -115,7 +115,7 @@ contours in the plot?}
 \item{main}{title for the plot.}
 }
 \value{
-\code{solve_MDP()} returns an object of class MDP or MDPTF which is a list with the
+\code{solve_MDP()} returns an object of class MDP or MDPSample which is a list with the
 model specifications (\code{model}), the solution (\code{solution}).
 The solution is a list with the elements that depend on the used method. Common
 elements are:
@@ -251,15 +251,15 @@ Other solver:
 \code{\link{solve_MDP_SAMP}()},
 \code{\link{solve_MDP_TD}()}
 
-Other MDPTF: 
-\code{\link{MDPTF}()},
+Other MDPSample: 
+\code{\link{MDPSample}()},
 \code{\link{absorbing_states}()},
 \code{\link{act}()},
 \code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPTF}()},
+\code{\link{sample_MDP.MDPSample}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_PG}()},
 \code{\link{start}()}
 }
-\concept{MDPTF}
+\concept{MDPSample}
 \concept{solver}

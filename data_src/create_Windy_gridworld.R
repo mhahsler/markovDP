@@ -77,7 +77,7 @@ Windy_gridworld <- MDP(
   states = S,
   actions = A,
   start = START,
-  transition_prob = T,
+  transition_model = T,
   reward = R,
   info = gw$info
 )

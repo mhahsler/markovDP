@@ -24,7 +24,7 @@ reward_matrix <- function(model,
 }
 
 #' @export
-reward_matrix.MDP <-
+reward_matrix.MDPModel <-
   function(model,
            action = NULL,
            start.state = NULL,
@@ -46,6 +46,22 @@ reward_matrix.MDP <-
       trans_keyword = FALSE
     )
   }
+
+#' @export
+reward_matrix.MDPSample <-
+  function(model,
+           action = NULL,
+           start.state = NULL,
+           end.state = NULL,
+           ...,
+           state_matrix = TRUE,
+           sparse = NULL,
+           drop = TRUE,
+           simplify = FALSE) {
+  
+  stop("This MDP has only sample access!")  
+  }
+
 
 # TODO: This is currently unused!
 # try to convert a reward matrix into a sparse data.frame

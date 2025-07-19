@@ -130,7 +130,7 @@ remove_unreachable_states <- function(model, ...) {
     model$absorbing_states <- setdiff(absorbing_states(model, sparse = "states"), S(model)[unreachable])
   
   model$states <- model$states[-unreachable]
-  model$transition_prob <- remove_states(model$transition_prob, unreachable)
+  model$transition_model <- remove_states(model$transition_model, unreachable)
   model$reward <- remove_states(model$reward, unreachable)
   
   

@@ -2,15 +2,15 @@
 % Please edit documentation in R/act.R
 \name{act}
 \alias{act}
-\alias{act.MDP}
-\alias{act.MDPTF}
+\alias{act.MDPModel}
+\alias{act.MDPSample}
 \title{Perform an Action}
 \usage{
 act(model, state, action, fast = FALSE, ...)
 
-\method{act}{MDP}(model, state, action = NULL, fast = FALSE, ...)
+\method{act}{MDPModel}(model, state, action = NULL, fast = FALSE, ...)
 
-\method{act}{MDPTF}(model, state, action, fast = FALSE, ...)
+\method{act}{MDPSample}(model, state, action, fast = FALSE, ...)
 }
 \arguments{
 \item{model}{an MDP model.}
@@ -66,11 +66,11 @@ Other MDP:
 \code{\link{unreachable_states}()},
 \code{\link{value_function}()}
 
-Other MDPTF: 
-\code{\link{MDPTF}()},
+Other MDPSample: 
+\code{\link{MDPSample}()},
 \code{\link{absorbing_states}()},
 \code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPTF}()},
+\code{\link{sample_MDP.MDPSample}()},
 \code{\link{solve_MDP}()},
 \code{\link{solve_MDP_APPROX}()},
 \code{\link{solve_MDP_PG}()},
@@ -80,4 +80,4 @@ Other MDPTF:
 Michael Hahsler
 }
 \concept{MDP}
-\concept{MDPTF}
+\concept{MDPSample}
