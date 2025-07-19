@@ -41,12 +41,13 @@
 #' # X  XGX
 #' # XXXXXX
 #' 
-#' model <- gw_maze_MDPSample(
+#' model <- gw_maze_MDP(
 #'            dim = s(4, 4),
 #'            start = s(1, 1),
 #'            goal = s(4, 4),
 #'            walls = rbind(s(1, 2), s(4, 3)),
 #'            discount = 0.95,
+#'            access = "sample",
 #'            name = "Simple Maze"
 #'        )
 #' model
