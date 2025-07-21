@@ -904,7 +904,7 @@ gw_maze_MDP <- function(dim,
                         info = NULL,
                         normalize = FALSE,
                         access = "model",
-                        name = "Maze") {
+                        name = "A Maze") {
 
   # FIXME: better way to control state space/no state space
   access <- match.arg(access, c("model", "sample"))

@@ -1,4 +1,4 @@
-#' Define an MDP Agent Environment With Only Sample Access
+#' Define an MDP With Only Sample Access
 #'
 #' Defines a discrete-time Markov decision process with only sample access 
 #' as a transition 
@@ -194,8 +194,6 @@ print.MDPSample <- function(x, ...) {
     paste(features2state(x$start), collapse = ", "), n = -10L
   )))
   
-  writeLines("")
-  
   writeLines(strwrap(
     paste("List components:", paste(sQuote(names(
       x
@@ -203,4 +201,27 @@ print.MDPSample <- function(x, ...) {
     indent = 2,
     exdent = 4
   ))
+  
+  if (is_solved_MDP(x)) {
+    writeLines("")
+    writeLines(c(
+      "  Solved:",
+      sprintf(
+        "    Method: %s",
+        sQuote(x$solution$method)
+      ),
+      sprintf(
+        "    Solution converged: %s",
+        x$solution$converged
+      )
+    ))
+    
+    writeLines(strwrap(
+      paste("Solution list components:", paste(sQuote(names(
+        x$solution
+      )), collapse = ", "), "\n"),
+      indent = 2,
+      exdent = 4
+    ))
+  }
 }

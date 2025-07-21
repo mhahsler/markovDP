@@ -5,7 +5,7 @@
 \alias{greedy_policy}
 \title{Greedy Actions and Policies}
 \usage{
-greedy_action(x, s, Q = NULL, epsilon = 0, prob = FALSE)
+greedy_action(x, s, Q = NULL, epsilon = 0, as = "factor", prob = FALSE)
 
 greedy_policy(x)
 }
@@ -17,6 +17,8 @@ greedy_policy(x)
 \item{Q}{an optional Q-matrix.}
 
 \item{epsilon}{an \code{epsilon > 0} applies an epsilon-greedy policy.}
+
+\item{as}{string, format for returning the action (e.g., \code{"factor"}, \code{"id"}, \code{"label"}).}
 
 \item{prob}{logical; return a probability distribution over the actions.}
 }

@@ -257,7 +257,17 @@ print.MDP <- function(x, ...) {
     collapse = ", "
   ), n = -10L)))
 
+
+  writeLines(strwrap(
+    paste("Model list components:", paste(sQuote(names(
+      x
+    )), collapse = ", "), "\n"),
+    indent = 2,
+    exdent = 4
+  ))
+  
   if (is_solved_MDP(x)) {
+    writeLines("")
     writeLines(c(
       "  Solved:",
       sprintf(
@@ -269,17 +279,15 @@ print.MDP <- function(x, ...) {
         x$solution$converged
       )
     ))
+    
+    writeLines(strwrap(
+      paste("Solution list components:", paste(sQuote(names(
+        x$solution
+      )), collapse = ", "), "\n"),
+      indent = 2,
+      exdent = 4
+    ))
   }
-
-  writeLines("")
-
-  writeLines(strwrap(
-    paste("List components:", paste(sQuote(names(
-      x
-    )), collapse = ", "), "\n"),
-    indent = 2,
-    exdent = 4
-  ))
 }
 
 

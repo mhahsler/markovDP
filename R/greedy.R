@@ -46,6 +46,7 @@
 #' @param Q an optional Q-matrix.
 #' @param epsilon an `epsilon > 0` applies an epsilon-greedy policy.
 #' @param prob logical; return a probability distribution over the actions.
+#' @param as string, format for returning the action (e.g., `"factor"`, `"id"`, `"label"`).
 #' @return 
 #'    * `greedy_action()` returns the action with the highest q-value
 #'    for state `s`. If `prob = TRUE`, then a vector with
@@ -56,6 +57,7 @@ greedy_action <- function(x,
                           s,
                           Q = NULL,
                           epsilon = 0,
+                          as = "factor",
                           prob = FALSE) {
   UseMethod("greedy_action")
 }
@@ -100,14 +102,20 @@ greedy_action_int <-
   }
 
 #' @export
-greedy_action.MDP <-
+greedy_action.MDPModel <-
   function(x,
            s,
            Q = NULL,
            epsilon = 0,
+           as = "factor",
            prob = FALSE) {
     Q <- Q %||% Q_values(x)
-    greedy_action_int(Q, normalize_state_id(s, x), epsilon, prob)
+    a <- greedy_action_int(Q, normalize_state_id(s, x), epsilon, prob)
+    
+    if (!prob)
+      a <- normalize_action(a, x, as = as)
+    
+    a
   }
 
 #' @export
@@ -116,9 +124,15 @@ greedy_action.MDPSample <-
            s,
            Q = NULL,
            epsilon = 0,
+           as = "factor",
            prob = FALSE) {
     Q <- Q %||% rbind(approx_Q_value(x, s))
-    greedy_action_int(Q, 1L, epsilon, prob)
+    a <- greedy_action_int(Q, 1L, epsilon, prob)
+    
+    if (!prob)
+      a <- normalize_action(a, x, as = as)
+    
+    a
   }
 
 #' @rdname greedy_action
@@ -144,7 +158,7 @@ greedy_policy.matrix <-
   }
 
 #' @export
-greedy_policy.MDP <-
+greedy_policy.MDPModel <-
   function(x) {
     greedy_policy(Q_values(x))
   }

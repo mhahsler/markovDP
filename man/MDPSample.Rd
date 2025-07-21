@@ -2,7 +2,7 @@
 % Please edit documentation in R/MDPSample.R
 \name{MDPSample}
 \alias{MDPSample}
-\title{Define an MDP Agent Environment With Only Sample Access}
+\title{Define an MDP With Only Sample Access}
 \usage{
 MDPSample(
   actions,

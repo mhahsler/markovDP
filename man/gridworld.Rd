@@ -91,7 +91,7 @@ gw_maze_MDP(
   info = NULL,
   normalize = FALSE,
   access = "model",
-  name = "Maze"
+  name = "A Maze"
 )
 
 gw_random_maze(

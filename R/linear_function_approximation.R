@@ -1,8 +1,7 @@
 #' Linear Function Approximation
 #'
 #' Approximate a Q-function a value function or a policy using linear
-#' function approximation. These approximation functions are 
-#' used internally by: [solve_MDP_APPROX]
+#' function approximation. 
 #'
 #' ## Linear Approximation
 #' The state-action value function is approximated by
@@ -54,26 +53,49 @@
 #' * `w` ... the weight vector (initially all 0s)
 #' * `transformation` ... a transformation kernel function that is applied to state features in x.
 #'
+#' ## Fitting
+#' 
+#' The weight vector are fitted using gradient descent by the MDP solver
+#' (e.g., [solve_MDP_APPROX]).
+#'
 #' ## Prediction
 #' `approx_value()` calculates approximate value given the weights in
-#'    the model or specified weights.
+#'    the model or a specified weight vector.
 #'
 #' @references
-#' Alborz Geramifard, Thomas J. Walsh, Stefanie Tellex, Girish Chowdhary, Nicholas Roy, and Jonathan P. How. 2013. A Tutorial on Linear Function Approximators for Dynamic Programming and Reinforcement Learning. Foundations and Trends in Machine Learning 6(4), December 2013, pp. 375-451. \doi{10.1561/2200000042}
+#' Alborz Geramifard, Thomas J. Walsh, Stefanie Tellex, Girish Chowdhary, 
+#' Nicholas Roy, and Jonathan P. How. 2013. 
+#' A Tutorial on Linear Function Approximators for Dynamic Programming and 
+#' Reinforcement Learning. Foundations and Trends in Machine Learning 6(4), 
+#' December 2013, pp. 375-451. \doi{10.1561/2200000042}
 #'
-#' Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in Reinforcement Learning Using the Fourier Basis. Proceedings of the AAAI Conference on Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
+#' Konidaris, G., Osentoski, S., & Thomas, P. 2011. 
+#' Value Function Approximation in Reinforcement Learning Using the 
+#' Fourier Basis. Proceedings of the AAAI Conference on 
+#' Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
 #'
 #' @examples
 #' data(Maze)
 #'
+#' # Approx Q function
 #' f_q <- q_approx_linear(Maze)
 #' f_q
-#' approx_value(f_q, 1, 1, model = Maze)
+#' approx_value(f_q, state = "s(3,1)", action = "up", model = Maze)
+#' 
+#' # prediction with a random weight vector
+#' w <- rnorm(12)
+#' approx_value(f_q, state = "s(3,1)", action = "up", w = w, model = Maze)
 #'
+#' # find an approximate Q function using a solver
+#' sol <- solve_MDP_APPROX(Maze, horizon = 1000, n = 100)
+#' sol$solution$q_approx_linear
+#'
+#' # Approx V function
 #' f_v <- v_approx_linear(Maze)
 #' f_v
-#' approx_value(f_v, 1, model = Maze)
+#' approx_value(f_v, state = "s(3,1)", model = Maze)
 #'
+#' # Approx Policy
 #' # TODO: Implement
 #' # f_pi <- pi_approx_linear(Maze)
 #' # f_pi

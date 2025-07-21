@@ -10,6 +10,7 @@
 #' @param epoch what epoch of the policy should be used. Use 1 for converged policies.
 #' @param epsilon make the policy epsilon soft.
 #' @param ... further parameters are passed on.
+#' @param as string, format for returning the action (e.g., `"factor"`, `"id"`, `"label"`).
 #' @return The name of the optimal action as a factor.
 #' @author Michael Hahsler
 #' @examples
@@ -29,13 +30,16 @@ action <-
            state,
            epsilon = 0,
            epoch = 1,
+           as = "factor",
            ...) {
+    .nodots(...)
     ### TODO: FIXME - Available actions only?
     A <- A(model)
     
-    if (epsilon == 1)
-      return(normalize_action(sample.int(length(A), size = 1L), model))
-    
+    if (epsilon == 1) {
+      a <- sample.int(length(A), size = 1L)
+      return(normalize_action(a, model, as = as))
+    }
     
     if (is.matrix(state) && nrow(state) != 1L ||
         is.vector(state) && length(state) != 1)
@@ -51,12 +55,10 @@ action <-
       stop("No explicit policy or approximate Q-function available! Set epsilon to 1 for random actions.")
     
     if (epsilon == 0)
-      return(a)
+      return(normalize_action(a, model, as = as))
     
-    if (length(A) > 1L && runif(1) < epsilon) {
+    if (length(A) > 1L && runif(1) < epsilon)
       a <- sample.int(length(A), size = 1L)
-      a <- normalize_action(a, model)
-    }
     
-    a
+    normalize_action(a, model, as = as)
   }
