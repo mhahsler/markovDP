@@ -38,6 +38,7 @@ function approximation.
 }
 \details{
 \subsection{Linear Approximation}{
+\subsection{Approximate Q Values}{
 
 The state-action value function is approximated by
 \deqn{\hat{q}(s,a) = \boldsymbol{w}^\top\phi(s,a),}
@@ -49,8 +50,24 @@ maps each state-action pair to a feature vector.
 Linear approximation has a single optimum and can be optimized using
 a simple update rule following the gradient of the state-action function
 \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
+}
+
+\subsection{Approximate Value Function}{
 
 Value function approximation works in the same way but \eqn{\phi(s)} is used.
+}
+
+\subsection{Approximate Policy}{
+
+The most popular method implemented here uses a linear preference
+function \eqn{h(s,a,\boldsymbol{w}) = \boldsymbol{w}^\top\phi(s,a)}.
+The action with the highest preference is the greedy action.
+
+To represents a stochastic policy, the preference scores can be converted
+into probabilities using the softmax function
+\deqn{\pi(a|s,\boldsymbol{w}) = \frac{e^{h(s,a,\boldsymbol{w})}}{\sum_b e^{h(s,b,\boldsymbol{w})}}}.
+}
+
 }
 
 \subsection{State-action Feature Vector Construction}{
@@ -111,15 +128,21 @@ data(Maze)
 # Approx Q function
 f_q <- q_approx_linear(Maze)
 f_q
+
 approx_value(f_q, state = "s(3,1)", action = "up", model = Maze)
 
-# prediction with a random weight vector
-w <- rnorm(12)
-approx_value(f_q, state = "s(3,1)", action = "up", w = w, model = Maze)
+# update the weights using a learning rate of .1 and a delta of 100
+# ([] is used to preserve the names)
+f_q$w[] <- .1 * 100 * f_q$gradient(s = s(3,1), a = "up", f_q$w)  
+f_q
+
+approx_value(f_q, state = "s(3,1)", action = "up", model = Maze)
 
 # find an approximate Q function using a solver
 sol <- solve_MDP_APPROX(Maze, horizon = 1000, n = 100)
 sol$solution$q_approx_linear
+approx_value(sol$solution$q_approx_linear, 
+             state = "s(3,1)", action = "up", model = Maze)
 
 # Approx V function
 f_v <- v_approx_linear(Maze)
@@ -127,9 +150,14 @@ f_v
 approx_value(f_v, state = "s(3,1)", model = Maze)
 
 # Approx Policy
-# TODO: Implement
-# f_pi <- pi_approx_linear(Maze)
-# f_pi
+f_pi <- pi_approx_linear(Maze)
+f_pi
+
+approx_value(f_pi, state = "s(3,1)", model = Maze)
+
+# update the weights using a learning rate of 0.1
+f_pi$w <- .1 * f_pi$gradient(s = s(3,1), a = "up", f_pi$w)  
+approx_value(f_pi, state = "s(3,1)", model = Maze)
 
 }
 \references{

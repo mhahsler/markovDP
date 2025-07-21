@@ -4,6 +4,8 @@
 #' function approximation. 
 #'
 #' ## Linear Approximation
+#' 
+#' ### Approximate Q Values
 #' The state-action value function is approximated by
 #' \deqn{\hat{q}(s,a) = \boldsymbol{w}^\top\phi(s,a),}
 #'
@@ -15,7 +17,19 @@
 #' a simple update rule following the gradient of the state-action function
 #' \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
 #'
+#' ### Approximate Value Function
 #' Value function approximation works in the same way but \eqn{\phi(s)} is used.
+#' 
+#' ### Approximate Policy
+#' 
+#' The most popular method implemented here uses a linear preference 
+#' function \eqn{h(s,a,\boldsymbol{w}) = \boldsymbol{w}^\top\phi(s,a)}.
+#'  The action with the highest preference is the greedy action.
+#'
+#' To represents a stochastic policy, the preference scores can be converted
+#' into probabilities using the softmax function
+#' \deqn{\pi(a|s,\boldsymbol{w}) = \frac{e^{h(s,a,\boldsymbol{w})}}{\sum_b e^{h(s,b,\boldsymbol{w})}}}
+#' 
 #' 
 #' ## State-action Feature Vector Construction
 #'
@@ -80,15 +94,21 @@
 #' # Approx Q function
 #' f_q <- q_approx_linear(Maze)
 #' f_q
+#' 
 #' approx_value(f_q, state = "s(3,1)", action = "up", model = Maze)
 #' 
-#' # prediction with a random weight vector
-#' w <- rnorm(12)
-#' approx_value(f_q, state = "s(3,1)", action = "up", w = w, model = Maze)
+#' # update the weights using a learning rate of .1 and a delta of 100
+#' # ([] is used to preserve the names)
+#' f_q$w[] <- .1 * 100 * f_q$gradient(s = s(3,1), a = "up", f_q$w)  
+#' f_q
+#' 
+#' approx_value(f_q, state = "s(3,1)", action = "up", model = Maze)
 #'
 #' # find an approximate Q function using a solver
 #' sol <- solve_MDP_APPROX(Maze, horizon = 1000, n = 100)
 #' sol$solution$q_approx_linear
+#' approx_value(sol$solution$q_approx_linear, 
+#'              state = "s(3,1)", action = "up", model = Maze)
 #'
 #' # Approx V function
 #' f_v <- v_approx_linear(Maze)
@@ -96,9 +116,14 @@
 #' approx_value(f_v, state = "s(3,1)", model = Maze)
 #'
 #' # Approx Policy
-#' # TODO: Implement
-#' # f_pi <- pi_approx_linear(Maze)
-#' # f_pi
+#' f_pi <- pi_approx_linear(Maze)
+#' f_pi
+#' 
+#' approx_value(f_pi, state = "s(3,1)", model = Maze)
+#'
+#' # update the weights using a learning rate of 0.1
+#' f_pi$w <- .1 * f_pi$gradient(s = s(3,1), a = "up", f_pi$w)  
+#' approx_value(f_pi, state = "s(3,1)", model = Maze)
 #'
 #' @name linear_function_approximation
 NULL
@@ -123,7 +148,7 @@ q_approx_linear  <- function(model,
   x <- function(s, a) {
     # use a transformation function
     s <- transformation(s)
-    # TODO: Remove???
+    # TODO: Remove to improve speed???
     a <- normalize_action_id(a, model)
     
     # one component per action
@@ -135,7 +160,8 @@ q_approx_linear  <- function(model,
     x
   }
   
-  w_init <- setNames(numeric(n_A * n_features), paste(rep(A(model), each = n_features), feature_names, sep = "."))
+  w_init <- setNames(numeric(n_A * n_features), paste(
+    rep(A(model), each = n_features), feature_names, sep = "."))
   
   structure(
     list(
@@ -147,12 +173,11 @@ q_approx_linear  <- function(model,
       transformation = transformation,
       w = w_init
     ),
-    class = "q_approx_linear"
+    class = c("q_approx_linear", "approx_linear")
   )
   
 }
 
-# create a linear approx function that can then be added to a model
 #' @rdname linear_function_approximation
 #' @export
 v_approx_linear  <- function(model,
@@ -183,18 +208,82 @@ v_approx_linear  <- function(model,
       transformation = transformation,
       w = w_init
     ),
-    class = "v_approx_linear"
+    class = c("v_approx_linear", "approx_linear")
   )
   
 }
 
-# create a linear approx function that can then be added to a model
+
+# we use a linear preference function h(s,a, \theta) = \theta^T x(s,a) 
+# and pick the action with the highest preference.
+#
+# The stochastic policy is defined using softmax
+# pi(a|s,\theta) = exp(h(s,a,\theta)) / sum_b exp(h(s,a,\theta))
+# we always calulate the prob distribution over all actions for a state
 #' @rdname linear_function_approximation
 #' @export
 pi_approx_linear  <- function(model,
                               transformation = transformation_linear_basis,
                               ...) {
-  stop("TODO!")
+  transformation <- transformation(model, ...)
+  
+  state_template <- transformation(start(model, as = "feature")[1L, ])
+  n_features <- length(state_template)
+  feature_names <- names(state_template) 
+  n_A <- length(A(model))
+  
+  # s are state features. Convert to action-state feature.
+  x <- function(s, a) {
+    # use a transformation function
+    s <- transformation(s)
+    # TODO: Remove to improve speed???
+    a <- normalize_action_id(a, model)
+    
+    # one component per action
+    x <- numeric(n_A * n_features)
+    
+    a_pos <- 1L + (a - 1L) * n_features
+    x[a_pos:(a_pos + n_features - 1L)] <- s
+    
+    x
+  }
+  
+  f <- function(s, a = NULL, w) {
+    # a is ignored!
+    h <- sapply(seq(n_A), function(b) sum(w * x(s, b)))
+    exp_h <- exp(h)
+    pi <- exp_h / sum(exp_h)
+    
+    if (!is.null(a)) {
+      pi <- pi[a]
+    }
+    pi
+  }
+  
+  w_init <- setNames(numeric(n_A * n_features), paste(
+    rep(A(model), each = n_features), feature_names, sep = "."))
+  
+  structure(
+    list(
+      f = f,
+      gradient = function(s, a, w)
+        x(s, a) - sum(f(s, w = w) * sapply(seq(n_A), function(b) x(s,b))),
+      x = x,
+      transformation = transformation,
+      w = w_init
+    ),
+    class = c("pi_approx_linear", "approx_linear")
+  )
+}
+
+#' @export
+print.approx_linear <- function(x, ...) {
+  writeLines(paste(class(x), collapse = ", "))
+  writeLines("\ntransformation:")
+  print(x$transformation)
+  
+  writeLines("\nweights:")
+  print(x$w)
 }
 
 
@@ -225,5 +314,12 @@ approx_value <- function(f,
   if (!is.numeric(action))
     action <- normalize_action_id(action, model)
     
-  f$f(state, action, w)
+  v <- f$f(state, action, w)
+  
+  # this is for approx_pi
+  if (is.null(action) && is.numeric(v) && length(v) == length(A(model)))
+    names(v) <- A(model)
+      
+  v
 }
+
