@@ -18,18 +18,36 @@
 #' \deqn{\nabla \hat{q}(s,a,\boldsymbol{w}) = \phi(s,a).}
 #'
 #' ### Approximate Value Function
-#' Value function approximation works in the same way but \eqn{\phi(s)} is used.
+#' Value function approximation works with state features \eqn{\phi(s)}:
+#' \deqn{\hat{v}(s) = \boldsymbol{w}^\top\phi(s)}
+#' 
+#' The gradient is
+#' \deqn{\nabla \hat{v}(s,\boldsymbol{w}) = \phi(s).}
 #' 
 #' ### Approximate Policy
 #' 
 #' The most popular method implemented here uses a linear preference 
-#' function \eqn{h(s,a,\boldsymbol{w}) = \boldsymbol{w}^\top\phi(s,a)}.
-#'  The action with the highest preference is the greedy action.
-#'
+#' function 
+#' \deqn{h(s,a,\boldsymbol{w}) = \boldsymbol{w}^\top\phi(s,a).}
+#' 
+#' The action with the highest preference is the greedy action.
 #' To represents a stochastic policy, the preference scores can be converted
 #' into probabilities using the softmax function
-#' \deqn{\pi(a|s,\boldsymbol{w}) = \frac{e^{h(s,a,\boldsymbol{w})}}{\sum_b e^{h(s,b,\boldsymbol{w})}}}
+#' \deqn{\hat{\pi}(a|s,\boldsymbol{w}) = \frac{e^{h(s,a,\boldsymbol{w})}}{\sum_b e^{h(s,b,\boldsymbol{w})}}}
 #' 
+#' The gradient is
+#' \deqn{\nabla \hat{\pi}(a|s,\boldsymbol{w}) = \hat{\pi}(a|s,\boldsymbol{w}) [\phi(s,a) - \sum_b \hat{\pi}(b|s,\boldsymbol{w}) \phi(s,b)].}
+#' 
+#' The last term represents the feature vector reduced by the expected feature 
+#' vector across all actions under the current policy. This
+#' pushes the the approximation to make the chosen action \eqn{a} more likely. 
+#' 
+#' We use here the gradient of the log-policy which 
+#' avoids multiplying by \eqn{\hat{\pi}(a|s,\boldsymbol{w})} and
+#' is numerically more stable:
+#' \deqn{\nabla log\ \hat{\pi}(a|s,\boldsymbol{w}) = \phi(s,a)-\sum_b \hat{\pi}(b|s,\boldsymbol{w})  \phi(s,b).}
+#' 
+#' The gradient of the log-policy points in the same direction as the original gradient.
 #' 
 #' ## State-action Feature Vector Construction
 #'
@@ -52,7 +70,7 @@
 #'
 #' The construction of the state-action values is implemented in `add_linear_approx_Q_function()`.
 #'
-#' The state feature function \eqn{\phi()} starts with raw state feature vector
+#' The state feature function \eqn{\phi(s)} starts with raw state feature vector
 #' \eqn{\mathbf{x} = (x_1,x_2, ..., x_m)} that
 #' are either user-specified or constructed by parsing the state labels of
 #' form `s(feature list)`.  Then an optional nonlinear transformation
@@ -121,7 +139,8 @@
 #' 
 #' approx_value(f_pi, state = "s(3,1)", model = Maze)
 #'
-#' # update the weights using a learning rate of 0.1
+#' # update the weights using a learning rate of 0.1 and the gradient of
+#' # the log-policy.
 #' f_pi$w <- .1 * f_pi$gradient(s = s(3,1), a = "up", f_pi$w)  
 #' approx_value(f_pi, state = "s(3,1)", model = Maze)
 #'
@@ -213,13 +232,6 @@ v_approx_linear  <- function(model,
   
 }
 
-
-# we use a linear preference function h(s,a, \theta) = \theta^T x(s,a) 
-# and pick the action with the highest preference.
-#
-# The stochastic policy is defined using softmax
-# pi(a|s,\theta) = exp(h(s,a,\theta)) / sum_b exp(h(s,a,\theta))
-# we always calulate the prob distribution over all actions for a state
 #' @rdname linear_function_approximation
 #' @export
 pi_approx_linear  <- function(model,
