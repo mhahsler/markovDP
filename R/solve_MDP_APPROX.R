@@ -689,6 +689,7 @@ approx_greedy_policy <- function(model, w = NULL) {
 
 
 # internal: transpose and reorder rows for a proper image
+# this is taken from package seriation
 #' @importFrom graphics axis contour image
 pimage <- function (x1,
                     x2,
