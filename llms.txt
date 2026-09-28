@@ -1,0 +1,506 @@
+# R package markovDP - Infrastructure for Discrete-Time Markov Decision Processes (MDP)
+
+[![r-universe
+status](https://mhahsler.r-universe.dev/badges/markovDP)](https://mhahsler.r-universe.dev/markovDP)
+
+**Maintainer:** [Michael Hahsler](https://michael.hahsler.net)
+
+## Notice of development status
+
+This package is **under development** and has not been released on CRAN.
+Expect some API changes.
+
+An similar educational Python package is
+[gym_classics2](https://michael.hahsler.net/gym-classics2/).
+
+## Introduction
+
+A Markov decision process (MDP) ([Bellman 1957](#ref-Bellman1957);
+[Howard 1960](#ref-Howard1960)) is a discrete-time stochastic control
+process. In each time step, an agent can perform actions which affect
+the system (i.e., may cause the system state to change). The agent’s
+goal is to maximize its expected future rewards that depend on the
+sequence of system state and the agent’s actions in the future. Solving
+the MDP means finding the optimal (or at least a good) policy that
+guides the agent’s actions.
+
+The `markovDP` package provides the infrastructure to work with MDPs in
+R. The focus is on convenience in formulating MDPs with small to medium
+sized state spaces in multiple ways, the support of sparse
+representations (using sparse matrices, lists and data.frames) and
+visualization of results. Some key components are implemented in C++ to
+speed up computation. The package provides the following popular tabular
+methods:
+
+- **Dynamic Programming**
+  - Value Iteration ([Bellman 1957](#ref-Bellman1957))
+  - Modified Policy Iteration ([Howard 1960](#ref-Howard1960); [Puterman
+    and Shin 1978](#ref-Puterman1978))
+  - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993);
+    [Andre et al. 1997](#ref-Andre1997); [Li and Littman
+    2008](#ref-Li2008))
+- **Linear Programming**
+  - Primal Formulation ([Manne 1960](#ref-Manne1960))
+- **Monte Carlo Control**
+  - Monte Carlo Control with Exploring Starts ([Sutton and Barto
+    2018](#ref-Sutton1998))
+  - On-policy Monte Carlo Control ([Sutton and Barto
+    2018](#ref-Sutton1998))
+  - Off-policy Monte Carlo Control ([Sutton and Barto
+    2018](#ref-Sutton1998))
+- **Sampling**
+  - Random-sample one-step tabular Q-planning ([Sutton and Barto
+    2018](#ref-Sutton1998))
+- **Tabular Termporal Differencing**
+  - Q-Learning ([Watkins and Dayan 1992](#ref-Watkins1992))
+  - 1-step Sarsa ([Rummery and Niranjan 1994](#ref-Rummery1994))
+  - Expected Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
+  - n-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998))
+  - Sarsa(lamba) ([Sutton and Barto 2018](#ref-Sutton1998))
+  - Watkins’s Q(lamba) ([Sutton and Barto 2018](#ref-Sutton1998))
+- **Temporal Differencing with Function Approximation**
+  - 1-step Sarsa ([Sutton and Barto 2018](#ref-Sutton1998); [Geramifard
+    et al. 2013](#ref-Geramifard2013))
+  - Sarsa(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
+  - GTD(lambda) ([Sutton and Barto 2018](#ref-Sutton1998))
+
+These implementations follow the description is ([Russell and Norvig
+2020](#ref-Russell2020)) and ([Sutton and Barto 2018](#ref-Sutton1998)).
+The implementations represent the state space explicitly, so only
+problems with small to medium state spaces can be used.
+
+Partially observable Markov Decision Problems (POMDPs) can me modeled in
+a similar fashion using package **pomdp** ([Hahsler
+2024](#ref-CRAN_pomdp)).
+
+## Installation
+
+**Current development version:** Install from
+[r-universe.](https://mhahsler.r-universe.dev/markovDP)
+
+``` r
+
+install.packages("markovDP",
+    repos = c("https://mhahsler.r-universe.dev",
+              "https://cloud.r-project.org/"))
+```
+
+## Usage
+
+Solving the simple maze from ([Russell and Norvig
+2020](#ref-Russell2020)).
+
+``` r
+
+library("markovDP")
+data("Maze")
+Maze
+```
+
+``` R
+## MDPModel, MDP - Stuart Russell's 3x4 Maze
+##   Discount factor: 1
+##   Horizon: Inf epochs
+##   Size: 4 actions / 11 states
+##   Storage: transition prob as matrix / reward as matrix. Total size: 28.8 Kb
+##   Start: s(3,1)
+##   Model list components: 'name', 'discount', 'horizon', 'states',
+##     'actions', 'start', 'transition_model', 'reward', 'info',
+##     'absorbing_states'
+```
+
+The maze is a gridworld and can be displayed directly.
+
+``` r
+
+gw_plot(Maze, state = TRUE)
+```
+
+``` R
+## Warning in gw_plot(Maze, state = TRUE): partial argument match of 'state' to
+## 'states'
+```
+
+![](reference/figures/README-display-1.png)
+
+``` r
+
+sol <- solve_MDP(model = Maze)
+sol
+```
+
+``` R
+## MDPModel, MDP - Stuart Russell's 3x4 Maze
+##   Discount factor: 1
+##   Horizon: Inf epochs
+##   Size: 4 actions / 11 states
+##   Storage: transition prob as matrix / reward as matrix. Total size: 32.3 Kb
+##   Start: s(3,1)
+##   Model list components: 'name', 'discount', 'horizon', 'states',
+##     'actions', 'start', 'transition_model', 'reward', 'info',
+##     'absorbing_states', 'solution'
+## 
+##   Solved:
+##     Method: 'VI'
+##     Solution converged: TRUE
+##   Solution list components: 'method', 'policy', 'converged', 'delta',
+##     'iterations'
+```
+
+Display the value function.
+
+``` r
+
+plot_value_function(sol)
+```
+
+![](reference/figures/README-value_function-1.png)
+
+The state values can be shown in the gridworld as colored map.
+
+``` r
+
+gw_plot(sol)
+```
+
+![](reference/figures/README-gridworld_plot-1.png)
+
+## Acknowledgments
+
+Development of this package was supported in part by National Institute
+of Standards and Technology (NIST) under grant number
+[60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
+
+## Citation request
+
+To cite package ‘markovDP’ in publications use:
+
+> Hahsler M (????). *markovDP: Infrastructure for Discrete-Time Markov
+> Decision Processes (MDP)*. R package version 0.99.0,
+> <https://github.com/mhahsler/markovDP>.
+
+``` R
+@Manual{,
+  title = {markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
+  author = {Michael Hahsler},
+  note = {R package version 0.99.0},
+  url = {https://github.com/mhahsler/markovDP},
+}
+```
+
+## References
+
+Andre, David, Nir Friedman, and Ronald Parr. 1997. “Generalized
+Prioritized Sweeping.” In *Advances in Neural Information Processing
+Systems*, edited by M. Jordan, M. Kearns, and S. Solla, vol. 10. MIT
+Press.
+<https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf>.
+
+Bellman, Richard. 1957. “A Markovian Decision Process.” *Indiana
+University Mathematics Journal* 6: 679–84.
+<https://www.jstor.org/stable/24900506>.
+
+Geramifard, Alborz, Thomas J. Walsh, Tellex Stefanie, Girish Chowdhary,
+Nicholas Roy, and Jonathan P. How. 2013.
+<https://doi.org/10.1561/2200000042>.
+
+Hahsler, Michael. 2024. *Pomdp: Infrastructure for Partially Observable
+Markov Decision Processes (POMDP)*.
+<https://doi.org/10.32614/CRAN.package.pomdp>.
+
+Howard, R. A. 1960. *Dynamic Programming and Markov Processes*. MIT
+Press.
+
+Li, Lihong, and Michael Littman. 2008. *Prioritized Sweeping Converges
+to the Optimal Value Function*. DCS-TR-631. Rutgers University.
+<https://doi.org/10.7282/T3TX3JSX>.
+
+Manne, Alan. 1960. “On the Job-Shop Scheduling Problem.” *Operations
+Research* 8 (2): 219–23. <https://doi.org/10.1287/opre.8.2.219>.
+
+Moore, Andrew, and C. G. Atkeson. 1993. “Prioritized Sweeping:
+Reinforcement Learning with Less Data and Less Real Time.” *Machine
+Learning* 13 (1): 103–30. <https://doi.org/10.1007/BF00993104>.
+
+Puterman, Martin L., and Moon Chirl Shin. 1978. “Modified Policy
+Iteration Algorithms for Discounted Markov Decision Problems.”
+*Management Science* 24: 1127–37.
+<https://doi.org/10.1287/mnsc.24.11.1127>.
+
+Rummery, G., and Mahesan Niranjan. 1994. *On-Line Q-Learning Using
+Connectionist Systems*. Techreport CUED/F-INFENG/TR 166. Cambridge
+University Engineering Department.
+
+Russell, Stuart J., and Peter Norvig. 2020. *Artificial Intelligence: A
+Modern Approach (4th Edition)*. Pearson. <http://aima.cs.berkeley.edu/>.
+
+Sutton, Richard S., and Andrew G. Barto. 2018. *Reinforcement Learning:
+An Introduction*. Second. The MIT Press.
+[http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.md).
+
+Watkins, Christopher J. C. H., and Peter Dayan. 1992. “Q-Learning.”
+*Machine Learning* 8 (3): 279–92. <https://doi.org/10.1007/BF00992698>.
+
+# Package index
+
+## MDP Models
+
+Define finite-state MDPs and inspect their states, actions, transitions,
+and rewards.
+
+- [`MDP()`](http://michael.hahsler.net/markovDP/reference/MDP.md)
+  [`S()`](http://michael.hahsler.net/markovDP/reference/MDP.md)
+  [`A()`](http://michael.hahsler.net/markovDP/reference/MDP.md)
+  [`is_solved_MDP()`](http://michael.hahsler.net/markovDP/reference/MDP.md)
+  [`is_converged_MDP()`](http://michael.hahsler.net/markovDP/reference/MDP.md)
+  [`P_()`](http://michael.hahsler.net/markovDP/reference/MDP.md)
+  [`R_()`](http://michael.hahsler.net/markovDP/reference/MDP.md) :
+  Define an MDP Problem with Model Access
+- [`MDPSample()`](http://michael.hahsler.net/markovDP/reference/MDPSample.md)
+  : Define an MDP With Only Sample Access
+- [`available_actions()`](http://michael.hahsler.net/markovDP/reference/available_actions.md)
+  : Available Actions in a State
+- [`transition_matrix()`](http://michael.hahsler.net/markovDP/reference/accessors.md)
+  [`reward_matrix()`](http://michael.hahsler.net/markovDP/reference/accessors.md)
+  [`start_vector()`](http://michael.hahsler.net/markovDP/reference/accessors.md)
+  [`normalize_MDP()`](http://michael.hahsler.net/markovDP/reference/accessors.md)
+  : Access to Parts of the Model Description
+- [`act()`](http://michael.hahsler.net/markovDP/reference/act.md) :
+  Perform an Action
+- [`sample_MDP()`](http://michael.hahsler.net/markovDP/reference/sample_MDP.md)
+  : Sample Trajectories from an MDP
+- [`absorbing_states()`](http://michael.hahsler.net/markovDP/reference/absorbing_states.md)
+  : Absorbing States
+- [`normalize_state()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`normalize_state_id()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`normalize_state_label()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`normalize_state_features()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`normalize_action()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`normalize_action_id()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`normalize_action_label()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`state2features()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`features2state()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`s()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  [`get_state_features()`](http://michael.hahsler.net/markovDP/reference/action_state_helpers.md)
+  : Conversions for Action and State IDs and Labels
+- [`find_reachable_states()`](http://michael.hahsler.net/markovDP/reference/find_reachable_states.md)
+  : Find Reachable State Space from a Transition Model Function
+- [`reachable_states()`](http://michael.hahsler.net/markovDP/reference/reachable_states.md)
+  : Find Reachable States
+- [`sample_MDP(`*`<MDPSample>`*`)`](http://michael.hahsler.net/markovDP/reference/sample_MDP.MDPSample.md)
+  : Sample Trajectories from an MDPSample
+- [`start(`*`<MDPModel>`*`)`](http://michael.hahsler.net/markovDP/reference/start.md)
+  [`start(`*`<MDPSample>`*`)`](http://michael.hahsler.net/markovDP/reference/start.md)
+  : Sample a Start State
+- [`transition_graph()`](http://michael.hahsler.net/markovDP/reference/transition_graph.md)
+  [`plot_transition_graph()`](http://michael.hahsler.net/markovDP/reference/transition_graph.md)
+  [`curve_multiple_directed()`](http://michael.hahsler.net/markovDP/reference/transition_graph.md)
+  : Transition Graph
+- [`unreachable_states()`](http://michael.hahsler.net/markovDP/reference/unreachable_states.md)
+  [`remove_unreachable_states()`](http://michael.hahsler.net/markovDP/reference/unreachable_states.md)
+  : Unreachable States
+
+## Solvers
+
+Solve MDPs with dynamic programming, linear programming, sampling, and
+reinforcement learning methods.
+
+- [`solve_MDP()`](http://michael.hahsler.net/markovDP/reference/solve_MDP.md)
+  : Solve an MDP Problem
+- [`solve_MDP_DP()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_DP.md)
+  : Solve MDPs using Dynamic Programming
+- [`solve_MDP_TD()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_TD.md)
+  : Solve MDPs using Tabular Temporal Differencing
+- [`solve_MDP_MC()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_MC.md)
+  : Solve MDPs using Monte Carlo Control
+- [`solve_MDP_LP()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_LP.md)
+  : Solve MDPs using Linear Programming
+- [`solve_MDP_SAMP()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_SAMP.md)
+  : Solve MDPs using Random-Sampling
+- [`solve_MDP_APPROX()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_Q_value()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_greedy_action()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_greedy_policy()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_V_plot()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  : Solve MDPs with Temporal Differencing with Function Approximation
+- [`solve_MDP_PG()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_PG.md)
+  : Solve MDPs with Policy Gradient Methods
+- [`schedule_exp()`](http://michael.hahsler.net/markovDP/reference/schedule.md)
+  [`schedule_exp2()`](http://michael.hahsler.net/markovDP/reference/schedule.md)
+  [`schedule_log()`](http://michael.hahsler.net/markovDP/reference/schedule.md)
+  [`schedule_linear()`](http://michael.hahsler.net/markovDP/reference/schedule.md)
+  [`schedule_harmonic()`](http://michael.hahsler.net/markovDP/reference/schedule.md)
+  : Schedules to Reduce Alpha, Epsilon and Other Parameters
+- [`convergence_horizon()`](http://michael.hahsler.net/markovDP/reference/convergence_horizon.md)
+  : Estimate the Convergence Horizon for an Infinite-Horizon MDP
+
+## Value Functions
+
+Work with value functions.
+
+- [`Q_values()`](http://michael.hahsler.net/markovDP/reference/Q_values.md)
+  [`Q_zero()`](http://michael.hahsler.net/markovDP/reference/Q_values.md)
+  [`Q_random()`](http://michael.hahsler.net/markovDP/reference/Q_values.md)
+  : Q-Values
+- [`bellman_update()`](http://michael.hahsler.net/markovDP/reference/bellman_update.md)
+  [`bellman_operator()`](http://michael.hahsler.net/markovDP/reference/bellman_update.md)
+  : Bellman Update and Bellman operator
+- [`value_function()`](http://michael.hahsler.net/markovDP/reference/value_function.md)
+  [`plot_value_function()`](http://michael.hahsler.net/markovDP/reference/value_function.md)
+  [`V_zero()`](http://michael.hahsler.net/markovDP/reference/value_function.md)
+  [`V_random()`](http://michael.hahsler.net/markovDP/reference/value_function.md)
+  : Value Function
+
+## Policies
+
+Create and evaluate policies, choose actions, and calculate value
+functions and returns.
+
+- [`policy()`](http://michael.hahsler.net/markovDP/reference/policy.md)
+  [`add_policy()`](http://michael.hahsler.net/markovDP/reference/policy.md)
+  [`random_policy()`](http://michael.hahsler.net/markovDP/reference/policy.md)
+  [`manual_policy()`](http://michael.hahsler.net/markovDP/reference/policy.md)
+  [`induced_transition_matrix()`](http://michael.hahsler.net/markovDP/reference/policy.md)
+  [`induced_reward_matrix()`](http://michael.hahsler.net/markovDP/reference/policy.md)
+  : Extract, Create Add a Policy to a Model
+- [`action()`](http://michael.hahsler.net/markovDP/reference/action.md)
+  : Choose an Action Given a Policy
+- [`expected_return()`](http://michael.hahsler.net/markovDP/reference/expected_return.md)
+  : Calculate the Expected Return of a Policy
+- [`greedy_action()`](http://michael.hahsler.net/markovDP/reference/greedy_action.md)
+  [`greedy_policy()`](http://michael.hahsler.net/markovDP/reference/greedy_action.md)
+  : Greedy Actions and Policies
+- [`policy_evaluation()`](http://michael.hahsler.net/markovDP/reference/policy_evaluation.md)
+  [`policy_evaluation_LP()`](http://michael.hahsler.net/markovDP/reference/policy_evaluation.md)
+  [`policy_evaluation_MC()`](http://michael.hahsler.net/markovDP/reference/policy_evaluation.md)
+  [`policy_evaluation_bellman()`](http://michael.hahsler.net/markovDP/reference/policy_evaluation.md)
+  : Policy Evaluation
+- [`regret()`](http://michael.hahsler.net/markovDP/reference/regret.md)
+  [`action_discrepancy()`](http://michael.hahsler.net/markovDP/reference/regret.md)
+  [`value_error()`](http://michael.hahsler.net/markovDP/reference/regret.md)
+  : Regret of a Policy and Related Measures
+- [`visit_probability()`](http://michael.hahsler.net/markovDP/reference/visit_probability.md)
+  : State Visit Probability
+
+## Function Approximation
+
+Approximate value functions and policies with state features and basis
+transformations.
+
+- [`solve_MDP_APPROX()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_Q_value()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_greedy_action()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_greedy_policy()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  [`approx_V_plot()`](http://michael.hahsler.net/markovDP/reference/solve_MDP_APPROX.md)
+  : Solve MDPs with Temporal Differencing with Function Approximation
+- [`q_approx_linear()`](http://michael.hahsler.net/markovDP/reference/linear_function_approximation.md)
+  [`v_approx_linear()`](http://michael.hahsler.net/markovDP/reference/linear_function_approximation.md)
+  [`pi_approx_linear()`](http://michael.hahsler.net/markovDP/reference/linear_function_approximation.md)
+  [`approx_value()`](http://michael.hahsler.net/markovDP/reference/linear_function_approximation.md)
+  : Linear Function Approximation
+- [`transformation_linear_basis()`](http://michael.hahsler.net/markovDP/reference/transformation.md)
+  [`transformation_polynomial_basis()`](http://michael.hahsler.net/markovDP/reference/transformation.md)
+  [`transformation_RBF_basis()`](http://michael.hahsler.net/markovDP/reference/transformation.md)
+  [`transformation_fourier_basis()`](http://michael.hahsler.net/markovDP/reference/transformation.md)
+  [`create_basis_coefs()`](http://michael.hahsler.net/markovDP/reference/transformation.md)
+  : Transformation Functions for Linear Function Approximation
+
+## Gridworlds
+
+Create gridworld MDPs and inspect their layouts, transitions, and
+solutions.
+
+- [`gw_init()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_s2rc()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_rc2s()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_matrix()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_plot()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_plot_transition_graph()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_animate()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model_sparse()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model_named()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model_end_state()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_maze_MDP()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_random_maze()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_read_maze()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_path()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  : Helper Functions for Gridworld MDPs
+- [`Cliff_walking`](http://michael.hahsler.net/markovDP/reference/Cliff_walking.md)
+  [`cliff_walking`](http://michael.hahsler.net/markovDP/reference/Cliff_walking.md)
+  : Cliff Walking Gridworld MDP
+- [`DynaMaze`](http://michael.hahsler.net/markovDP/reference/DynaMaze.md)
+  [`dynamaze`](http://michael.hahsler.net/markovDP/reference/DynaMaze.md)
+  : The Dyna Maze
+- [`Maze`](http://michael.hahsler.net/markovDP/reference/Maze.md)
+  [`maze`](http://michael.hahsler.net/markovDP/reference/Maze.md) :
+  Steward Russell's 4x3 Maze Gridworld MDP
+- [`Windy_gridworld`](http://michael.hahsler.net/markovDP/reference/Windy_gridworld.md)
+  [`windy_gridworld`](http://michael.hahsler.net/markovDP/reference/Windy_gridworld.md)
+  : Windy Gridworld MDP Windy Gridworld MDP
+
+## Example MDPs
+
+Explore the included maze, cliff-walking, and windy-gridworld examples.
+
+- [`Maze`](http://michael.hahsler.net/markovDP/reference/Maze.md)
+  [`maze`](http://michael.hahsler.net/markovDP/reference/Maze.md) :
+  Steward Russell's 4x3 Maze Gridworld MDP
+- [`Cliff_walking`](http://michael.hahsler.net/markovDP/reference/Cliff_walking.md)
+  [`cliff_walking`](http://michael.hahsler.net/markovDP/reference/Cliff_walking.md)
+  : Cliff Walking Gridworld MDP
+- [`Windy_gridworld`](http://michael.hahsler.net/markovDP/reference/Windy_gridworld.md)
+  [`windy_gridworld`](http://michael.hahsler.net/markovDP/reference/Windy_gridworld.md)
+  : Windy Gridworld MDP Windy Gridworld MDP
+- [`DynaMaze`](http://michael.hahsler.net/markovDP/reference/DynaMaze.md)
+  [`dynamaze`](http://michael.hahsler.net/markovDP/reference/DynaMaze.md)
+  : The Dyna Maze
+
+## Visualization
+
+Plot gridworlds and transition graphs using the package’s color
+palettes.
+
+- [`gw_init()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_s2rc()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_rc2s()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_matrix()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_plot()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_plot_transition_graph()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_animate()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model_sparse()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model_named()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_transition_model_end_state()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_maze_MDP()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_random_maze()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_read_maze()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  [`gw_path()`](http://michael.hahsler.net/markovDP/reference/gridworld.md)
+  : Helper Functions for Gridworld MDPs
+- [`transition_graph()`](http://michael.hahsler.net/markovDP/reference/transition_graph.md)
+  [`plot_transition_graph()`](http://michael.hahsler.net/markovDP/reference/transition_graph.md)
+  [`curve_multiple_directed()`](http://michael.hahsler.net/markovDP/reference/transition_graph.md)
+  : Transition Graph
+
+## Utilities
+
+Helper functions.
+
+- [`colors_discrete()`](http://michael.hahsler.net/markovDP/reference/colors.md)
+  [`colors_continuous()`](http://michael.hahsler.net/markovDP/reference/colors.md)
+  : Default Colors for Visualization
+- [`round_stochastic()`](http://michael.hahsler.net/markovDP/reference/round_stochastic.md)
+  : Round a stochastic vector or a row-stochastic matrix
+
+# Articles
+
+### All vignettes
+
+- [Gridworlds as
+  MDPs](http://michael.hahsler.net/markovDP/articles/Gridworlds.md):
+- [Solving MDPs with Linear
+  Approximation](http://michael.hahsler.net/markovDP/articles/LinearApproximation.md):
+- [Introduction to Discrete-Time Markov Decision
+  Processes](http://michael.hahsler.net/markovDP/articles/markovDP.md):
+- [Solving Tic-Tac-Toe as an
+  MDP](http://michael.hahsler.net/markovDP/articles/TicTacToe.md):
