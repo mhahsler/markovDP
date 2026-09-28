@@ -4,6 +4,7 @@
 #' the package `markovDP`.
 #'
 #' @name colors
+#' @family utilities 
 #'
 #' @param n number of states.
 #' @param col custom color palette. `colors_discrete()` uses the first n colors.

@@ -1,3 +1,4 @@
+test_that("state action helpers", {
 data(Maze)
 
 # actions
@@ -48,4 +49,4 @@ expect_error(suppressWarnings(state2features(c("s(1,a)", "s(2,1)"))))
 
 expect_identical(features2state(t(c(1, 1))), "s(1,1)")
 expect_identical(features2state(rbind(c(1, 1), c(2, 1))), c("s(1,1)", "s(2,1)"))
-
+})

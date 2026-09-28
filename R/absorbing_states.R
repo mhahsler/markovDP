@@ -60,7 +60,7 @@ absorbing_states.MDP <- function(model,
           state <- S(model)[state]
         return(state %in% model$absorbing_states)
       }
-      # must be a logical vector (for sparse we need a index)
+      # must be a logical vector (for sparse we need an index)
       if (is.character(state))
         state <- match(state, S(model))
       return(as(model$absorbing_states[state], "vector"))

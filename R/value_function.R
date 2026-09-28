@@ -2,8 +2,7 @@
 #'
 #' Extracts the value function from a solved MDP.
 #'
-#' @family policy
-#' @family MDP
+#' @family value_function
 #'
 #' @param model a solved [MDP].
 #' @param drop logical; drop the list for converged, epoch-independent value functions.

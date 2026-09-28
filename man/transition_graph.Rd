@@ -51,8 +51,8 @@ returns the transition model as an igraph object.
 Returns the transition model as an \pkg{igraph} object.
 }
 \details{
-The transition model of an MDP is a Markov Chain. This function extracts the transition model as
-an igraph object.
+The transition model of an MDP is a Markov chain. This function extracts it as
+an \pkg{igraph} object.
 }
 \examples{
 data("Maze")
@@ -89,24 +89,22 @@ if (require(visNetwork)) {
 }
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
+
+Other visualization:
+\code{\link{gridworld}}
 }
 \concept{MDP}
+\concept{visualization}

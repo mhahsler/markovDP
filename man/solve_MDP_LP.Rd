@@ -107,14 +107,15 @@ Manne, Alan. 1960. "On the Job-Shop Scheduling Problem." Operations Research 8 (
 Puterman, Martin L. 1996. Markov decision processes: discrete stochastic dynamic programming. John Wiley & Sons.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_TD}()}
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 }
 \concept{solver}

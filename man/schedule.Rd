@@ -84,14 +84,15 @@ legend("topright",
         )
 }
 \seealso{
-Other solver: 
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_TD}()}
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 }
 \concept{solver}

@@ -35,6 +35,7 @@
 #'
 #' @name transformation
 #' @aliases transformation
+#' @family approximation
 #' 
 #' @references
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).

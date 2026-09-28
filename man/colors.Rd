@@ -32,3 +32,8 @@ colors_discrete(5)
 
 colors_continuous(runif(10))
 }
+\seealso{
+Other utilities:
+\code{\link[=round_stochastic]{round_stochastic()}}
+}
+\concept{utilities}

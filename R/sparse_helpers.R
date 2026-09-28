@@ -239,7 +239,7 @@
 # translate any representation into an logical representation
 # x can be:
 # * a character vector with state names
-# * a integer vector with state ids
+# * an integer vector with state IDs
 # * a logical vector
 # * a lsparseVector
 #

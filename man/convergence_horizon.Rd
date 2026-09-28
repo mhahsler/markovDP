@@ -17,7 +17,7 @@ convergence_horizon(model, delta = 0.001, n_updates = 10)
 An estimated convergence horizon.
 }
 \description{
-Many sampling-based methods require a finite horizon. Fo infinite horizons,
+Many sampling-based methods require a finite horizon. For infinite horizons,
 discounting leads to convergences during a finite horizon. This function
 estimates the number of steps till convergence using rules of thumb.
 }
@@ -55,27 +55,18 @@ Maze_discounted
 convergence_horizon(Maze_discounted)
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other solver:
+\code{\link{schedule}},
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 }
 \author{
 Michael Hahsler
 }
-\concept{MDP}
+\concept{solver}

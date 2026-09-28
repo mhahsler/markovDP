@@ -25,10 +25,12 @@
 #'
 #' @name action_state_helpers
 #' @aliases action_state_helpers
+#' @family MDP
+#' @family MDPSample
 #'
 #' @param state a state in any format
-#' @param action a action in any format
-#' @param model a MDP model
+#' @param action an action in any format
+#' @param model an MDP model
 #' @param as character; specifies the desired output format
 #'
 #' @returns
@@ -269,7 +271,7 @@ state2features <- function(state) {
   
   if (!is.matrix(x) || any(is.na(x)))
     stop("state label ", sQuote(state), 
-         " is not formated as 's(feature1, feature2, ...). Cannot extract features!'")
+         " is not formatted as 's(feature1, feature2, ...). Cannot extract features!'")
   
   rownames(x) <- state
   colnames(x) <- paste0("x", seq_len(ncol(x)))
@@ -335,4 +337,3 @@ get_state_feature_range <- function(model, min = NULL, max = NULL) {
   
   return(rbind(min, max))
 }
-

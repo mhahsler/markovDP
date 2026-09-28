@@ -21,8 +21,7 @@
 #'  
 #' \deqn{v_\pi = B_\pi v_\pi.}
 #'
-#' @family MDP
-#' @family policy
+#' @family value_function
 #' @author Michael Hahsler
 #'
 #' @param model an MDP problem specification.
@@ -42,7 +41,7 @@
 #' data(Maze)
 #' Maze
 #'
-#' # single Bellman update from a all 0 value function
+#' # single Bellman update from an all-zero value function
 #' bellman_update(Maze, V = 0)
 #'
 #' # perform simple value iteration for 10 iterations
@@ -132,4 +131,3 @@ bellman_operator <- function(model, pi, V) {
   
   r_pi + gamma * p_pi %*% V
 }
-

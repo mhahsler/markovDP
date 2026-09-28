@@ -209,14 +209,15 @@ Puterman, Martin L., and Moon Chirl Shin. 1978. "Modified Policy Iteration Algor
 Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Approach (4th Edition). Pearson. \url{http://aima.cs.berkeley.edu/}.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_TD}()}
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 }
 \concept{solver}

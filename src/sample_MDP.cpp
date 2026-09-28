@@ -157,7 +157,7 @@ List sample_MDP_cpp(const List& model,
   
   double m = mean(rews);
   
-  List L = List::create(Named("avg_reward") = m,
+  List L = List::create(Named("avg_return") = m,
     _["reward"] = rews,
     _["action_cnt"] = action_cnt,
     _["state_cnt"] = state_cnt,

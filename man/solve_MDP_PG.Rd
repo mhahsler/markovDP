@@ -93,25 +93,25 @@ actor-critic control with eligibility traces.
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_TD}()}
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 
-Other MDPSample: 
-\code{\link{MDPSample}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPSample}()},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{start}()}
+Other MDPSample:
+\code{\link[=MDPSample]{MDPSample()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}}
 }
 \concept{MDPSample}
 \concept{solver}

@@ -5,7 +5,7 @@
 \title{Find Reachable State Space from a Transition Model Function}
 \usage{
 find_reachable_states(
-  transition_modeltion,
+  transition_model,
   start_state,
   actions,
   model = NULL,
@@ -14,8 +14,6 @@ find_reachable_states(
 )
 }
 \arguments{
-\item{transition_modeltion}{a transition function (see details for requirements).}
-
 \item{start_state}{labels of the start states.}
 
 \item{actions}{a vector with the available actions.}
@@ -25,6 +23,8 @@ find_reachable_states(
 \item{horizon}{only return states reachable in the given horizon.}
 
 \item{progress}{logical; show a progress bar?}
+
+\item{transition_model}{a transition function (see details for requirements).}
 }
 \value{
 a character vector with all reachable states.
@@ -38,7 +38,7 @@ returns a named vector with the probabilities for the resulting end.states
 \details{
 The function performs a (depth-limited) depth-first traversal of the
 search state space and returns a vector with the names of all encountered
-states. This vector can be used as the states for creating a MDP model.
+states. This vector can be used as the states for creating an MDP model.
 
 The transition function needs to be a function with the argument list
 \code{model}, \code{action}, \code{start.state} which returns  named vector only containing
@@ -46,7 +46,7 @@ the non-zero probabilities named by the corresponding end state. A partial model
 that contains \code{actions} and \code{start.state} will be supplied to the function.
 }
 \examples{
-# define a MDP for Tic-Tac-Toe
+# define an MDP for Tic-Tac-Toe
 
 # state description: matrix with the characters _, x, and o
 #                    can be converted into a label of 9 characters
@@ -182,6 +182,22 @@ head(S)
 tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")
 tictactoe
 }
+\seealso{
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
+}
 \author{
 Michael Hahsler
 }
+\concept{MDP}

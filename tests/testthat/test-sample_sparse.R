@@ -1,3 +1,4 @@
+test_that("sample sparse", {
 # sample sparse
 
 # create a sparse vector
@@ -23,4 +24,4 @@ expect_true(all(samp %in% non_zero_idx))
 #bench::mark(samp <- sample.int(length(p), size = 100, replace = TRUE, prob = p))
 #bench::mark(samp <- sample_sparse(seq_along(p), size = 100, replace = TRUE, prob = p))
 #bench::mark(samp <- sample_sparse(seq_along(p), size = 100, replace = TRUE, prob = p_sparse))
-
+})

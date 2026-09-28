@@ -100,4 +100,9 @@ Konidaris, G., Osentoski, S., & Thomas, P. 2011. Value Function Approximation in
 }
 \seealso{
 \code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}
+
+Other approximation:
+\code{\link{linear_function_approximation}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}}
 }
+\concept{approximation}

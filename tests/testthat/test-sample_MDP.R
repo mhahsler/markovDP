@@ -1,3 +1,4 @@
+test_that("sample MDP", {
 ## simulate_MDP
 
 verbose <- FALSE
@@ -65,4 +66,4 @@ for (m in c(models_solve, models_solved)) {
 
 # microbenchmark::microbenchmark(simulate_MDP(Maze, n = 100, horizon = 10, verbose = FALSE, engine = "r"))
 # microbenchmark::microbenchmark(simulate_MDP(Maze, n = 100, horizon = 10, verbose = FALSE, engine = "cpp"))
-
+})

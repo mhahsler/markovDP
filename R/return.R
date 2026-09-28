@@ -1,10 +1,10 @@
-#' Calculate the Expected Reward of a Policy
+#' Calculate the Expected Return of a Policy
 #'
-#' This function calculates the expected total reward for an MDP policy
+#' This function calculates the expected total return for an MDP policy
 #' given a start state (distribution). The value is calculated using the value
 #' function stored in the MDP solution.
 #'
-#' The reward is typically calculated using the value function
+#' The return is typically calculated using the value function
 #' of the solution. If these are not available, then [sample_MDP()] is
 #' used instead with a warning.
 #'
@@ -16,12 +16,12 @@
 #' the model as start is used. Multiple states can be specified as rows in a matrix.
 #' @param method `"solution"` uses the converged value function stored in the solved model, 
 #'               `"policy_evaluation"` estimates the value function, and `"sample"`
-#'               calculates the average reward by sampling episodes from the model.
+#'               calculates the average return by sampling episodes from the model.
 #' @param ... further arguments are passed on to [policy_evaluation()] or [sample_MDP()].
 #'
-#' @returns `reward()` returns a vector of reward values, one for each belief if a matrix is specified.
+#' @returns `expected_return()` returns a vector of returns, one for each start state if a matrix is specified.
 #'
-#' \item{state}{start state to calculate the reward for. if `NULL` then the start
+#' \item{state}{start state to calculate the return for. If `NULL` then the start
 #' state of model is used.}
 #' @author Michael Hahsler
 #' @examples
@@ -32,25 +32,25 @@
 #' sol <- solve_MDP(Maze)
 #' policy(sol)
 #'
-#' # reward for the start state s(3,1) specified in the model
-#' reward(sol)
+#' # return for the start state s(3,1) specified in the model
+#' expected_return(sol)
 #'
-#' # reward for starting next to the goal at s(1,3)
-#' reward(sol, start = "s(1,3)")
+#' # return for starting next to the goal at s(1,3)
+#' expected_return(sol, start = "s(1,3)")
 #'
-#' # expected reward when we start from a random state as returned from the solver
-#' reward(sol, start = "uniform")
+#' # expected return when we start from a random state as returned from the solver
+#' expected_return(sol, start = "uniform")
 #' 
-#' # estimate the reward using sampling following the policy
-#' reward(sol, method = "sample", start = "uniform", n = 10000, horizon = 1000)
+#' # estimate the return using sampling following the policy
+#' expected_return(sol, method = "sample", start = "uniform", n = 10000, horizon = 1000)
 #' @export
-reward <- function(model, ...) {
-  UseMethod("reward")
+expected_return <- function(model, ...) {
+  UseMethod("expected_return")
 }
 
-#' @rdname reward
+#' @rdname expected_return
 #' @export
-reward.MDP <- function(model,
+expected_return.MDP <- function(model,
                        start = NULL,
                        method = "solution",
                        ...) {
@@ -71,7 +71,7 @@ reward.MDP <- function(model,
   }
   
   else if (method == "sample") {
-    r <- sample_MDP(model, start = start, ...)$avg_reward
+    r <- sample_MDP(model, start = start, ...)$avg_return
   }
   
   else

@@ -45,7 +45,7 @@ start the episode from.}
 \value{
 A list with elements:
 \itemize{
-\item \code{avg_reward}: The average discounted reward.
+\item \code{avg_return}: The average discounted return.
 \item \code{reward}: Reward for each trajectory.
 \item \code{trajectories}: A data.frame with the trajectories. Each row
 contains the \code{episode} id, the \code{time} step, the state \code{s},
@@ -55,7 +55,7 @@ only returned for \code{trajectories = TRUE}.
 }
 }
 \description{
-Sample trajectories through using a MDPSample.
+Sample trajectories using an MDPSample.
 }
 \examples{
 # enable parallel simulation (useful for sampling with large n)
@@ -98,17 +98,31 @@ sim <- sample_MDP(sol, horizon = 500, n = 1,
 sim
 }
 \seealso{
-Other MDPSample: 
-\code{\link{MDPSample}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{reachable_states}()},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{start}()}
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
+
+Other MDPSample:
+\code{\link[=MDPSample]{MDPSample()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link{start}}
 }
 \author{
 Michael Hahsler
 }
+\concept{MDP}
 \concept{MDPSample}

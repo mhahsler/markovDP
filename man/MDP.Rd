@@ -9,7 +9,7 @@
 \alias{is_converged_MDP}
 \alias{P_}
 \alias{R_}
-\title{Define an MDP Problem}
+\title{Define an MDP Problem with Model Access}
 \usage{
 MDP(
   states,
@@ -44,7 +44,7 @@ actions.}
 \item{transition_model}{Specifies the transition probabilities between
 states.}
 
-\item{reward}{Specifies the rewards dependent on action and states.}
+\item{reward}{Specifies the rewards, which may depend on the action and state.}
 
 \item{discount}{numeric; discount rate between 0 and 1.}
 
@@ -65,7 +65,7 @@ horizon.}
 
 \item{stop}{logical; stop with an error.}
 
-\item{action}{action as a action label or integer. The value \code{NA} matches any action.}
+\item{action}{an action label or integer. The value \code{NA} matches any action.}
 
 \item{start.state, end.state}{state as a state label or an integer. The value \code{NA} matches any state.}
 
@@ -81,17 +81,17 @@ Defines all the elements of a discrete-time finite state-space MDP problem.
 }
 \details{
 Markov decision processes (MDPs) are discrete-time stochastic control
-process. We implement here MDPs with a finite state space.
-\code{MDP()} defines all the element of an MDP problem including the discount rate, the
-set of states, the set of actions,the transition
+processes. This package implements MDPs with a finite state space.
+\code{MDP()} defines all the elements of an MDP problem, including the discount rate, the
+set of states, the set of actions, the transition
 model, and the reward model.
 
-In the following we use the following notation. The MDP is a 5-duple:
+We use the following notation. An MDP is a five-tuple:
 
 \eqn{(S,A,P,R, \gamma)}.
 
 \eqn{S} is the set of states; \eqn{A}
-is the set of actions; \eqn{P} are the conditional transition probabilities
+is the set of actions; \eqn{P} is the conditional transition probability matrix
 between states; \eqn{R} is the reward function; and
 \eqn{\gamma} is the discount factor. We will use lower case letters to
 represent a member of a set, e.g., \eqn{s} is a specific state. To refer to
@@ -162,7 +162,7 @@ finite reward values.
 \subsection{Specification of the Start State}{
 
 The start state of the agent can be a single state or a distribution over the states.
-The start state definition is used as the default when the reward is calculated by \code{\link[=reward]{reward()}}
+The start state definition is used as the default when the return is calculated by \code{\link[=expected_return]{expected_return()}}
 and for sampling with \code{\link[=sample_MDP]{sample_MDP()}}.
 
 Options to specify the start state are:
@@ -174,8 +174,7 @@ Options to specify the start state are:
 of \eqn{|S|} probabilities, that add up to \eqn{1}.
 }
 
-The default state state is a uniform
-distribution over all states.
+By default, the start state is selected uniformly from all states.
 }
 
 \subsection{Accessing Elements of the MDP}{
@@ -237,27 +236,21 @@ sol
 policy(sol)
 }
 \seealso{
-Other MDP: 
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other MDP:
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
 
-Other MDP_examples: 
+Other MDP_examples:
 \code{\link{Cliff_walking}},
 \code{\link{DynaMaze}},
 \code{\link{Maze}},

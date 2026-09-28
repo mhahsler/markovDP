@@ -1,3 +1,4 @@
+test_that("MDP accessors transitions", {
 # dense get all
 (correct <- transition_matrix(Maze_orig, sparse = FALSE))
 
@@ -84,5 +85,4 @@ expect_true(inherits(res, "list"))
 for (m in models)
   expect_identical(transition_matrix(m, NULL, 1:2, 1:2, simplify = TRUE, 
                                      sparse = FALSE), res)
-
-
+})

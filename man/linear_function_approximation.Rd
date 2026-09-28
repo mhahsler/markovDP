@@ -77,7 +77,7 @@ The gradient is
 
 The last term represents the feature vector reduced by the expected feature
 vector across all actions under the current policy. This
-pushes the the approximation to make the chosen action \eqn{a} more likely.
+pushes the approximation to make the chosen action \eqn{a} more likely.
 
 We use here the gradient of the log-policy which
 avoids multiplying by \eqn{\hat{\pi}(a|s,\boldsymbol{w})} and
@@ -192,3 +192,9 @@ Value Function Approximation in Reinforcement Learning Using the
 Fourier Basis. Proceedings of the AAAI Conference on
 Artificial Intelligence, 25(1), 380-385. \doi{10.1609/aaai.v25i1.7903}
 }
+\seealso{
+Other approximation:
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link{transformation}}
+}
+\concept{approximation}

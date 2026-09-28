@@ -36,7 +36,7 @@ starting states for the trajectories. Defaults to "uniform".}
 the maximal number of epochs specified via \code{horizon}. If \code{NULL} then the
 horizon for the model is used.}
 
-\item{epsilon}{the probability of random actions  for using an epsilon-greedy policy.
+\item{epsilon}{the probability of choosing a random action when using an epsilon-greedy policy.
 Default for solved models is 0 and for unsolved model 1.}
 
 \item{exploring_starts}{logical; randomly sample a start/action combination to
@@ -57,7 +57,7 @@ the reward are specified as R functions (which are slow in C++).}
 \value{
 A list with elements:
 \itemize{
-\item \code{avg_reward}: The average discounted reward.
+\item \code{avg_return}: The average discounted return.
 \item \code{reward}: Reward for each trajectory.
 \item \code{action_cnt}: Action counts.
 \item \code{state_cnt}: State counts.
@@ -69,18 +69,17 @@ only returned for \code{trajectories = TRUE}.
 }
 }
 \description{
-Sample trajectories through an MDP. The start state for each
+Sample trajectories from an MDP. The start state for each
 trajectory is chosen using the start definition in the model. Actions are chosen
-randomly of using an epsilon-greedy policy.
+randomly or using an epsilon-greedy policy.
 }
 \details{
-The default is a
-faster C++ implementation (\code{engine = 'cpp'}).
+The default is a faster C++ implementation (\code{engine = 'cpp'}).
 A native R implementation is available (\code{engine = 'r'}).
 
 Both implementations support parallel execution using the package
-\pkg{foreach}. To enable parallel execution, a parallel backend like
-\pkg{doparallel} needs to be available needs to be registered (see
+\pkg{foreach}. To enable parallel execution, a parallel backend such as
+\pkg{doParallel} needs to be registered (see
 \code{\link[doParallel:registerDoParallel]{doParallel::registerDoParallel()}}).
 Note that small samples are slower using parallelization. Therefore, C++ simulations
 with n * horizon less than 100,000 are always executed using a single worker.
@@ -104,7 +103,7 @@ gw_matrix(sol, what = "action")
 sim <- sample_MDP(sol, n = 100, horizon = 10, verbose = TRUE)
 sim
 
-# Note that all simulations for this model start at s_1 and that the simulated avg. reward
+# Note that all simulations for this model start at s_1 and that the simulated avg. return
 # is therefore an estimate to the value function for the start state s_1.
 policy(sol)[1, ]
 
@@ -114,7 +113,7 @@ round_stochastic(sim$action_cnt / sum(sim$action_cnt), 2)
 # reward distribution
 hist(sim$reward)
 
-## Example 2: simulate starting following a uniform distribution over all
+## Example 2: simulate trajectories starting from a uniform distribution over all
 #             states and return all trajectories
 sim <- sample_MDP(sol,
   n = 100, start = "uniform", horizon = 10,
@@ -126,25 +125,19 @@ head(sim$trajectories)
 table(sim$trajectories$s)
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
 }
 \author{
 Michael Hahsler

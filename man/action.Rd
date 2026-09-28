@@ -39,16 +39,13 @@ action(sol, state = "s(1,3)")
 table(replicate(100, action(sol, state = "s(1,3)", epsilon = 0.1)))
 }
 \seealso{
-Other policy: 
-\code{\link{Q_values}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{policy}()},
-\code{\link{policy_evaluation}()},
-\code{\link{regret}()},
-\code{\link{reward}()},
-\code{\link{value_function}()},
-\code{\link{visit_probability}()}
+Other policy:
+\code{\link[=expected_return]{expected_return()}},
+\code{\link[=greedy_action]{greedy_action()}},
+\code{\link[=policy]{policy()}},
+\code{\link[=policy_evaluation]{policy_evaluation()}},
+\code{\link[=regret]{regret()}},
+\code{\link[=visit_probability]{visit_probability()}}
 }
 \author{
 Michael Hahsler

@@ -1,7 +1,8 @@
 #' Sample Trajectories from an MDPSample
 #'
-#' Sample trajectories through using a MDPSample.
+#' Sample trajectories using an MDPSample.
 #'
+#' @family MDP
 #' @family MDPSample
 
 #' @importFrom stats runif
@@ -21,7 +22,7 @@
 #' @param verbose report used parameters
 #' @param ... further arguments are ignored.
 #' @return A list with elements:
-#'  * `avg_reward`: The average discounted reward.
+#'  * `avg_return`: The average discounted return.
 #'  * `reward`: Reward for each trajectory.
 #'  * `trajectories`: A data.frame with the trajectories. Each row
 #'    contains the `episode` id, the `time` step, the state `s`,
@@ -221,7 +222,7 @@ sample_MDP.MDPSample <-
      
      
     samp <- list(
-      avg_reward = mean(rew, na.rm = TRUE),
+      avg_return = mean(rew, na.rm = TRUE),
       reward = rew,
       action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
       state_cnt = state_cnt, 

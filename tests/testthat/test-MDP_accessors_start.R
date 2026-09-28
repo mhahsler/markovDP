@@ -1,3 +1,4 @@
+test_that("MDP accessors start", {
 # dense
 (sv_dense <- start_vector(Maze_orig, sparse = FALSE))
 (sv_sparse <- start_vector(Maze_orig, sparse = TRUE))
@@ -55,3 +56,4 @@ correct[c(1, 5:11)] <- 1/8
 (sv_sparse <- start_vector(model_test, sparse = TRUE))
 expect_equal(unname(sv_dense), correct)
 expect_equal(sv_sparse, as(correct, "sparseVector"))
+})

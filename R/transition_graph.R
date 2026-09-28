@@ -2,10 +2,11 @@
 #'
 #' Returns the transition model as an \pkg{igraph} object.
 #'
-#' The transition model of an MDP is a Markov Chain. This function extracts the transition model as
-#' an igraph object.
+#' The transition model of an MDP is a Markov chain. This function extracts it as
+#' an \pkg{igraph} object.
 #'
 #' @family MDP
+#' @family visualization
 #'
 #' @importFrom igraph graph_from_adjacency_matrix %>% E E<- V V<- add_layout_ as_data_frame as_tree graph_from_data_frame induced_subgraph norm_coords
 #'

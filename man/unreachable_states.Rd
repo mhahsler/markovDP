@@ -67,25 +67,19 @@ unreachable_states(maze)
 gw_plot(maze)
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{value_function}()}
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}}
 }
 \author{
 Michael Hahsler

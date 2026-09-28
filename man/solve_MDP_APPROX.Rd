@@ -107,7 +107,7 @@ in the state feature representation.}
 
 \item{res}{resolution as the number of values sampled from each feature.}
 
-\item{col}{colors for the passed on to \code{\link[=image]{image()}}.}
+\item{col}{colors passed on to \code{\link[graphics:image]{graphics::image()}}.}
 
 \item{image, contour}{logical; include the false color image or the
 contours in the plot?}
@@ -154,7 +154,7 @@ episodic Semi-gradient Sarsa algorithm given in Sutton and Barto (2018).
 
 m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 
-# gridworlds have state labels om the format "s(row, col)" which can be
+# gridworlds have state labels of the format "s(row, col)" which can be
 # automatically converted into state features used for approximation.
 S(m)
 get_state_features(m)
@@ -241,25 +241,20 @@ approx_V_plot(sol, res = 20)
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_TD}()}
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 
-Other MDPSample: 
-\code{\link{MDPSample}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPSample}()},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{start}()}
+Other approximation:
+\code{\link{linear_function_approximation}},
+\code{\link{transformation}}
 }
-\concept{MDPSample}
+\concept{approximation}
 \concept{solver}

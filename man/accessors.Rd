@@ -86,8 +86,8 @@ problem description.
 Several parts of the MDP description can be defined in different ways. In particular,
 the fields \code{transition_model}, \code{reward}, and \code{start} can be defined using matrices, data frames,
 keywords, or functions. See \link{MDP} for details.
-The functions provided here, provide unified access to the data in these fields
-to make writing code easier.
+The functions provided here give unified access to the data in these fields
+and make writing code easier.
 \subsection{Transition Probabilities \eqn{p(s'|s,a)}}{
 
 \code{transition_matrix()} accesses the transition model. The complete model
@@ -109,8 +109,8 @@ The dense representation is a list of lists of matrices.
 The list levels are \eqn{a} (\code{action})  and \eqn{s} (\code{start.state}).
 The matrices are column vectors with rows representing \eqn{s'} (\code{end.state}).
 
-To represent the rewards as a sparse matrices, \strong{rewards that correspond to a transition
-with probability zero are zeroed out if the transition model} is stored as a list
+To represent rewards as sparse matrices, \strong{rewards that correspond to a transition
+with probability zero are set to zero if the transition model} is stored as a list
 of matrices. This makes the reward matrices as sparse as the transition matrices.
 The function \code{normalize_MDP()} with \code{sparse = TRUE} will perform this representation.
 }
@@ -124,7 +124,7 @@ The function \code{normalize_MDP()} with \code{sparse = TRUE} will perform this 
 
 Different components can be specified in various ways. It is often
 necessary to convert each component into a specific form (e.g., a
-dense matrix) to save time during access.
+dense matrix) to save time when accessing it.
 Convert the Complete MDP Description into a consistent form
 \code{normalize_MDP()} converts all components of the MDP description
 into a consistent form and
@@ -185,25 +185,19 @@ str(Maze_norm)
 reward_matrix(Maze_norm)
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
 }
 \author{
 Michael Hahsler

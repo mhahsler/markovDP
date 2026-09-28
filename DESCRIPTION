@@ -1,7 +1,7 @@
 Package: markovDP
 Title: Infrastructure for Discrete-Time Markov Decision Processes (MDP)
 Version: 0.99.0
-Date: 2024-08-29
+Date: 2026-xx-xx
 Authors@R: 
     person("Michael", "Hahsler", , "mhahsler@lyle.smu.edu", role = c("aut", "cph", "cre"),
            comment = c(ORCID = "0000-0003-2716-1405"))
@@ -11,7 +11,7 @@ Description: Provides the infrastructure to work with Markov Decision Processes
     and visualization of results. Some key components are implemented in
     C++ to speed up computation. Several popular solvers are implemented.
 License: GPL (>=3)
-URL: https://github.com/mhahsler/markovDP
+URL: https://github.com/mhahsler/markovDP, http://michael.hahsler.net/markovDP/
 BugReports: https://github.com/mhahsler/markovDP/issues
 Depends: 
     R (>= 3.5.0)
@@ -31,7 +31,7 @@ Suggests:
     gifski,
     knitr,
     rmarkdown,
-    testthat,
+    testthat (>= 3.0.0),
     visNetwork
 LinkingTo: 
     Rcpp
@@ -41,7 +41,7 @@ Classification/ACM: G.4, G.1.6, I.2.6
 Copyright: Copyright (C) Michael Hahsler.
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+Config/testthat/edition: 3
 SystemRequirements: C++17
 Collate: 
     'AAA_check_installed.R'
@@ -84,7 +84,7 @@ Collate:
     'policy_evaluation_bellman.R'
     'reachable_states.R'
     'regret.R'
-    'reward.R'
+    'return.R'
     'round_stochchastic.R'
     'sample_MDP.R'
     'sample_MDPSample.R'
@@ -105,3 +105,4 @@ Collate:
     'value_function.R'
     'visit_probability.R'
     'zzz.R'
+Config/roxygen2/version: 8.1.0

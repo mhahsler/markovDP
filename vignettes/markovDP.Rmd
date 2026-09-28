@@ -124,7 +124,7 @@ optimal action $\pi_*(s)$. This leads to the following optimization problem.
 $$\pi_* = \max_\pi \mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^t R_t | \pi\right].$$
 
 For a finite time horizon, only the expectation over the sum up to the
-time horizon $T$ is used and the the optimal policy also depends on the time step $t$ 
+time horizon $T$ is used and the optimal policy also depends on the time step $t$
 and the start state $S_0$ specified as a distribution over the states.
 
 ## Notation Used in the Package
@@ -136,7 +136,7 @@ The notation used in the package largely follows [@Sutton1998].
 | $\mathcal{S}$ | `states`, `S()` | the set of state      |
 | $s, s'$ | `s`, `state`, `start.state`, `end.state` | a state |
 | $\mathcal{A}$ | `actions`, `A()` | the set of actions      |
-| $a$     | `a`, `action`          | a action     |
+| $a$     | `a`, `action`          | an action    |
 | $t$  | `t`    |   discrete time step|
 | $T$   | `T`, `horizon` | final time step  (length) of an episode, horizon |
 | $p(s' | s, a)$ | `transition_matrix()`, `transition_model`, `p` | probability of transition from state $s$ to state $s'$ by taking action $a$ |
@@ -165,16 +165,16 @@ The notation used in the package largely follows [@Sutton1998].
 library("markovDP")
 ```
 
-Solving a MDP problem with the **markovDP** package consists of two
+Solving an MDP problem with the **markovDP** package consists of two
 steps:
 
-1.  Define a MDP problem using the function `MDP()`, and
+1.  Define an MDP problem using the function `MDP()`, and
 2.  solve the problem using `solve_MDP()`.
 
 ## Defining an MDP Problem
 
 The `MDP()` function has the following arguments, each corresponds to
-one of the elements of a MDP.
+one of the elements of an MDP.
 
 ```{r}
 str(args(MDP))
@@ -254,7 +254,7 @@ The transition model (`transition_model`) and reward function
 
 More details can be found in the manual page for `MDP()`.
 
-## Solving a MDP
+## Solving an MDP
 
 MDP problems are solved with the function `solve_MDP()` with the
 following arguments.
@@ -263,7 +263,7 @@ following arguments.
 str(args(solve_MDP))
 ```
 
-The `model` argument is a MDP problem created using the `MDP()`
+The `model` argument is an MDP problem created using the `MDP()`
 function. The `method` argument specifies what algorithm the solver
 should use. Available methods including `"value_iteration"`,
 `"policy_iteration"`, `"q_learning"`, `"sarsa"`, `"expected_sarsa"` and
@@ -532,13 +532,13 @@ using `policy_evaluation()`.
 
 MDP policies can be evaluated using:
 
--   `reward()` calculates the expected reward of a policy
+-   `expected_return()` calculates the expected return of a policy
 -   `regret()` calculates the regret of a policy relative to a benchmark
     policy.
 
 ## Sampling
 
-Trajectories through a MDPs are created using `sample_MDP()`. The
+Trajectories through MDPs are created using `sample_MDP()`. The
 outcome of single actions can be calculated by `act()`.
 
 ## Acknowledgments

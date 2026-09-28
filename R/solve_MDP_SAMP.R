@@ -10,7 +10,7 @@
 #' planning method shown as an illustration in Chapter 8 of
 #' Sutton and Barto (2018). It randomly selects a
 #' state/action pair and samples the following state \eqn{s'} to 
-#' perform a single a one-step update:
+#' perform a single one-step update:
 #' 
 #' \deqn{Q(s,a) \leftarrow Q(s, a) + \alpha * (R + \gamma \max_a'(Q(s', a')) - Q(s, a))}
 #' 
@@ -138,7 +138,7 @@ solve_MDP_SAMP <-
       
       sp_r <- act(model, s, a, fast = TRUE)
       sp <- sp_r$state_prime
-      r <- sp_r$r
+      r <- sp_r$reward
       
       if (is.matrix(sp))
         sp <- normalize_state_id(sp, model)

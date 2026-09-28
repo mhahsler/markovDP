@@ -152,7 +152,7 @@ add_policy.MDPSample <- add_policy.MDPModel
   # TODO policy eval?
   if (data_frame)
     return(data.frame(
-      states = S(model),
+      state = S(model),
       V = V %||% NA_real_,
       action = action,
       row.names = seq_along(S(model))

@@ -68,7 +68,7 @@ The following helper functions for using approximation are available:
 * `approx_Q_value()` calculates approximate Q values given the weights in
    the model or specified weights.
 * `approx_greedy_action()` uses approximate Q values given the weights in
-   the model or specified weights to find the the greedy action for a
+   the model or specified weights to find the greedy action for a
    state.
 * `approx_greedy_policy()` calculates the greedy-policy
    for the approximate Q values given the weights in

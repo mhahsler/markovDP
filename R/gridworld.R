@@ -20,7 +20,7 @@
 #' @name gridworld
 #' @aliases gridworld gw
 #' @family gridworld
-#' @family MDP
+#' @family visualization
 #' @examples
 #' # Defines states, actions and a transition model for a standard gridworld
 #' gw <- gw_init(
@@ -588,7 +588,7 @@ gw_plot <-
       text(
         g$x2,
         rev(g$x1),
-        g$label,
+        g$labels,
         pos = 1,
         offset = offset,
         cex = .5 * cex
@@ -887,7 +887,7 @@ gw_transition_model_end_state <- function(model, action, start.state, end.state)
 #' @param name a string to identify the MDP problem.
 #' @param normalize logical; should the description be normalized for
 #'      faster access using [normalize_MDP()].
-#' @param access string; create a MDP with `"model"` or `"sample"` access.
+#' @param access string; create an MDP with `"model"` or `"sample"` access.
 #'
 #' @returns `gw_maze_MDP()` returns an MDP object.
 #' @export

@@ -76,39 +76,11 @@ Sutton, R. S., Barto, A. G. (2020). Reinforcement Learning: An Introduction.
 Second edition. The MIT Press.
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
-
-Other policy: 
-\code{\link{action}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{policy}()},
-\code{\link{policy_evaluation}()},
-\code{\link{regret}()},
-\code{\link{reward}()},
-\code{\link{value_function}()},
-\code{\link{visit_probability}()}
+Other value_function:
+\code{\link[=bellman_update]{bellman_update()}},
+\code{\link[=value_function]{value_function()}}
 }
 \author{
 Michael Hahsler
 }
-\concept{MDP}
-\concept{policy}
+\concept{value_function}

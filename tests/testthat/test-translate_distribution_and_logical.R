@@ -1,3 +1,4 @@
+test_that("translate distribution and logical", {
 verbose <- FALSE
 # verbose <- TRUE
 
@@ -52,3 +53,4 @@ for (test_case in list(states_empty, states_single, states_single)) {
     }
   }  
 }
+})

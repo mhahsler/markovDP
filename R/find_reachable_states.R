@@ -7,14 +7,16 @@
 #'
 #' The function performs a (depth-limited) depth-first traversal of the
 #' search state space and returns a vector with the names of all encountered
-#' states. This vector can be used as the states for creating a MDP model.
+#' states. This vector can be used as the states for creating an MDP model.
 #' 
 #' The transition function needs to be a function with the argument list 
 #' `model`, `action`, `start.state` which returns  named vector only containing 
 #' the non-zero probabilities named by the corresponding end state. A partial model 
 #' that contains `actions` and `start.state` will be supplied to the function.
 #'
-#' @param transition_modeltion a transition function (see details for requirements).
+#' @family MDP
+#'
+#' @param transition_model a transition function (see details for requirements).
 #' @param start_state labels of the start states.
 #' @param actions a vector with the available actions.
 #' @param model if needed, the model passed on to the transition model function. 
@@ -26,7 +28,7 @@
 #' @author Michael Hahsler
 #' 
 #' @examples
-#' # define a MDP for Tic-Tac-Toe
+#' # define an MDP for Tic-Tac-Toe
 #' 
 #' # state description: matrix with the characters _, x, and o
 #' #                    can be converted into a label of 9 characters
@@ -162,7 +164,7 @@
 #' tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")
 #' tictactoe
 #' @export
-find_reachable_states <- function(transition_modeltion, 
+find_reachable_states <- function(transition_model, 
                                   start_state, 
                                   actions,
                                   model = NULL,
@@ -175,7 +177,7 @@ find_reachable_states <- function(transition_modeltion,
   if (is.null(model)) {
     model <- list(actions = actions, 
                   start = start_state, 
-                  transition_model = transition_modeltion)
+                  transition_model = transition_model)
   }
   
   if (progress) {
@@ -188,7 +190,7 @@ find_reachable_states <- function(transition_modeltion,
       return()
     
     for (action in actions){
-      next_states <- transition_modeltion(model, action, state) 
+      next_states <- transition_model(model, action, state) 
         
       for (next_state in names(next_states)) {
         if (exists(next_state, envir = states))

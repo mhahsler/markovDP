@@ -23,7 +23,7 @@ reachable_states(model, ..., progress = TRUE)
 )
 }
 \arguments{
-\item{model}{a MDP or a MDP transition function.}
+\item{model}{an MDP or an MDP transition function.}
 
 \item{...}{further arguments are passed on (e.g., to \code{\link[=sample_MDP]{sample_MDP()}})}
 
@@ -41,7 +41,7 @@ reachable_states(model, ..., progress = TRUE)
 a character vector with all reachable states.
 }
 \description{
-Finds the reachable state space from a MDP or MDPSample.
+Finds the reachable state space from an MDP or MDPSample.
 }
 \details{
 There are three application cases for finding reachable states.
@@ -111,7 +111,7 @@ sol <- solve_MDP(line_maze, method = "TD:q_learning",
 policy(sol)
 plot_value_function(sol)
 
-# Example 2: Find the states to define a MDP for Tic-Tac-Toe
+# Example 2: Find the states to define an MDP for Tic-Tac-Toe
 
 # state description: matrix with the characters _, x, and o
 #                    can be converted into a label of 9 characters
@@ -247,41 +247,34 @@ head(S)
 tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")
 tictactoe
 
-# this MDP takes a about 30 seconds to solve using value iteration
+# this MDP takes about 30 seconds to solve using value iteration
 # sol <- solve_MDP(tictactoe)
 # policy(sol)[1:10, ]
 
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
 
-Other MDPSample: 
-\code{\link{MDPSample}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{sample_MDP.MDPSample}()},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{start}()}
+Other MDPSample:
+\code{\link[=MDPSample]{MDPSample()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link{start}}
 }
 \author{
 Michael Hahsler

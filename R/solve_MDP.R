@@ -23,8 +23,6 @@
 #' the solvers in [`solve_MDP_APPROX()`].  
 #' 
 #' @family solver
-#' @family MDP
-#' @family MDPSample
 #'
 #' @param model an MDP problem specification.
 #' @param method string; Composed of the algorithm family abbreviation and the algorithm

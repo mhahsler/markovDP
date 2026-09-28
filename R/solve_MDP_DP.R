@@ -341,7 +341,7 @@ solve_MDP_DP_VI <- function(model,
     
     if (progress) {
       pb <- my_progress_spinner(name = "solve_MDP", format_extra = " | max delta U: :delta | press esc/CTRL-C to terminate early")
-      pb$tick(0, token = list(delta = "-"))
+      pb$tick(0, tokens = list(delta = "-"))
     }
     
     discount <- model$discount
@@ -358,7 +358,7 @@ solve_MDP_DP_VI <- function(model,
     # return unconverged result when interrupted
     on.exit({
       if (progress) {
-        pb$tick(0, token =
+        pb$tick(0, tokens =
                   list(delta = paste0(
                     signif(delta, 3), "/", signif(convergence_limit, 3)
                   )))
@@ -405,7 +405,7 @@ solve_MDP_DP_VI <- function(model,
     delta <- Inf
     for (i in seq_len(n)) {
       if (progress)
-        pb$tick(token =
+        pb$tick(tokens =
                   list(delta = paste0(
                     signif(delta, 3), "/", signif(convergence_limit, 3)
                   )))
@@ -454,7 +454,7 @@ solve_MDP_DP_PI <-
           " | press esc/CTRL-C to terminate early"
         )
       )
-      pb$tick(0, token = list(changed_actions = "-"))
+      pb$tick(0, tokens = list(changed_actions = "-"))
     }
     
     S <- S(model)
@@ -467,12 +467,12 @@ solve_MDP_DP_PI <-
     pi <- pi$action
     
     if (progress)
-      pb$tick(0, token = list(changed_actions = "-"))
+      pb$tick(0, tokens = list(changed_actions = "-"))
     
     # return unconverged result when interrupted
     on.exit({
       if (progress) {
-        pb$tick(0, token = list(changed_actions = changed_actions))
+        pb$tick(0, tokens = list(changed_actions = changed_actions))
         pb$terminate()
       }
       
@@ -518,7 +518,7 @@ solve_MDP_DP_PI <-
     while (i < n) {
       i <- i + 1L
       if (progress)
-        pb$tick(token = list(changed_actions = changed_actions))
+        pb$tick(tokens = list(changed_actions = changed_actions))
       
       # evaluate to get V from pi
       V <- policy_evaluation(
@@ -590,7 +590,7 @@ solve_MDP_PD_PS <- function(model,
       pb <- my_progress_spinner(name = "solve_MDP",
                                 ticks = "state updates",
                                 format_extra = " | max priority: :error | press esc/CTRL-C to terminate early")
-      pb$tick(0, token = list(error = "-"))
+      pb$tick(0, tokens = list(error = "-"))
     }
     
     H_update <- match.arg(H_update, c("GenPS", "PS_random", "PS_error"))
@@ -798,5 +798,4 @@ solve_MDP_PD_PS <- function(model,
   
     # return via on.exit()  
   }
-
 

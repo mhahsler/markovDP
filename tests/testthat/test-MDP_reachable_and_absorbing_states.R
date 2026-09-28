@@ -1,3 +1,4 @@
+test_that("MDP reachable and absorbing states", {
 # absorbing states
 
 data(Maze)
@@ -45,7 +46,7 @@ for (m in models_solve_no_chaching) {
 }
   
 
-# try with a simple two state model with an absorbing start data and and an
+# try with a simple two-state model with an absorbing start state and an
 # unreachable state
 
 m <- MDP(states = c("s1", "s2"), 
@@ -86,4 +87,4 @@ for (m in ms) {
     print(tr)
   expect_equal(names(which(tr)), s_unreach)
 }
-
+})

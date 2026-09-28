@@ -1,3 +1,4 @@
+test_that("APPROX", {
 m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 
 benchmark <- solve_MDP(m)
@@ -106,4 +107,4 @@ approx_V_plot(sol, 0, 5)
 
 # cleanup
 unlink("Rplots.pdf")
-
+})

@@ -6,8 +6,8 @@
 #' Several parts of the MDP description can be defined in different ways. In particular,
 #' the fields `transition_model`, `reward`, and `start` can be defined using matrices, data frames,
 #' keywords, or functions. See [MDP] for details.
-#' The functions provided here, provide unified access to the data in these fields
-#' to make writing code easier.
+#' The functions provided here give unified access to the data in these fields
+#' and make writing code easier.
 #'
 #' ## Transition Probabilities \eqn{p(s'|s,a)}
 #'
@@ -29,8 +29,8 @@
 #' The list levels are \eqn{a} (`action`)  and \eqn{s} (`start.state`).
 #' The matrices are column vectors with rows representing \eqn{s'} (`end.state`).
 #'
-#' To represent the rewards as a sparse matrices, **rewards that correspond to a transition
-#' with probability zero are zeroed out if the transition model** is stored as a list
+#' To represent rewards as sparse matrices, **rewards that correspond to a transition
+#' with probability zero are set to zero if the transition model** is stored as a list
 #' of matrices. This makes the reward matrices as sparse as the transition matrices.
 #' The function `normalize_MDP()` with `sparse = TRUE` will perform this representation.
 #'
@@ -42,7 +42,7 @@
 #'
 #' Different components can be specified in various ways. It is often
 #' necessary to convert each component into a specific form (e.g., a
-#' dense matrix) to save time during access.
+#' dense matrix) to save time when accessing it.
 #' Convert the Complete MDP Description into a consistent form
 #' `normalize_MDP()` converts all components of the MDP description
 #'  into a consistent form and

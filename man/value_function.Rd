@@ -73,40 +73,12 @@ gw_plot(sol, epoch = 2)
 gw_plot(sol, epoch = 3)
 }
 \seealso{
-Other policy: 
-\code{\link{Q_values}()},
-\code{\link{action}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{policy}()},
-\code{\link{policy_evaluation}()},
-\code{\link{regret}()},
-\code{\link{reward}()},
-\code{\link{visit_probability}()}
-
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()}
+Other value_function:
+\code{\link[=Q_values]{Q_values()}},
+\code{\link[=bellman_update]{bellman_update()}}
 }
 \author{
 Michael Hahsler
 }
-\concept{MDP}
-\concept{policy}
+\concept{value_function}
 \keyword{hplot}

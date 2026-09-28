@@ -14,8 +14,8 @@
 #' @param ... if action is unspecified, then the additional parameters are
 #'   passed on to [action()] to determine the action using the model's policy.
 #'
-#' @returns a names list with
-#'  the `reward` and the next `state_prime`.
+#' @returns a named list with
+#'  the `reward` and the next state `state_prime`.
 #'
 #' @author Michael Hahsler
 #' @examples

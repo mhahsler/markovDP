@@ -1,6 +1,6 @@
 #' Estimate the Convergence Horizon for an Infinite-Horizon MDP
 #'
-#' Many sampling-based methods require a finite horizon. Fo infinite horizons,
+#' Many sampling-based methods require a finite horizon. For infinite horizons,
 #' discounting leads to convergences during a finite horizon. This function 
 #' estimates the number of steps till convergence using rules of thumb.
 #'
@@ -22,7 +22,7 @@
 #' the Q-table is on average updated `n_updates` times. This is a very rough 
 #' rule ot thumb.
 #'
-#' @family MDP
+#' @family solver
 #'
 #' @param model an MDP model.
 #' @param delta maximum update error.

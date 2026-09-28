@@ -1,16 +1,15 @@
 #' Sample Trajectories from an MDP
 #'
-#' Sample trajectories through an MDP. The start state for each
+#' Sample trajectories from an MDP. The start state for each
 #' trajectory is chosen using the start definition in the model. Actions are chosen
-#' randomly of using an epsilon-greedy policy.
+#' randomly or using an epsilon-greedy policy.
 #'
-#' The default is a
-#' faster C++ implementation (`engine = 'cpp'`).
+#' The default is a faster C++ implementation (`engine = 'cpp'`).
 #' A native R implementation is available (`engine = 'r'`).
 #'
 #' Both implementations support parallel execution using the package
-#' \pkg{foreach}. To enable parallel execution, a parallel backend like
-#' \pkg{doparallel} needs to be available needs to be registered (see
+#' \pkg{foreach}. To enable parallel execution, a parallel backend such as
+#' \pkg{doParallel} needs to be registered (see
 #' [doParallel::registerDoParallel()]).
 #' Note that small samples are slower using parallelization. Therefore, C++ simulations
 #' with n * horizon less than 100,000 are always executed using a single worker.
@@ -24,7 +23,7 @@
 #' @param horizon epochs end once an absorbing state is reached or after
 #'  the maximal number of epochs specified via `horizon`. If `NULL` then the
 #'  horizon for the model is used.
-#' @param epsilon the probability of random actions  for using an epsilon-greedy policy.
+#' @param epsilon the probability of choosing a random action when using an epsilon-greedy policy.
 #'  Default for solved models is 0 and for unsolved model 1.
 #' @param engine `'cpp'` or `'r'` to perform simulation using a faster C++
 #'  or a native R implementation `NULL` uses the C++ implementation unless the transition model or
@@ -37,7 +36,7 @@
 #' @param verbose report used parameters
 #' @param ... further arguments are ignored.
 #' @return A list with elements:
-#'  * `avg_reward`: The average discounted reward.
+#'  * `avg_return`: The average discounted return.
 #'  * `reward`: Reward for each trajectory.
 #'  * `action_cnt`: Action counts.
 #'  * `state_cnt`: State counts.
@@ -66,7 +65,7 @@
 #' sim <- sample_MDP(sol, n = 100, horizon = 10, verbose = TRUE)
 #' sim
 #'
-#' # Note that all simulations for this model start at s_1 and that the simulated avg. reward
+#' # Note that all simulations for this model start at s_1 and that the simulated avg. return
 #' # is therefore an estimate to the value function for the start state s_1.
 #' policy(sol)[1, ]
 #'
@@ -76,7 +75,7 @@
 #' # reward distribution
 #' hist(sim$reward)
 #'
-#' ## Example 2: simulate starting following a uniform distribution over all
+#' ## Example 2: simulate trajectories starting from a uniform distribution over all
 #' #             states and return all trajectories
 #' sim <- sample_MDP(sol,
 #'   n = 100, start = "uniform", horizon = 10,
@@ -201,7 +200,7 @@ sample_MDP.MDP <-
       rew <- Reduce(c, lapply(sim, "[[", "reward"))
       
       samp <- list(
-        avg_reward = mean(rew, na.rm = TRUE),
+        avg_return = mean(rew, na.rm = TRUE),
         reward = rew,
         action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
         state_cnt = Reduce("+", lapply(sim, "[[", "state_cnt")),
@@ -263,7 +262,7 @@ sample_MDP.MDP <-
       names(state_cnt) <- states
       rew <- 0
       
-      # find a initial state
+      # find an initial state
       s <- sample.int(length(states), 1L, prob = start)
       
       if (trajectories) {
@@ -344,7 +343,7 @@ sample_MDP.MDP <-
     }
     
     samp <- list(
-      avg_reward = mean(rew, na.rm = TRUE),
+      avg_return = mean(rew, na.rm = TRUE),
       reward = rew,
       action_cnt = Reduce("+", lapply(sim, "[[", "action_cnt")),
       state_cnt = Reduce("+", lapply(sim, "[[", "state_cnt")),

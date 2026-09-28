@@ -40,7 +40,7 @@
 #' 
 #' The last term represents the feature vector reduced by the expected feature 
 #' vector across all actions under the current policy. This
-#' pushes the the approximation to make the chosen action \eqn{a} more likely. 
+#' pushes the approximation to make the chosen action \eqn{a} more likely.
 #' 
 #' We use here the gradient of the log-policy which 
 #' avoids multiplying by \eqn{\hat{\pi}(a|s,\boldsymbol{w})} and
@@ -145,6 +145,7 @@
 #' approx_value(f_pi, state = "s(3,1)", model = Maze)
 #'
 #' @name linear_function_approximation
+#' @family approximation
 NULL
 
 #' @rdname linear_function_approximation
@@ -334,4 +335,3 @@ approx_value <- function(f,
       
   v
 }
-

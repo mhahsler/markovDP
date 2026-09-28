@@ -199,7 +199,7 @@ dimensions as element \code{dim} and can be created using \code{gw_init()}.}
 \item{normalize}{logical; should the description be normalized for
 faster access using \code{\link[=normalize_MDP]{normalize_MDP()}}.}
 
-\item{access}{string; create a MDP with \code{"model"} or \code{"sample"} access.}
+\item{access}{string; create an MDP with \code{"model"} or \code{"sample"} access.}
 
 \item{name}{a string to identify the MDP problem.}
 
@@ -427,31 +427,14 @@ rand_maze <- gw_random_maze(dim = c(5, 5))
 gw_plot(rand_maze)
 }
 \seealso{
-Other gridworld: 
+Other gridworld:
 \code{\link{Cliff_walking}},
 \code{\link{DynaMaze}},
 \code{\link{Maze}},
 \code{\link{Windy_gridworld}}
 
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
+Other visualization:
+\code{\link[=transition_graph]{transition_graph()}}
 }
-\concept{MDP}
 \concept{gridworld}
+\concept{visualization}

@@ -40,4 +40,8 @@ round_stochastic(m, digits = 0)
 }
 \seealso{
 \link{round}
+
+Other utilities:
+\code{\link{colors}}
 }
+\concept{utilities}

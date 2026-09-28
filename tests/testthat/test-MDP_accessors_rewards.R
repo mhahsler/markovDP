@@ -1,3 +1,4 @@
+test_that("MDP accessors rewards", {
 # Maze_orig contains a data.frame
 
 (R1_full <- reward_matrix(Maze_function2, 1, sparse = FALSE))
@@ -201,4 +202,4 @@ expect_equal(r_dense, r_orig)
 expect_equal(r_dense, r_sparse)
 expect_equal(r_dense, r_func)
 expect_equal(r_dense, r_all_func)
-
+})

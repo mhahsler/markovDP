@@ -1,3 +1,4 @@
+test_that("APPROX LAMBDA", {
 m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 
 benchmark <- solve_MDP(m)
@@ -22,4 +23,4 @@ expect_true(all (gw_matrix(sol, what = "action") %in% c("down", "right")))
 
 # cleanup
 unlink("Rplots.pdf")
-
+})

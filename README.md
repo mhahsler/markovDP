@@ -3,10 +3,16 @@
 
 [![r-universe
 status](https://mhahsler.r-universe.dev/badges/markovDP)](https://mhahsler.r-universe.dev/markovDP)
-[![Package on
-CRAN](https://www.r-pkg.org/badges/version/markovDP)](https://CRAN.R-project.org/package=markovDP)
-[![CRAN RStudio mirror
-downloads](https://cranlogs.r-pkg.org/badges/markovDP)](https://CRAN.R-project.org/package=markovDP)
+
+**Maintainer:** [Michael Hahsler](https://michael.hahsler.net)
+
+## Notice of development status
+
+This package is **under development** and has not been released on CRAN.
+Expect some API changes.
+
+An similar educational Python package is
+[gym_classics2](https://michael.hahsler.net/gym-classics2/).
 
 ## Introduction
 
@@ -32,7 +38,7 @@ methods:
   - Modified Policy Iteration ([Howard 1960](#ref-Howard1960); [Puterman
     and Shin 1978](#ref-Puterman1978))
   - Prioritized Sweeping ([Moore and Atkeson 1993](#ref-Moore1993);
-    [Andre, Friedman, and Parr 1997](#ref-Andre1997); [Li and Littman
+    [Andre et al. 1997](#ref-Andre1997); [Li and Littman
     2008](#ref-Li2008))
 - **Linear Programming**
   - Primal Formulation ([Manne 1960](#ref-Manne1960))
@@ -68,20 +74,6 @@ Partially observable Markov Decision Problems (POMDPs) can me modeled in
 a similar fashion using package **pomdp** ([Hahsler
 2024](#ref-CRAN_pomdp)).
 
-To cite package ‘markovDP’ in publications use:
-
-> Hahsler M (2024). *markovDP: Infrastructure for Discrete-Time Markov
-> Decision Processes (MDP)*. R package version 0.99.0,
-> <https://github.com/mhahsler/markovDP>.
-
-    @Manual{,
-      title = {markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
-      author = {Michael Hahsler},
-      year = {2024},
-      note = {R package version 0.99.0},
-      url = {https://github.com/mhahsler/markovDP},
-    }
-
 ## Installation
 
 **Current development version:** Install from
@@ -104,15 +96,15 @@ data("Maze")
 Maze
 ```
 
-    ## MDP, MDPE - Stuart Russell's 3x4 Maze
+    ## MDPModel, MDP - Stuart Russell's 3x4 Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
-    ##   Size: 11 states / 4 actions
+    ##   Size: 4 actions / 11 states
     ##   Storage: transition prob as matrix / reward as matrix. Total size: 28.8 Kb
     ##   Start: s(3,1)
-    ## 
-    ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states'
+    ##   Model list components: 'name', 'discount', 'horizon', 'states',
+    ##     'actions', 'start', 'transition_model', 'reward', 'info',
+    ##     'absorbing_states'
 
 The maze is a gridworld and can be displayed directly.
 
@@ -120,26 +112,31 @@ The maze is a gridworld and can be displayed directly.
 gw_plot(Maze, state = TRUE)
 ```
 
-![](inst/README_files/display-1.png)<!-- -->
+    ## Warning in gw_plot(Maze, state = TRUE): partial argument match of 'state' to
+    ## 'states'
+
+![](man/figures/README-display-1.png)<!-- -->
 
 ``` r
 sol <- solve_MDP(model = Maze)
 sol
 ```
 
-    ## MDP, MDPE - Stuart Russell's 3x4 Maze
+    ## MDPModel, MDP - Stuart Russell's 3x4 Maze
     ##   Discount factor: 1
     ##   Horizon: Inf epochs
-    ##   Size: 11 states / 4 actions
+    ##   Size: 4 actions / 11 states
     ##   Storage: transition prob as matrix / reward as matrix. Total size: 32.3 Kb
     ##   Start: s(3,1)
+    ##   Model list components: 'name', 'discount', 'horizon', 'states',
+    ##     'actions', 'start', 'transition_model', 'reward', 'info',
+    ##     'absorbing_states', 'solution'
+    ## 
     ##   Solved:
     ##     Method: 'VI'
     ##     Solution converged: TRUE
-    ## 
-    ##   List components: 'name', 'discount', 'horizon', 'states', 'actions',
-    ##     'start', 'transition_prob', 'reward', 'info', 'absorbing_states',
-    ##     'solution'
+    ##   Solution list components: 'method', 'policy', 'converged', 'delta',
+    ##     'iterations'
 
 Display the value function.
 
@@ -147,7 +144,7 @@ Display the value function.
 plot_value_function(sol)
 ```
 
-![](inst/README_files/value_function-1.png)<!-- -->
+![](man/figures/README-value_function-1.png)<!-- -->
 
 The state values can be shown in the gridworld as colored map.
 
@@ -155,7 +152,7 @@ The state values can be shown in the gridworld as colored map.
 gw_plot(sol)
 ```
 
-![](inst/README_files/gridworld_plot-1.png)<!-- -->
+![](man/figures/README-gridworld_plot-1.png)<!-- -->
 
 ## Acknowledgments
 
@@ -163,16 +160,30 @@ Development of this package was supported in part by National Institute
 of Standards and Technology (NIST) under grant number
 [60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
 
+## Citation request
+
+To cite package ‘markovDP’ in publications use:
+
+> Hahsler M (????). *markovDP: Infrastructure for Discrete-Time Markov
+> Decision Processes (MDP)*. R package version 0.99.0,
+> <https://github.com/mhahsler/markovDP>.
+
+    @Manual{,
+      title = {markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)},
+      author = {Michael Hahsler},
+      note = {R package version 0.99.0},
+      url = {https://github.com/mhahsler/markovDP},
+    }
+
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
 <div id="ref-Andre1997" class="csl-entry">
 
 Andre, David, Nir Friedman, and Ronald Parr. 1997. “Generalized
 Prioritized Sweeping.” In *Advances in Neural Information Processing
-Systems*, edited by M. Jordan, M. Kearns, and S. Solla. Vol. 10. MIT
+Systems*, edited by M. Jordan, M. Kearns, and S. Solla, vol. 10. MIT
 Press.
 <https://proceedings.neurips.cc/paper_files/paper/1997/file/7b5b23f4aadf9513306bcd59afb6e4c9-Paper.pdf>.
 
@@ -204,15 +215,15 @@ Markov Decision Processes (POMDP)*.
 
 <div id="ref-Howard1960" class="csl-entry">
 
-Howard, R. A. 1960. *Dynamic Programming and Markov Processes*.
-Cambridge, MA: MIT Press.
+Howard, R. A. 1960. *Dynamic Programming and Markov Processes*. MIT
+Press.
 
 </div>
 
 <div id="ref-Li2008" class="csl-entry">
 
-Li, Lihong, and Michael Littman. 2008. “Prioritized Sweeping Converges
-to the Optimal Value Function.” DCS-TR-631. Rutgers University.
+Li, Lihong, and Michael Littman. 2008. *Prioritized Sweeping Converges
+to the Optimal Value Function*. DCS-TR-631. Rutgers University.
 <https://doi.org/10.7282/T3TX3JSX>.
 
 </div>
@@ -243,8 +254,8 @@ Iteration Algorithms for Discounted Markov Decision Problems.”
 
 <div id="ref-Rummery1994" class="csl-entry">
 
-Rummery, G., and Mahesan Niranjan. 1994. “On-Line Q-Learning Using
-Connectionist Systems.” Techreport CUED/F-INFENG/TR 166. Cambridge
+Rummery, G., and Mahesan Niranjan. 1994. *On-Line Q-Learning Using
+Connectionist Systems*. Techreport CUED/F-INFENG/TR 166. Cambridge
 University Engineering Department.
 
 </div>

@@ -1,6 +1,6 @@
 #' Find Reachable States 
 #'
-#' Finds the reachable state space from a MDP or MDPSample.
+#' Finds the reachable state space from an MDP or MDPSample.
 #'
 #' There are three application cases for finding reachable states.
 #' 
@@ -73,7 +73,7 @@
 #' policy(sol)
 #' plot_value_function(sol)
 #' 
-#' # Example 2: Find the states to define a MDP for Tic-Tac-Toe
+#' # Example 2: Find the states to define an MDP for Tic-Tac-Toe
 #' 
 #' # state description: matrix with the characters _, x, and o
 #' #                    can be converted into a label of 9 characters
@@ -209,11 +209,11 @@
 #' tictactoe <- MDP(S, A, P, R, discount = 1, start = start, name = "TicTacToe")
 #' tictactoe
 #' 
-#' # this MDP takes a about 30 seconds to solve using value iteration
+#' # this MDP takes about 30 seconds to solve using value iteration
 #' # sol <- solve_MDP(tictactoe)
 #' # policy(sol)[1:10, ]
 #' 
-#' @param model a MDP or a MDP transition function.
+#' @param model an MDP or an MDP transition function.
 #' @param progress logical; show a progress bar?
 #' @param ... further arguments are passed on (e.g., to [`sample_MDP()`])
 #' 

@@ -123,49 +123,18 @@ Russell, Stuart J., and Peter Norvig. 2020. Artificial Intelligence: A Modern Ap
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_SAMP}()},
-\code{\link{solve_MDP_TD}()}
-
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{regret}()},
-\code{\link{sample_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
-
-Other MDPSample: 
-\code{\link{MDPSample}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPSample}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{start}()}
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 }
 \author{
 Michael Hahsler
 }
-\concept{MDP}
-\concept{MDPSample}
 \concept{solver}

@@ -22,7 +22,7 @@
 #' data(DynaMaze)
 #' gw_plot(DynaMaze)
 #'
-#' # The the following actions are always available:
+#' # The following actions are always available:
 #' DynaMaze$actions
 #' 
 #' # only right and down is unavailable for s(1,1) because they
@@ -111,4 +111,3 @@ available_actions.MDPSample <- function(model,
   
   normalize_action(A[rew & sp], model) 
 }
-

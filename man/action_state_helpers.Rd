@@ -40,11 +40,11 @@ get_state_features(model)
 \arguments{
 \item{state}{a state in any format}
 
-\item{model}{a MDP model}
+\item{model}{an MDP model}
 
 \item{as}{character; specifies the desired output format}
 
-\item{action}{a action in any format}
+\item{action}{an action in any format}
 
 \item{x}{a state feature vector or a matrix of state feature vectors as rows.}
 
@@ -113,3 +113,29 @@ normalize_action(1, Maze, as = "label")
 state2features("s(1,1)")
 s(1,1)
 }
+\seealso{
+Other MDP:
+\code{\link[=MDP]{MDP()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link[=available_actions]{available_actions()}},
+\code{\link[=find_reachable_states]{find_reachable_states()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP]{sample_MDP()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link{start}},
+\code{\link[=transition_graph]{transition_graph()}},
+\code{\link[=transition_matrix]{transition_matrix()}},
+\code{\link[=unreachable_states]{unreachable_states()}}
+
+Other MDPSample:
+\code{\link[=MDPSample]{MDPSample()}},
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link{start}}
+}
+\concept{MDP}
+\concept{MDPSample}

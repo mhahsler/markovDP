@@ -25,8 +25,7 @@
 #' @name Q_values
 #' @aliases Q_values
 #'
-#' @family MDP
-#' @family policy
+#' @family value_function
 #' @author Michael Hahsler
 #'
 #' @references
@@ -138,5 +137,5 @@ init_Q <- function(model, Q = NULL) {
     return(Q_random(model, min = Q[1L], max = Q[2L]))
   
   else 
-    stop("Illegal definition for initializeing the Q-value matrix.")
+    stop("Illegal definition for initializing the Q-value matrix.")
 }

@@ -1,3 +1,4 @@
+test_that("gridworld", {
 models <- c(models_matrix, models_trans_function)
 
 whats <- c("states", "index", "labels", 
@@ -15,4 +16,4 @@ for (w in whats) {
   for (m in models)
     expect_error(gw_matrix(m, what = w))
 }
-
+})

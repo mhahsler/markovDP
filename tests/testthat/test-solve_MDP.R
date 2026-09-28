@@ -1,3 +1,4 @@
+test_that("solve MDP", {
 ## context("solve_MDP")
 
 verbose <- interactive()
@@ -266,3 +267,4 @@ timing[order(timing$action_discrepancy), ]
 
 
 #cbind(policy(solutions$q_planning), bench = policy(bench)$action)
+})

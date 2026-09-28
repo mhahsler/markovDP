@@ -3,7 +3,6 @@
 #' Extract a greedy policy or select a greedy action 
 #' from a solved model or a Q matrix.
 #'
-#' @family MDP
 #' @family policy
 #' @author Michael Hahsler
 #'

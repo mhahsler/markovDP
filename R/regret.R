@@ -52,7 +52,6 @@
 #' only on estimating the value function for states that are actually visited using the 
 #' policy. 
 #'
-#' @family MDP
 #' @family policy
 #'
 #' @param policy a solved MDP containing the policy to calculate the regret for.
@@ -61,7 +60,7 @@
 #' @param start start state distribution. If NULL then the start state of the `benchmark` is used.
 #' @param relative logical; should the relative regret (regret divided by the reward of the benchmark)
 #' be calculated?
-#' @param ... further arguments are passed on to [reward()].
+#' @param ... further arguments are passed on to [expected_return()].
 #'
 #' @returns
 #'    * `regret()` returns the regret as a difference of expected long-term rewards.
@@ -120,8 +119,9 @@ regret.MDP <- function(policy,
                        start = NULL,
                        relative = FALSE,
                        ...) {
-  rb <- reward(benchmark, start, ...)
-  rp <- reward(policy, start, ...)
+  return_fn <- get("expected_return", mode = "function")
+  rb <- return_fn(benchmark, start, ...)
+  rp <- return_fn(policy, start, ...)
   
   if (relative)
     (rb - rp) / rb

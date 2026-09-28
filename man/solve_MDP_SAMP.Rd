@@ -79,7 +79,7 @@ Random-sample one-step tabular Q-planning is a simple, not very effective,
 planning method shown as an illustration in Chapter 8 of
 Sutton and Barto (2018). It randomly selects a
 state/action pair and samples the following state \eqn{s'} to
-perform a single a one-step update:
+perform a single one-step update:
 
 \deqn{Q(s,a) \leftarrow Q(s, a) + \alpha * (R + \gamma \max_a'(Q(s', a')) - Q(s, a))}
 \subsection{Schedules}{
@@ -93,14 +93,15 @@ perform a single a one-step update:
 Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. \url{http://incompleteideas.net/book/the-book-2nd.html}.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_TD}()}
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_TD]{solve_MDP_TD()}}
 }
 \concept{solver}

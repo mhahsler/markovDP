@@ -6,6 +6,8 @@
 \alias{markovDP-package}
 \title{markovDP: Infrastructure for Discrete-Time Markov Decision Processes (MDP)}
 \description{
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
 Provides the infrastructure to work with Markov Decision Processes (MDPs) in R. The focus is on convenience in formulating MDPs, the support of sparse representations (using sparse matrices, lists and data.frames) and visualization of results. Some key components are implemented in C++ to speed up computation. Several popular solvers are implemented.
 }
 \section{Key functions}{
@@ -20,12 +22,18 @@ Provides the infrastructure to work with Markov Decision Processes (MDPs) in R. 
 Useful links:
 \itemize{
   \item \url{https://github.com/mhahsler/markovDP}
+  \item \url{http://michael.hahsler.net/markovDP/}
   \item Report bugs at \url{https://github.com/mhahsler/markovDP/issues}
 }
 
 }
 \author{
 \strong{Maintainer}: Michael Hahsler \email{mhahsler@lyle.smu.edu} (\href{https://orcid.org/0000-0003-2716-1405}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Michael Hahsler \email{mhahsler@lyle.smu.edu} (\href{https://orcid.org/0000-0003-2716-1405}{ORCID}) [copyright holder]
+}
 
 }
 \keyword{internal}

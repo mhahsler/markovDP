@@ -29,7 +29,7 @@ policy.}
 \item{relative}{logical; should the relative regret (regret divided by the reward of the benchmark)
 be calculated?}
 
-\item{...}{further arguments are passed on to \code{\link[=reward]{reward()}}.}
+\item{...}{further arguments are passed on to \code{\link[=expected_return]{expected_return()}}.}
 
 \item{weighted}{logical; should mismatched actions or state value errors
 be weighted by the state visit probability for the benchmark? Rarely or never
@@ -148,39 +148,15 @@ value_error(sol_manual, benchmark = sol_optimal, type = "RMSVE")
 value_error(sol_manual, benchmark = sol_optimal, type = "MAVE", weighted = TRUE)
 }
 \seealso{
-Other MDP: 
-\code{\link{MDP}()},
-\code{\link{Q_values}()},
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{available_actions}()},
-\code{\link{bellman_update}()},
-\code{\link{convergence_horizon}()},
-\code{\link{greedy_action}()},
-\code{\link{gridworld}},
-\code{\link{policy_evaluation}()},
-\code{\link{reachable_states}()},
-\code{\link{sample_MDP}()},
-\code{\link{solve_MDP}()},
-\code{\link{start}()},
-\code{\link{transition_graph}()},
-\code{\link{transition_matrix}()},
-\code{\link{unreachable_states}()},
-\code{\link{value_function}()}
-
-Other policy: 
-\code{\link{Q_values}()},
-\code{\link{action}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{policy}()},
-\code{\link{policy_evaluation}()},
-\code{\link{reward}()},
-\code{\link{value_function}()},
-\code{\link{visit_probability}()}
+Other policy:
+\code{\link[=action]{action()}},
+\code{\link[=expected_return]{expected_return()}},
+\code{\link[=greedy_action]{greedy_action()}},
+\code{\link[=policy]{policy()}},
+\code{\link[=policy_evaluation]{policy_evaluation()}},
+\code{\link[=visit_probability]{visit_probability()}}
 }
 \author{
 Michael Hahsler
 }
-\concept{MDP}
 \concept{policy}

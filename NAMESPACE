@@ -8,6 +8,7 @@ S3method(add_policy,MDPModel)
 S3method(add_policy,MDPSample)
 S3method(available_actions,MDP)
 S3method(available_actions,MDPSample)
+S3method(expected_return,MDP)
 S3method(greedy_action,MDPModel)
 S3method(greedy_action,MDPSample)
 S3method(greedy_policy,MDPModel)
@@ -22,7 +23,6 @@ S3method(reachable_states,"function")
 S3method(reachable_states,MDPModel)
 S3method(reachable_states,MDPSample)
 S3method(regret,MDP)
-S3method(reward,MDP)
 S3method(reward_matrix,MDPModel)
 S3method(reward_matrix,MDPSample)
 S3method(sample_MDP,MDP)
@@ -63,6 +63,7 @@ export(colors_discrete)
 export(convergence_horizon)
 export(create_basis_coefs)
 export(curve_multiple_directed)
+export(expected_return)
 export(features2state)
 export(find_reachable_states)
 export(get_state_features)
@@ -109,7 +110,6 @@ export(random_policy)
 export(reachable_states)
 export(regret)
 export(remove_unreachable_states)
-export(reward)
 export(reward_matrix)
 export(round_stochastic)
 export(s)
@@ -141,60 +141,78 @@ export(value_error)
 export(value_function)
 export(visit_probability)
 import(Rcpp)
-importFrom(Matrix,Math)
-importFrom(Matrix,Math2)
-importFrom(Matrix,cBind)
-importFrom(Matrix,coerce)
-importFrom(Matrix,colSums)
-importFrom(Matrix,crossprod)
-importFrom(Matrix,diag)
-importFrom(Matrix,drop0)
-importFrom(Matrix,nnzero)
-importFrom(Matrix,rBind)
-importFrom(Matrix,rowSums)
-importFrom(Matrix,spMatrix)
-importFrom(Matrix,sparseVector)
-importFrom(Matrix,t)
-importFrom(Matrix,which)
-importFrom(MatrixExtra,as.csr.matrix)
-importFrom(MatrixExtra,as.sparse.vector)
-importFrom(fastmap,fastmap)
-importFrom(fastmap,faststack)
-importFrom(foreach,"%do%")
-importFrom(foreach,"%dopar%")
-importFrom(foreach,foreach)
-importFrom(foreach,getDoParWorkers)
-importFrom(foreach,times)
+importFrom(Matrix,
+  Math,
+  Math2,
+  cBind,
+  coerce,
+  colSums,
+  crossprod,
+  diag,
+  drop0,
+  nnzero,
+  rBind,
+  rowSums,
+  spMatrix,
+  sparseVector,
+  t,
+  which
+)
+importFrom(MatrixExtra,
+  as.csr.matrix,
+  as.sparse.vector
+)
+importFrom(fastmap,
+  fastmap,
+  faststack
+)
+importFrom(foreach,
+  "%do%",
+  "%dopar%",
+  foreach,
+  getDoParWorkers,
+  times
+)
 importFrom(grDevices,hcl.colors)
-importFrom(graphics,abline)
-importFrom(graphics,axis)
-importFrom(graphics,barplot)
-importFrom(graphics,box)
-importFrom(graphics,contour)
-importFrom(graphics,image)
-importFrom(graphics,legend)
-importFrom(graphics,text)
-importFrom(igraph,"%>%")
-importFrom(igraph,"E<-")
-importFrom(igraph,"V<-")
-importFrom(igraph,E)
-importFrom(igraph,V)
-importFrom(igraph,add_layout_)
-importFrom(igraph,as_data_frame)
-importFrom(igraph,as_tree)
-importFrom(igraph,graph_from_adjacency_matrix)
-importFrom(igraph,graph_from_data_frame)
-importFrom(igraph,induced_subgraph)
-importFrom(igraph,norm_coords)
-importFrom(methods,as)
-importFrom(methods,is)
-importFrom(methods,new)
-importFrom(stats,runif)
-importFrom(stats,setNames)
-importFrom(stats,start)
-importFrom(utils,head)
-importFrom(utils,object.size)
-importFrom(utils,read.table)
-importFrom(utils,tail)
-importFrom(utils,type.convert)
+importFrom(graphics,
+  abline,
+  axis,
+  barplot,
+  box,
+  contour,
+  image,
+  legend,
+  text
+)
+importFrom(igraph,
+  "%>%",
+  "E<-",
+  "V<-",
+  E,
+  V,
+  add_layout_,
+  as_data_frame,
+  as_tree,
+  graph_from_adjacency_matrix,
+  graph_from_data_frame,
+  induced_subgraph,
+  norm_coords
+)
+importFrom(methods,
+  as,
+  is,
+  new
+)
+importFrom(stats,
+  runif,
+  setNames,
+  start
+)
+importFrom(utils,
+  head,
+  object.size,
+  read.table,
+  tail,
+  type.convert
+)
 useDynLib(markovDP, .registration=TRUE)

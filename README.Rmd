@@ -8,8 +8,15 @@ link-citations: yes
 pkg <- "markovDP"
 
 source("https://raw.githubusercontent.com/mhahsler/pkg_helpers/main/pkg_helpers.R")
-pkg_title(pkg)
+pkg_title(pkg, CRAN = FALSE)
 ```
+
+## Notice of development status
+
+This package is **under development** and has not been released on CRAN. Expect some 
+API changes.
+
+An similar educational Python package is [gym_classics2](https://michael.hahsler.net/gym-classics2/).
 
 ## Introduction
 A Markov decision process (MDP) [@Bellman1957; @Howard1960] is a discrete-time 
@@ -70,7 +77,6 @@ fashion using package **pomdp** [@CRAN_pomdp].
 
 
 ```{r echo=FALSE, results = 'asis'}
-pkg_citation(pkg, 1)
 pkg_install(pkg, CRAN = FALSE)
 ```
 
@@ -113,5 +119,11 @@ gw_plot(sol)
 Development of this package was supported in part by 
 National Institute of Standards and Technology (NIST) under grant number 
 [60NANB17D180](https://www.nist.gov/ctl/pscr/safe-net-integrated-connected-vehicle-computing-platform).
+
+## Citation request
+
+```{r echo=FALSE, results = 'asis'}
+pkg_citation(pkg, 1)
+```
 
 ## References

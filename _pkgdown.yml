@@ -1,0 +1,80 @@
+url: http://michael.hahsler.net/markovDP/
+template:
+  bootstrap: 5
+
+development:
+  mode: unreleased
+
+reference:
+- title: MDP Models
+  desc: Define finite-state MDPs and inspect their states, actions, transitions, and rewards.
+  contents:
+  - MDP
+  - MDPSample
+  - available_actions
+  - accessors
+  - act
+  - sample_MDP
+  - has_concept("MDP")
+
+- title: Solvers
+  desc: Solve MDPs with dynamic programming, linear programming, sampling, and reinforcement learning methods.
+  contents:
+  - solve_MDP
+  - solve_MDP_DP
+  - solve_MDP_TD
+  - solve_MDP_MC
+  - solve_MDP_LP
+  - solve_MDP_SAMP
+  - solve_MDP_APPROX
+  - solve_MDP_PG
+  - schedule
+  - has_concept("solver")
+
+- title: Value Functions
+  desc: Work with value functions.
+  contents:
+  - has_concept("value_function")
+
+- title: Policies
+  desc: Create and evaluate policies, choose actions, and calculate value functions and returns.
+  contents:
+  - policy
+  - action
+  - has_concept("policy")
+
+- title: Function Approximation
+  desc: Approximate value functions and policies with state features and basis transformations.
+  contents:
+  - solve_MDP_APPROX
+  - linear_function_approximation
+  - transformation
+  - has_concept("approximation")
+
+- title: Gridworlds
+  desc: Create gridworld MDPs and inspect their layouts, transitions, and solutions.
+  contents:
+  - gridworld
+  - has_concept("gridworld")
+
+- title: Example MDPs
+  desc: Explore the included maze, cliff-walking, and windy-gridworld examples.
+  contents:
+  - Maze
+  - Cliff_walking
+  - Windy_gridworld
+  - DynaMaze
+  - has_concept("MDP_examples")
+  - "-MDP"
+
+- title: Visualization
+  desc: Plot gridworlds and transition graphs using the package's color palettes.
+  contents:
+  - gridworld
+  - transition_graph
+  - has_concept("visualization")
+
+- title: Utilities
+  desc: Helper functions.
+  contents:
+  - has_concept("utilities")

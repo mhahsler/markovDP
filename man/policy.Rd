@@ -134,16 +134,13 @@ gw_plot(sol, epoch = 2)
 gw_plot(sol, epoch = 3)
 }
 \seealso{
-Other policy: 
-\code{\link{Q_values}()},
-\code{\link{action}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{policy_evaluation}()},
-\code{\link{regret}()},
-\code{\link{reward}()},
-\code{\link{value_function}()},
-\code{\link{visit_probability}()}
+Other policy:
+\code{\link[=action]{action()}},
+\code{\link[=expected_return]{expected_return()}},
+\code{\link[=greedy_action]{greedy_action()}},
+\code{\link[=policy_evaluation]{policy_evaluation()}},
+\code{\link[=regret]{regret()}},
+\code{\link[=visit_probability]{visit_probability()}}
 }
 \author{
 Michael Hahsler

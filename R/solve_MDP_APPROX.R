@@ -21,7 +21,7 @@
 #' * alpha schedule: `t` is increased by each processed episode.
 #' 
 #' @family solver
-#' @family MDPSample
+#' @family approximation
 #'
 #' @references
 #' Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. Second. The MIT Press. [http://incompleteideas.net/book/the-book-2nd.html](http://incompleteideas.net/book/the-book-2nd.html).
@@ -34,7 +34,7 @@
 #'
 #' m <- gw_maze_MDP(c(5, 5), start = "s(1,1)", goal = "s(5,5)")
 #' 
-#' # gridworlds have state labels om the format "s(row, col)" which can be
+#' # gridworlds have state labels of the format "s(row, col)" which can be
 #' # automatically converted into state features used for approximation.
 #' S(m)
 #' get_state_features(m)
@@ -203,7 +203,7 @@ solve_MDP_APPROX_1_step <-
            verbose = FALSE) {
     
     if (!inherits(model, "MDP"))
-      stop("This model needs to be a MDP environment.")
+      stop("This model needs to be an MDP environment.")
     
     method <-
       match.arg(method, c("sarsa"))
@@ -311,7 +311,7 @@ solve_MDP_APPROX_1_step <-
         # take action a
         a_res <- act(model, s, a, fast = TRUE)
         s_prime <- a_res$state_prime
-        r <- a_res$r
+        r <- a_res$reward
         
         # unavailable actions return a reward of -inf
         if (!is.finite(r))
@@ -420,7 +420,7 @@ solve_MDP_APPROX_lambda <-
            verbose = FALSE) {
     
     if (!inherits(model, "MDP"))
-      stop("This model needs to be a MDP environment.")
+      stop("This model needs to be an MDP environment.")
     
     methods <- c("Sarsa", "GTD")
     method <- match.arg(tolower(method), tolower(methods))
@@ -538,7 +538,7 @@ solve_MDP_APPROX_lambda <-
         # take action a and observe r and s'
         a_res <- act(model, s, a, fast = TRUE)
         s_prime <- a_res$state_prime
-        r <- a_res$r
+        r <- a_res$reward
         
         # choose a'
         a_prime <- approx_greedy_action(model, s_prime, w, epsilon_val, as = "id")
@@ -729,7 +729,7 @@ pimage <- function (x1,
 #'        contours in the plot?
 #' @param main title for the plot.
 #' @param res resolution as the number of values sampled from each feature.
-#' @param col colors for the passed on to [`image()`].
+#' @param col colors passed on to [`graphics::image()`].
 #' @param min,max numeric vectors with minimum/maximum values for each feature
 #'        in the state feature representation.
 #' @export

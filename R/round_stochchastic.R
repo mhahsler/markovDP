@@ -4,6 +4,8 @@
 #' that each row sum up to 1. One entry is adjusted after rounding
 #' such that the rounding error is the smallest.
 #'
+#' @family utilities
+#'
 #' @param x a stochastic vector or a row-stochastic matrix.
 #' @param digits number of digits for rounding.
 #' @return The rounded vector or matrix.

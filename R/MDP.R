@@ -1,19 +1,19 @@
-#' Define an MDP Problem
+#' Define an MDP Problem with Model Access
 #'
 #' Defines all the elements of a discrete-time finite state-space MDP problem.
 #'
 #' Markov decision processes (MDPs) are discrete-time stochastic control
-#' process. We implement here MDPs with a finite state space.
-#' `MDP()` defines all the element of an MDP problem including the discount rate, the
-#' set of states, the set of actions,the transition
+#' processes. This package implements MDPs with a finite state space.
+#' `MDP()` defines all the elements of an MDP problem, including the discount rate, the
+#' set of states, the set of actions, the transition
 #' model, and the reward model.
 #'
-#' In the following we use the following notation. The MDP is a 5-duple:
+#' We use the following notation. An MDP is a five-tuple:
 #'
 #' \eqn{(S,A,P,R, \gamma)}.
 #'
 #' \eqn{S} is the set of states; \eqn{A}
-#' is the set of actions; \eqn{P} are the conditional transition probabilities
+#' is the set of actions; \eqn{P} is the conditional transition probability matrix
 #' between states; \eqn{R} is the reward function; and
 #' \eqn{\gamma} is the discount factor. We will use lower case letters to
 #' represent a member of a set, e.g., \eqn{s} is a specific state. To refer to
@@ -81,7 +81,7 @@
 #' ## Specification of the Start State
 #'
 #' The start state of the agent can be a single state or a distribution over the states.
-#' The start state definition is used as the default when the reward is calculated by [reward()]
+#' The start state definition is used as the default when the return is calculated by [expected_return()]
 #' and for sampling with [sample_MDP()].
 #'
 #' Options to specify the start state are:
@@ -92,8 +92,7 @@
 #' * A probability distribution over the states. That is, a vector
 #'   of \eqn{|S|} probabilities, that add up to \eqn{1}.
 #'
-#' The default state state is a uniform
-#' distribution over all states.
+#' By default, the start state is selected uniformly from all states.
 #' 
 #' ## Accessing Elements of the MDP
 #' 
@@ -111,7 +110,7 @@
 #' actions.
 #' @param transition_model Specifies the transition probabilities between
 #' states.
-#' @param reward Specifies the rewards dependent on action and states.
+#' @param reward Specifies the rewards, which may depend on the action and state.
 #' @param discount numeric; discount rate between 0 and 1.
 #' @param horizon numeric; Number of epochs. `Inf` specifies an infinite
 #' horizon.
@@ -365,7 +364,7 @@ is_converged_MDP <- function(model, stop = FALSE) {
 }
 
 #' @rdname MDP
-#' @param action action as a action label or integer. The value `NA` matches any action.
+#' @param action an action label or integer. The value `NA` matches any action.
 #' @param start.state,end.state state as a state label or an integer. The value `NA` matches any state.
 #' @param probability,value Values used in the helper functions `P_()` and `R_()`.
 #'

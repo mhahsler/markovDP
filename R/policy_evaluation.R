@@ -16,7 +16,6 @@
 #'
 #' Or if `k_backups` iterations have been completed.
 #'
-#' @family MDP
 #' @family policy
 #' @author Michael Hahsler
 #'

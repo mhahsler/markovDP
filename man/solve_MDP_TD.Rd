@@ -130,7 +130,7 @@ reward and the value of the state following the current greedy target policy:
 target policy are the same). We use an \eqn{\epsilon}-greedy policy
 and the final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
 \eqn{\epsilon} can be lowered over time (see \link{schedule} and parameter \code{continue})
-to learn a approximately greedy policy. The target is estimated
+to learn an approximately greedy policy. The target is estimated
 as the one-step bootstrap estimate following the current behavior policy:
 \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
 \item \code{expected_sarsa} \strong{Expected Sarsa} (Sutton and Barto 2018) learns the behavior policy
@@ -275,14 +275,15 @@ Sutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introd
 Watkins, Christopher J. C. H., and Peter Dayan. 1992. "Q-Learning." Machine Learning 8 (3): 279-92. \doi{10.1007/BF00992698}.
 }
 \seealso{
-Other solver: 
+Other solver:
+\code{\link[=convergence_horizon]{convergence_horizon()}},
 \code{\link{schedule}},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_DP}()},
-\code{\link{solve_MDP_LP}()},
-\code{\link{solve_MDP_MC}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{solve_MDP_SAMP}()}
+\code{\link[=solve_MDP]{solve_MDP()}},
+\code{\link[=solve_MDP_APPROX]{solve_MDP_APPROX()}},
+\code{\link[=solve_MDP_DP]{solve_MDP_DP()}},
+\code{\link[=solve_MDP_LP]{solve_MDP_LP()}},
+\code{\link[=solve_MDP_MC]{solve_MDP_MC()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link[=solve_MDP_SAMP]{solve_MDP_SAMP()}}
 }
 \concept{solver}

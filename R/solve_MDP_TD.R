@@ -48,7 +48,7 @@
 #'    target policy are the same). We use an \eqn{\epsilon}-greedy policy
 #'    and the final \eqn{\epsilon}-greedy policy is converted into a greedy policy.
 #'    \eqn{\epsilon} can be lowered over time (see [schedule] and parameter `continue`)
-#'    to learn a approximately greedy policy. The target is estimated
+#'    to learn an approximately greedy policy. The target is estimated
 #'    as the one-step bootstrap estimate following the current behavior policy:
 #'    \deqn{G_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})}
 #'
@@ -427,7 +427,7 @@ solve_MDP_TD_1_step <-
         # act
         a_res <- act(model, s, a, fast = TRUE)
         s_prime <- a_res$state_prime
-        r <- a_res$r
+        r <- a_res$reward
         
         # MDPSample: features -> id
         if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
@@ -466,7 +466,7 @@ solve_MDP_TD_1_step <-
         G <- switch(
           method,
           
-          # off-policy: uses an estimate of the the target greedy policy (max(Q))
+          # off-policy: uses an estimate of the target greedy policy (max(Q))
           q_learning = max(Q[s_prime, ]),
           
           # on-policy: used s' and a' from the behavior policy
@@ -674,7 +674,7 @@ solve_MDP_TD_n_step <-
           # take action a
           a_res <- act(model, s, a, fast = TRUE)
           s_prime <- a_res$state_prime
-          r <- a_res$r
+          r <- a_res$reward
           
           # no function call version (may be faster)
           #s_prime <- sample(S, 1L, prob = transition_matrix(model, a, s, sparse = FALSE))
@@ -942,7 +942,7 @@ solve_MDP_TD_lambda <-
         # act
         a_res <- act(model, s, a, fast = TRUE)
         s_prime <- a_res$state_prime
-        r <- a_res$r
+        r <- a_res$reward
         
         # MDPSample: features -> id
         if (is.matrix(s_prime)) s_prime <- normalize_state_id(s_prime, model)
@@ -1021,7 +1021,5 @@ solve_MDP_TD_lambda <-
     
     # return via on.exit()
   }
-
-
 
 

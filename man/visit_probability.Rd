@@ -73,16 +73,13 @@ gw_matrix(sol, what = "visit_probability")
 
 }
 \seealso{
-Other policy: 
-\code{\link{Q_values}()},
-\code{\link{action}()},
-\code{\link{bellman_update}()},
-\code{\link{greedy_action}()},
-\code{\link{policy}()},
-\code{\link{policy_evaluation}()},
-\code{\link{regret}()},
-\code{\link{reward}()},
-\code{\link{value_function}()}
+Other policy:
+\code{\link[=action]{action()}},
+\code{\link[=expected_return]{expected_return()}},
+\code{\link[=greedy_action]{greedy_action()}},
+\code{\link[=policy]{policy()}},
+\code{\link[=policy_evaluation]{policy_evaluation()}},
+\code{\link[=regret]{regret()}}
 }
 \author{
 Michael Hahsler

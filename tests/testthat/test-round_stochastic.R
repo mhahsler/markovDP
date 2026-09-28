@@ -1,3 +1,4 @@
+test_that("round stochastic", {
 # round_stochastic a stochastic vector
 
 # round a probability vector
@@ -21,5 +22,4 @@ expect_true(sum1(round_stochastic(p + 1e-9)))
 expect_true(sum1(round_stochastic(p + 1e-3)))
 expect_true(sum1(p + 1e-9, digits = 7))
 expect_false(sum1(p + 1e-9, digits = 10))
-
-
+})

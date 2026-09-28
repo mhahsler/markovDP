@@ -167,15 +167,14 @@ gw_matrix(sol, what = "value")
 policy(sol)
 }
 \seealso{
-Other MDPSample: 
-\code{\link{absorbing_states}()},
-\code{\link{act}()},
-\code{\link{reachable_states}()},
-\code{\link{sample_MDP.MDPSample}()},
-\code{\link{solve_MDP}()},
-\code{\link{solve_MDP_APPROX}()},
-\code{\link{solve_MDP_PG}()},
-\code{\link{start}()}
+Other MDPSample:
+\code{\link[=absorbing_states]{absorbing_states()}},
+\code{\link[=act]{act()}},
+\code{\link{action_state_helpers}},
+\code{\link[=reachable_states]{reachable_states()}},
+\code{\link[=sample_MDP.MDPSample]{sample_MDP.MDPSample()}},
+\code{\link[=solve_MDP_PG]{solve_MDP_PG()}},
+\code{\link{start}}
 }
 \author{
 Michael Hahsler

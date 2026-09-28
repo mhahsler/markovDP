@@ -1,10 +1,10 @@
 ---
-title: "Solving Tic-Tac-Toe as a MDP"
+title: "Solving Tic-Tac-Toe as an MDP"
 author: "Michael Hahsler"
 bibliography: references.bib
 link-citations: yes
 vignette: >
-  %\VignetteIndexEntry{Solving Tic-Tac-Toe as a MDP}
+  %\VignetteIndexEntry{Solving Tic-Tac-Toe as an MDP}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 output:
@@ -156,7 +156,7 @@ We also add the three special states of
 During one interaction with the environment,
 player `x` performs an actions following the learned policy. 
 We implement `o` as part of the stochastic transition model of the environment.
-We return a uniform probability distribution all
+We return a uniform probability distribution over all
 actions that `o` has available. 
 
 ```{r }
