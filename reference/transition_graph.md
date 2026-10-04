@@ -101,9 +101,9 @@ data("Maze")
 
 g <- transition_graph(Maze)
 g
-#> IGRAPH c8e07ef DN-- 11 32 -- 
+#> IGRAPH 52518e4 DN-- 11 32 -- 
 #> + attr: name (v/c), color (v/c), label (e/c)
-#> + edges from c8e07ef (vertex names):
+#> + edges from 52518e4 (vertex names):
 #>  [1] s(1,1)->s(1,1) s(1,1)->s(2,1) s(1,1)->s(1,2) s(2,1)->s(1,1) s(2,1)->s(2,1)
 #>  [6] s(2,1)->s(3,1) s(3,1)->s(2,1) s(3,1)->s(3,1) s(3,1)->s(3,2) s(1,2)->s(1,1)
 #> [11] s(1,2)->s(1,2) s(1,2)->s(1,3) s(3,2)->s(3,1) s(3,2)->s(3,2) s(3,2)->s(3,3)

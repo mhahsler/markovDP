@@ -11,7 +11,13 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -179,65 +185,43 @@ in general.</p>
 </h3>
 <p>A discrete-time MDP can formally be described by</p>
 <ul>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒮</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>s</mi><mn>1</mn></msub><mo>,</mo><msub><mi>s</mi><mn>2</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>s</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{S} = \{s_1, s_2, \dots, s_n\}</annotation></semantics></math>
-is the set of fully observable states.</p></li>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝒜</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><msub><mi>a</mi><mn>1</mn></msub><mo>,</mo><msub><mi>a</mi><mn>2</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>a</mi><mi>m</mi></msub><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\mathcal{A} = \{a_1, a_2, \dots, a_m\}</annotation></semantics></math>
-is the set of actions.</p></li>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒫</mi><annotation encoding="application/x-tex">\mathcal{P}</annotation></semantics></math>
-a set of conditional transition probabilities.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>s</mi><mo>′</mo></msup><mo stretchy="false" form="prefix">|</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(s'|s,a)</annotation></semantics></math>
-is the probability for the state transition
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>→</mo><msup><mi>s</mi><mo>′</mo></msup></mrow><annotation encoding="application/x-tex">s \rightarrow s'</annotation></semantics></math>
-conditioned on the taken action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>.</p></li>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>
-is the reward function defined by a reward function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo>,</mo><msup><mi>s</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(s, a, s')</annotation></semantics></math>
-returning the immediate reward received when transitioning from state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>s</mi><mo>′</mo></msup><annotation encoding="application/x-tex">s'</annotation></semantics></math>
-while using action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>R</mi><mi>t</mi></msub><annotation encoding="application/x-tex">R_t</annotation></semantics></math>
-is a random variable for the immediate reward at time
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.</p></li>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>γ</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\gamma \in [0, 1]</annotation></semantics></math>
-is the discount factor.</p></li>
+<li><p><span class="math inline">\(\mathcal{S} = \{s_1, s_2, \dots,
+s_n\}\)</span> is the set of fully observable states.</p></li>
+<li><p><span class="math inline">\(\mathcal{A} = \{a_1, a_2, \dots,
+a_m\}\)</span> is the set of actions.</p></li>
+<li><p><span class="math inline">\(\mathcal{P}\)</span> a set of
+conditional transition probabilities. <span class="math inline">\(p(s'|s,a)\)</span> is the probability for the
+state transition <span class="math inline">\(s \rightarrow
+s'\)</span> conditioned on the taken action <span class="math inline">\(a\)</span>.</p></li>
+<li><p><span class="math inline">\(r\)</span> is the reward function
+defined by a reward function <span class="math inline">\(r(s, a,
+s')\)</span> returning the immediate reward received when
+transitioning from state <span class="math inline">\(s\)</span> to <span class="math inline">\(s'\)</span> while using action <span class="math inline">\(a\)</span>. <span class="math inline">\(R_t\)</span> is a random variable for the
+immediate reward at time <span class="math inline">\(t\)</span>.</p></li>
+<li><p><span class="math inline">\(\gamma \in [0, 1]\)</span> is the
+discount factor.</p></li>
 </ul>
-<p>At each time step
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>,
-the environment is in some known state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>∈</mo><mi>𝒮</mi></mrow><annotation encoding="application/x-tex">s \in \mathcal{S}</annotation></semantics></math>.
-The agent chooses an action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo>∈</mo><mi>𝒜</mi></mrow><annotation encoding="application/x-tex">a \in \mathcal{A}</annotation></semantics></math>,
-which causes the environment to transition to state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mo>′</mo></msup><mo>∈</mo><mi>𝒮</mi></mrow><annotation encoding="application/x-tex">s' \in \mathcal{S}</annotation></semantics></math>
-with probability
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>s</mi><mo>′</mo></msup><mo>∣</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(s' \mid s,a)</annotation></semantics></math>
-and the agent receives the immediate reward
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo>,</mo><msup><mi>s</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(s,a, s')</annotation></semantics></math>
-as a realization of the random variable
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>R</mi><mi>t</mi></msub><annotation encoding="application/x-tex">R_t</annotation></semantics></math>.
-This process repeats for each time step
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>.
-The goal is for the agent to choose actions that maximizes the expected
-sum of discounted future immediate rewards. We fist consider the
-infinite time horizon case. The optimal action for an MDP depends on the
-current state and can be specified as a deterministic policy
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>π</mi><mo>*</mo></msub><annotation encoding="application/x-tex">\pi_*</annotation></semantics></math>
-which gives for each state the optimal action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mo>*</mo></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi_*(s)</annotation></semantics></math>.
-This leads to the following optimization problem.</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>π</mi><mo>*</mo></msub><mo>=</mo><munder><mi mathvariant="normal">max</mi><mi>π</mi></munder><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><munderover><mo>∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mo accent="false">∞</mo></munderover><msup><mi>γ</mi><mi>t</mi></msup><msub><mi>R</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>π</mi><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\pi_* = \max_\pi \mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^t R_t | \pi\right].</annotation></semantics></math></p>
+<p>At each time step <span class="math inline">\(t\)</span>, the
+environment is in some known state <span class="math inline">\(s \in
+\mathcal{S}\)</span>. The agent chooses an action <span class="math inline">\(a \in \mathcal{A}\)</span>, which causes the
+environment to transition to state <span class="math inline">\(s'
+\in \mathcal{S}\)</span> with probability <span class="math inline">\(p(s' \mid s,a)\)</span> and the agent receives
+the immediate reward <span class="math inline">\(r(s,a, s')\)</span>
+as a realization of the random variable <span class="math inline">\(R_t\)</span>. This process repeats for each time
+step <span class="math inline">\(t\)</span>. The goal is for the agent
+to choose actions that maximizes the expected sum of discounted future
+immediate rewards. We fist consider the infinite time horizon case. The
+optimal action for an MDP depends on the current state and can be
+specified as a deterministic policy <span class="math inline">\(\pi_*\)</span> which gives for each state the
+optimal action <span class="math inline">\(\pi_*(s)\)</span>. This leads
+to the following optimization problem.</p>
+<p><span class="math display">\[\pi_* = \max_\pi
+\mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^t R_t |
+\pi\right].\]</span></p>
 <p>For a finite time horizon, only the expectation over the sum up to
-the time horizon
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math>
-is used and the optimal policy also depends on the time step
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
-and the start state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>S</mi><mn>0</mn></msub><annotation encoding="application/x-tex">S_0</annotation></semantics></math>
-specified as a distribution over the states.</p>
+the time horizon <span class="math inline">\(T\)</span> is used and the
+optimal policy also depends on the time step <span class="math inline">\(t\)</span> and the start state <span class="math inline">\(S_0\)</span> specified as a distribution over the
+states.</p>
 </div>
 <div class="section level3">
 <h3 id="notation-used-in-the-package">Notation Used in the Package<a class="anchor" aria-label="anchor" href="#notation-used-in-the-package"></a>
@@ -257,14 +241,14 @@ specified as a distribution over the states.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒮</mi><annotation encoding="application/x-tex">\mathcal{S}</annotation></semantics></math></td>
+<td><span class="math inline">\(\mathcal{S}\)</span></td>
 <td>
 <code>states</code>, <code><a href="../reference/MDP.html">S()</a></code>
 </td>
 <td>the set of state</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi><mo>,</mo><msup><mi>s</mi><mo>′</mo></msup></mrow><annotation encoding="application/x-tex">s, s'</annotation></semantics></math></td>
+<td><span class="math inline">\(s, s'\)</span></td>
 <td>
 <code>s</code>, <code>state</code>, <code>start.state</code>,
 <code>end.state</code>
@@ -272,47 +256,42 @@ specified as a distribution over the states.</p>
 <td>a state</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝒜</mi><annotation encoding="application/x-tex">\mathcal{A}</annotation></semantics></math></td>
+<td><span class="math inline">\(\mathcal{A}\)</span></td>
 <td>
 <code>actions</code>, <code><a href="../reference/MDP.html">A()</a></code>
 </td>
 <td>the set of actions</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math></td>
+<td><span class="math inline">\(a\)</span></td>
 <td>
 <code>a</code>, <code>action</code>
 </td>
 <td>an action</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math></td>
+<td><span class="math inline">\(t\)</span></td>
 <td><code>t</code></td>
 <td>discrete time step</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>T</mi><annotation encoding="application/x-tex">T</annotation></semantics></math></td>
+<td><span class="math inline">\(T\)</span></td>
 <td>
 <code>T</code>, <code>horizon</code>
 </td>
 <td>final time step (length) of an episode, horizon</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>s</mi><mo>′</mo></msup><mo stretchy="false" form="prefix">|</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(s' | s, a)</annotation></semantics></math></td>
+<td><span class="math inline">\(p(s' | s, a)\)</span></td>
 <td>
 <code><a href="../reference/accessors.html">transition_matrix()</a></code>, <code>transition_model</code>,
 <code>p</code>
 </td>
-<td>probability of transition from state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-to state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>s</mi><mo>′</mo></msup><annotation encoding="application/x-tex">s'</annotation></semantics></math>
-by taking action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
+<td>probability of transition from state <span class="math inline">\(s\)</span> to state <span class="math inline">\(s'\)</span> by taking action <span class="math inline">\(a\)</span>
 </td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo>,</mo><msup><mi>s</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(s,a,s')</annotation></semantics></math></td>
+<td><span class="math inline">\(r(s,a,s')\)</span></td>
 <td>
 <code><a href="../reference/accessors.html">reward_matrix()</a></code>, <code>reward</code>,
 <code>r</code>
@@ -322,115 +301,96 @@ by taking action
 </td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math></td>
+<td><span class="math inline">\(\gamma\)</span></td>
 <td><code>discount</code></td>
 <td>discount factor</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mi>t</mi></msub><mo>,</mo><msub><mi>A</mi><mi>t</mi></msub><mo>,</mo><msub><mi>R</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">S_t, A_t, R_t</annotation></semantics></math></td>
+<td><span class="math inline">\(S_t, A_t, R_t\)</span></td>
 <td></td>
-<td>random variables for state, action and reward at time
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
+<td>random variables for state, action and reward at time <span class="math inline">\(t\)</span>
 </td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>0</mn></msub><mo>,</mo><msub><mi>S</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">s_0, S_0</annotation></semantics></math></td>
+<td><span class="math inline">\(s_0, S_0\)</span></td>
 <td>
 <code>start</code>, <code><a href="../reference/accessors.html">start_vector()</a></code>
 </td>
 <td>single start state, start distribution over states</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math></td>
+<td><span class="math inline">\(\pi\)</span></td>
 <td>vector <code>pi</code>, <code>policy</code>
 </td>
 <td>a deterministic policy with an action for each state</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi(s)</annotation></semantics></math></td>
+<td><span class="math inline">\(\pi(s)\)</span></td>
 <td></td>
-<td>prescribed action for state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
+<td>prescribed action for state <span class="math inline">\(s\)</span>
 in a deterministic policy</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo stretchy="false" form="prefix">(</mo><mi>a</mi><mo stretchy="false" form="prefix">|</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi(a|s)</annotation></semantics></math></td>
+<td><span class="math inline">\(\pi(a|s)\)</span></td>
 <td></td>
-<td>probability of action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
-in state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-in a stochastic policy</td>
+<td>probability of action <span class="math inline">\(a\)</span> in
+state <span class="math inline">\(s\)</span> in a stochastic policy</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>v</mi><mo>,</mo><msub><mi>v</mi><mi>π</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>v</mi><mo>*</mo></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">v, v_\pi(s), v_*(s)</annotation></semantics></math></td>
+<td><span class="math inline">\(v, v_\pi(s), v_*(s)\)</span></td>
 <td></td>
-<td>a state value vector, the value of state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-under policy
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
-or under the optimal policy</td>
+<td>a state value vector, the value of state <span class="math inline">\(s\)</span> under policy <span class="math inline">\(\pi\)</span> or under the optimal policy</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>V</mi><annotation encoding="application/x-tex">V</annotation></semantics></math></td>
+<td><span class="math inline">\(V\)</span></td>
 <td>vector <code>V</code>
 </td>
-<td>the tabular estimate of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mi>π</mi></msub><annotation encoding="application/x-tex">v_\pi</annotation></semantics></math>
-or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>v</mi><mo>*</mo></msub><annotation encoding="application/x-tex">v_*</annotation></semantics></math>
+<td>the tabular estimate of <span class="math inline">\(v_\pi\)</span>
+or <span class="math inline">\(v_*\)</span>
 </td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>π</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>q</mi><mo>*</mo></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\pi(s,a), q_*(s,a)</annotation></semantics></math></td>
+<td><span class="math inline">\(q_\pi(s,a), q_*(s,a)\)</span></td>
 <td></td>
-<td>value of taking action
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>a</mi><annotation encoding="application/x-tex">a</annotation></semantics></math>
-in state
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-under policy
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
-or the optimal policy</td>
+<td>value of taking action <span class="math inline">\(a\)</span> in
+state <span class="math inline">\(s\)</span> under policy <span class="math inline">\(\pi\)</span> or the optimal policy</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math></td>
+<td><span class="math inline">\(Q\)</span></td>
 <td>matrix <code>Q</code>
 </td>
-<td>the tabular estimate of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mi>π</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_\pi(s,a)</annotation></semantics></math>
-or
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>q</mi><mo>*</mo></msub><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">q_*(s,a)</annotation></semantics></math>
+<td>the tabular estimate of <span class="math inline">\(q_\pi(s,a)\)</span> or <span class="math inline">\(q_*(s,a)\)</span>
 </td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mi>π</mi></msub><annotation encoding="application/x-tex">B_\pi</annotation></semantics></math></td>
+<td><span class="math inline">\(B_\pi\)</span></td>
 <td><code><a href="../reference/bellman_update.html">bellman_operator()</a></code></td>
 <td>Bellman operator</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>B</mi><mo>*</mo></msub><annotation encoding="application/x-tex">B_*</annotation></semantics></math></td>
+<td><span class="math inline">\(B_*\)</span></td>
 <td><code><a href="../reference/bellman_update.html">bellman_update()</a></code></td>
 <td>Bellman update</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="normal">BE</mtext><annotation encoding="application/x-tex">\text{BE}</annotation></semantics></math></td>
+<td><span class="math inline">\(\text{BE}\)</span></td>
 <td>vector <code>BE</code>
 </td>
 <td>Bellman error vector (state value difference due to a Bellman
 update)</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="normal">VE</mtext><annotation encoding="application/x-tex">\text{VE}</annotation></semantics></math></td>
+<td><span class="math inline">\(\text{VE}\)</span></td>
 <td><code><a href="../reference/regret.html">value_error()</a></code></td>
 <td>State value difference between two policies</td>
 </tr>
 <tr class="odd">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\delta_t</annotation></semantics></math></td>
+<td><span class="math inline">\(\delta_t\)</span></td>
 <td><code>delta</code></td>
 <td>temporal difference error</td>
 </tr>
 <tr class="even">
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Δ</mi><annotation encoding="application/x-tex">\Delta</annotation></semantics></math></td>
+<td><span class="math inline">\(\Delta\)</span></td>
 <td><code>delta</code></td>
 <td>max. absolute Bellman error used in value iteration</td>
 </tr>
@@ -464,13 +424,11 @@ corresponds to one of the elements of an MDP.</p>
 <li><p><code>states</code> defines the set of states.</p></li>
 <li><p><code>actions</code> defines the set of actions.</p></li>
 <li><p><code>transition_model</code> defines the conditional transition
-probabilities
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false" form="prefix">(</mo><msup><mi>s</mi><mo>′</mo></msup><mo>∣</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p(s' \mid s,a)</annotation></semantics></math>,</p></li>
+probabilities <span class="math inline">\(p(s' \mid
+s,a)\)</span>,</p></li>
 <li><p><code>reward</code> specifies the reward function with entries
-for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">(</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo>,</mo><msup><mi>s</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">r(s, a, s')</annotation></semantics></math>,</p></li>
-<li><p><code>discount</code> is the discount factor in the range
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0,1]</annotation></semantics></math>,</p></li>
+for <span class="math inline">\(r(s, a, s')\)</span>,</p></li>
+<li><p><code>discount</code> is the discount factor in the range <span class="math inline">\([0,1]\)</span>,</p></li>
 <li><p><code>horizon</code> is the problem horizon as the number of
 periods to consider.</p></li>
 <li><p><code>start</code> defines in what state the problem starts. It
@@ -482,11 +440,9 @@ different ways. The initial state <code>start</code> can be specified
 as</p>
 <ul>
 <li>
-<p>A vector of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
-probabilities that add up to 1, where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
-is the number of states.</p>
+<p>A vector of <span class="math inline">\(n\)</span> probabilities
+that add up to 1, where <span class="math inline">\(n\)</span> is the
+number of states.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span></span></code></pre></div>
 </li>
@@ -581,9 +537,7 @@ the maze has a stochastic transition model.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/mhahsler/markovDP" class="external-link">"markovDP"</a></span><span class="op">)</span></span></code></pre></div>
 <p>After loading the library, we create the states using a gridworld
-helper function. We first look at the state layout of a
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>3</mn><mo>×</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">3 \times 4</annotation></semantics></math>
-maze.</p>
+helper function. We first look at the state layout of a <span class="math inline">\(3 \times 4\)</span> maze.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/gridworld.html">gw_matrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/gridworld.html">gw_init</a></span><span class="op">(</span>dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      [,1]     [,2]     [,3]     [,4]    </span></span>

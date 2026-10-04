@@ -78,42 +78,41 @@ in general.
 
 A discrete-time MDP can formally be described by
 
-- $`\mathcal{S} = \{s_1, s_2, \dots, s_n\}`$ is the set of fully
+- \\\mathcal{S} = \\s_1, s_2, \dots, s_n\\\\ is the set of fully
   observable states.
 
-- $`\mathcal{A} = \{a_1, a_2, \dots, a_m\}`$ is the set of actions.
+- \\\mathcal{A} = \\a_1, a_2, \dots, a_m\\\\ is the set of actions.
 
-- $`\mathcal{P}`$ a set of conditional transition probabilities.
-  $`p(s'|s,a)`$ is the probability for the state transition
-  $`s \rightarrow s'`$ conditioned on the taken action $`a`$.
+- \\\mathcal{P}\\ a set of conditional transition probabilities.
+  \\p(s'\|s,a)\\ is the probability for the state transition \\s
+  \rightarrow s'\\ conditioned on the taken action \\a\\.
 
-- $`r`$ is the reward function defined by a reward function
-  $`r(s, a, s')`$ returning the immediate reward received when
-  transitioning from state $`s`$ to $`s'`$ while using action $`a`$.
-  $`R_t`$ is a random variable for the immediate reward at time $`t`$.
+- \\r\\ is the reward function defined by a reward function \\r(s, a,
+  s')\\ returning the immediate reward received when transitioning from
+  state \\s\\ to \\s'\\ while using action \\a\\. \\R_t\\ is a random
+  variable for the immediate reward at time \\t\\.
 
-- $`\gamma \in [0, 1]`$ is the discount factor.
+- \\\gamma \in \[0, 1\]\\ is the discount factor.
 
-At each time step $`t`$, the environment is in some known state
-$`s \in \mathcal{S}`$. The agent chooses an action
-$`a \in \mathcal{A}`$, which causes the environment to transition to
-state $`s' \in \mathcal{S}`$ with probability $`p(s' \mid s,a)`$ and the
-agent receives the immediate reward $`r(s,a, s')`$ as a realization of
-the random variable $`R_t`$. This process repeats for each time step
-$`t`$. The goal is for the agent to choose actions that maximizes the
-expected sum of discounted future immediate rewards. We fist consider
-the infinite time horizon case. The optimal action for an MDP depends on
-the current state and can be specified as a deterministic policy
-$`\pi_*`$ which gives for each state the optimal action $`\pi_*(s)`$.
-This leads to the following optimization problem.
+At each time step \\t\\, the environment is in some known state \\s \in
+\mathcal{S}\\. The agent chooses an action \\a \in \mathcal{A}\\, which
+causes the environment to transition to state \\s' \in \mathcal{S}\\
+with probability \\p(s' \mid s,a)\\ and the agent receives the immediate
+reward \\r(s,a, s')\\ as a realization of the random variable \\R_t\\.
+This process repeats for each time step \\t\\. The goal is for the agent
+to choose actions that maximizes the expected sum of discounted future
+immediate rewards. We fist consider the infinite time horizon case. The
+optimal action for an MDP depends on the current state and can be
+specified as a deterministic policy \\\pi\_\*\\ which gives for each
+state the optimal action \\\pi\_\*(s)\\. This leads to the following
+optimization problem.
 
-``` math
-\pi_* = \max_\pi \mathbb{E}\left[\sum_{t=1}^{\infty} \gamma^t R_t | \pi\right].
-```
+\\\pi\_\* = \max\_\pi \mathbb{E}\left\[\sum\_{t=1}^{\infty} \gamma^t R_t
+\| \pi\right\].\\
 
 For a finite time horizon, only the expectation over the sum up to the
-time horizon $`T`$ is used and the optimal policy also depends on the
-time step $`t`$ and the start state $`S_0`$ specified as a distribution
+time horizon \\T\\ is used and the optimal policy also depends on the
+time step \\t\\ and the start state \\S_0\\ specified as a distribution
 over the states.
 
 ### Notation Used in the Package
@@ -123,30 +122,30 @@ The notation used in the package largely follows ([Sutton and Barto
 
 | Notation | Variables/Functions in Code | Description |
 |----|----|----|
-| $`\mathcal{S}`$ | `states`, [`S()`](http://michael.hahsler.net/markovDP/reference/MDP.md) | the set of state |
-| $`s, s'`$ | `s`, `state`, `start.state`, `end.state` | a state |
-| $`\mathcal{A}`$ | `actions`, [`A()`](http://michael.hahsler.net/markovDP/reference/MDP.md) | the set of actions |
-| $`a`$ | `a`, `action` | an action |
-| $`t`$ | `t` | discrete time step |
-| $`T`$ | `T`, `horizon` | final time step (length) of an episode, horizon |
-| $`p(s' | s, a)`$ | [`transition_matrix()`](http://michael.hahsler.net/markovDP/reference/accessors.md), `transition_model`, `p` | probability of transition from state $`s`$ to state $`s'`$ by taking action $`a`$ |
-| $`r(s,a,s')`$ | [`reward_matrix()`](http://michael.hahsler.net/markovDP/reference/accessors.md), `reward`, `r` | expected immediate reward on transition from `s` to `s'` under action `a` |
-| $`\gamma`$ | `discount` | discount factor |
-| $`S_t, A_t, R_t`$ |  | random variables for state, action and reward at time $`t`$ |
-| $`s_0, S_0`$ | `start`, [`start_vector()`](http://michael.hahsler.net/markovDP/reference/accessors.md) | single start state, start distribution over states |
-| $`\pi`$ | vector `pi`, `policy` | a deterministic policy with an action for each state |
-| $`\pi(s)`$ |  | prescribed action for state $`s`$ in a deterministic policy |
-| $`\pi(a|s)`$ |  | probability of action $`a`$ in state $`s`$ in a stochastic policy |
-| $`v, v_\pi(s), v_*(s)`$ |  | a state value vector, the value of state $`s`$ under policy $`\pi`$ or under the optimal policy |
-| $`V`$ | vector `V` | the tabular estimate of $`v_\pi`$ or $`v_*`$ |
-| $`q_\pi(s,a), q_*(s,a)`$ |  | value of taking action $`a`$ in state $`s`$ under policy $`\pi`$ or the optimal policy |
-| $`Q`$ | matrix `Q` | the tabular estimate of $`q_\pi(s,a)`$ or $`q_*(s,a)`$ |
-| $`B_\pi`$ | [`bellman_operator()`](http://michael.hahsler.net/markovDP/reference/bellman_update.md) | Bellman operator |
-| $`B_*`$ | [`bellman_update()`](http://michael.hahsler.net/markovDP/reference/bellman_update.md) | Bellman update |
-| $`\text{BE}`$ | vector `BE` | Bellman error vector (state value difference due to a Bellman update) |
-| $`\text{VE}`$ | [`value_error()`](http://michael.hahsler.net/markovDP/reference/regret.md) | State value difference between two policies |
-| $`\delta_t`$ | `delta` | temporal difference error |
-| $`\Delta`$ | `delta` | max. absolute Bellman error used in value iteration |
+| \\\mathcal{S}\\ | `states`, [`S()`](http://michael.hahsler.net/markovDP/reference/MDP.md) | the set of state |
+| \\s, s'\\ | `s`, `state`, `start.state`, `end.state` | a state |
+| \\\mathcal{A}\\ | `actions`, [`A()`](http://michael.hahsler.net/markovDP/reference/MDP.md) | the set of actions |
+| \\a\\ | `a`, `action` | an action |
+| \\t\\ | `t` | discrete time step |
+| \\T\\ | `T`, `horizon` | final time step (length) of an episode, horizon |
+| \\p(s' \| s, a)\\ | [`transition_matrix()`](http://michael.hahsler.net/markovDP/reference/accessors.md), `transition_model`, `p` | probability of transition from state \\s\\ to state \\s'\\ by taking action \\a\\ |
+| \\r(s,a,s')\\ | [`reward_matrix()`](http://michael.hahsler.net/markovDP/reference/accessors.md), `reward`, `r` | expected immediate reward on transition from `s` to `s'` under action `a` |
+| \\\gamma\\ | `discount` | discount factor |
+| \\S_t, A_t, R_t\\ |  | random variables for state, action and reward at time \\t\\ |
+| \\s_0, S_0\\ | `start`, [`start_vector()`](http://michael.hahsler.net/markovDP/reference/accessors.md) | single start state, start distribution over states |
+| \\\pi\\ | vector `pi`, `policy` | a deterministic policy with an action for each state |
+| \\\pi(s)\\ |  | prescribed action for state \\s\\ in a deterministic policy |
+| \\\pi(a\|s)\\ |  | probability of action \\a\\ in state \\s\\ in a stochastic policy |
+| \\v, v\_\pi(s), v\_\*(s)\\ |  | a state value vector, the value of state \\s\\ under policy \\\pi\\ or under the optimal policy |
+| \\V\\ | vector `V` | the tabular estimate of \\v\_\pi\\ or \\v\_\*\\ |
+| \\q\_\pi(s,a), q\_\*(s,a)\\ |  | value of taking action \\a\\ in state \\s\\ under policy \\\pi\\ or the optimal policy |
+| \\Q\\ | matrix `Q` | the tabular estimate of \\q\_\pi(s,a)\\ or \\q\_\*(s,a)\\ |
+| \\B\_\pi\\ | [`bellman_operator()`](http://michael.hahsler.net/markovDP/reference/bellman_update.md) | Bellman operator |
+| \\B\_\*\\ | [`bellman_update()`](http://michael.hahsler.net/markovDP/reference/bellman_update.md) | Bellman update |
+| \\\text{BE}\\ | vector `BE` | Bellman error vector (state value difference due to a Bellman update) |
+| \\\text{VE}\\ | [`value_error()`](http://michael.hahsler.net/markovDP/reference/regret.md) | State value difference between two policies |
+| \\\delta_t\\ | `delta` | temporal difference error |
+| \\\Delta\\ | `delta` | max. absolute Bellman error used in value iteration |
 
 ## Package Functionality
 
@@ -183,12 +182,12 @@ where
 - `actions` defines the set of actions.
 
 - `transition_model` defines the conditional transition probabilities
-  $`p(s' \mid s,a)`$,
+  \\p(s' \mid s,a)\\,
 
-- `reward` specifies the reward function with entries for
-  $`r(s, a, s')`$,
+- `reward` specifies the reward function with entries for \\r(s, a,
+  s')\\,
 
-- `discount` is the discount factor in the range $`[0,1]`$,
+- `discount` is the discount factor in the range \\\[0,1\]\\,
 
 - `horizon` is the problem horizon as the number of periods to consider.
 
@@ -199,7 +198,7 @@ While specifying the discount rate and the set of states, and actions in
 code is straight-forward. Some arguments can be specified in different
 ways. The initial state `start` can be specified as
 
-- A vector of $`n`$ probabilities that add up to 1, where $`n`$ is the
+- A vector of \\n\\ probabilities that add up to 1, where \\n\\ is the
   number of states.
 
   ``` r
@@ -314,7 +313,7 @@ library("markovDP")
 ```
 
 After loading the library, we create the states using a gridworld helper
-function. We first look at the state layout of a $`3 \times 4`$ maze.
+function. We first look at the state layout of a \\3 \times 4\\ maze.
 
 ``` r
 

@@ -191,8 +191,8 @@ f_q
 #>         x <- c(x0 = 1, x)
 #>     x
 #> }
-#> <bytecode: 0x55f2b21406a8>
-#> <environment: 0x55f2ac732a00>
+#> <bytecode: 0x55fb6ff495b0>
+#> <environment: 0x55fb69ff7b00>
 #> 
 #> weights:
 #>    up.x0    up.x1    up.x2 right.x0 right.x1 right.x2  down.x0  down.x1 
@@ -217,8 +217,8 @@ f_q
 #>         x <- c(x0 = 1, x)
 #>     x
 #> }
-#> <bytecode: 0x55f2b21406a8>
-#> <environment: 0x55f2ac732a00>
+#> <bytecode: 0x55fb6ff495b0>
+#> <environment: 0x55fb69ff7b00>
 #> 
 #> weights:
 #>    up.x0    up.x1    up.x2 right.x0 right.x1 right.x2  down.x0  down.x1 
@@ -242,8 +242,8 @@ sol$solution$q_approx_linear
 #>         x <- c(x0 = 1, x)
 #>     x
 #> }
-#> <bytecode: 0x55f2b21406a8>
-#> <environment: 0x55f2ac159578>
+#> <bytecode: 0x55fb6ff495b0>
+#> <environment: 0x55fb69d83698>
 #> 
 #> weights:
 #>        up.x0        up.x1        up.x2     right.x0     right.x1     right.x2 
@@ -267,8 +267,8 @@ f_v
 #>         x <- c(x0 = 1, x)
 #>     x
 #> }
-#> <bytecode: 0x55f2b21406a8>
-#> <environment: 0x55f2b224dad0>
+#> <bytecode: 0x55fb6ff495b0>
+#> <environment: 0x55fb6d6d2ab0>
 #> 
 #> weights:
 #> x0 x1 x2 
@@ -289,8 +289,8 @@ f_pi
 #>         x <- c(x0 = 1, x)
 #>     x
 #> }
-#> <bytecode: 0x55f2b21406a8>
-#> <environment: 0x55f2b0451830>
+#> <bytecode: 0x55fb6ff495b0>
+#> <environment: 0x55fb6e945020>
 #> 
 #> weights:
 #>    up.x0    up.x1    up.x2 right.x0 right.x1 right.x2  down.x0  down.x1 

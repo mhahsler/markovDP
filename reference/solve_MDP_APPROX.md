@@ -285,8 +285,8 @@ sol$solution$q_approx_linear
 #>         x <- c(x0 = 1, x)
 #>     x
 #> }
-#> <bytecode: 0x55f2b21406a8>
-#> <environment: 0x55f2af3eb2f0>
+#> <bytecode: 0x55fb6ff495b0>
+#> <environment: 0x55fb6b1c0c20>
 #> 
 #> weights:
 #>    up.x0    up.x1    up.x2 right.x0 right.x1 right.x2  down.x0  down.x1 

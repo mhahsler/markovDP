@@ -82,8 +82,8 @@ s_exp <- schedule_exp(1, decay = .1)
 s_exp
 #> function (t) 
 #> start * exp(-decay * (t - 1))
-#> <bytecode: 0x55f2ac22a3a8>
-#> <environment: 0x55f2b616dbc0>
+#> <bytecode: 0x55fb69e5e8b8>
+#> <environment: 0x55fb6c0c4328>
 
 # plot the schedule for 100 episodes.
 episode <- seq_len(100)
