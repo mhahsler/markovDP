@@ -1,6 +1,7 @@
 url: http://michael.hahsler.net/markovDP/
 template:
   bootstrap: 5
+  math-rendering: mathjax
 
 development:
   mode: unreleased
